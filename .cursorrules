@@ -1,0 +1,385 @@
+# Job Advertisement Platform - Cursor Rules
+
+## Project Overview
+This is a Laravel-based job advertisement platform using Filament PHP for the admin panel. The project follows industry-standard practices with a clean, maintainable architecture.
+
+## Technology Stack
+- **Framework**: Laravel 12
+- **Admin Panel**: Filament PHP 5.x
+- **Database**: MySQL
+- **PHP Version**: 8.2+
+
+## Project Structure
+
+### Directory Organization
+```
+app/
+├── Filament/
+│   └── Resources/          # Filament admin panel resources
+├── Http/
+│   └── Controllers/        # API/Web controllers
+├── Models/                 # Eloquent models
+├── Repositories/           # Data access layer (Repository pattern)
+├── Services/              # Business logic layer
+└── Resources/             # API resources (if needed)
+```
+
+### Key Models
+- **Company**: Companies posting jobs
+- **JobCategory**: Categories for organizing jobs
+- **JobAdvertisement**: Job postings
+- **JobApplication**: Applications submitted for jobs
+- **User**: System users (extends Laravel's default User model)
+
+## Coding Standards
+
+### General Principles
+1. Follow PSR-12 coding standards
+2. Use type hints and return types everywhere
+3. Keep methods small and focused (Single Responsibility Principle)
+4. Use dependency injection for dependencies
+5. Prefer Eloquent relationships over manual joins
+6. Use migrations for all database changes
+
+### Naming Conventions
+- **Models**: PascalCase, singular (e.g., `JobAdvertisement`)
+- **Controllers**: PascalCase, plural (e.g., `JobAdvertisementsController`)
+- **Migrations**: snake_case with descriptive names
+- **Tables**: snake_case, plural (e.g., `job_advertisements`)
+- **Relationships**: camelCase (e.g., `jobAdvertisements()`)
+
+### Database Conventions
+- Always use foreign keys with proper constraints
+- Use soft deletes for important records
+- Add indexes for frequently queried columns
+- Use enums for status fields
+- Include `created_at`, `updated_at`, and `deleted_at` timestamps
+
+### Filament Resources
+- Group related resources in navigation groups
+- Use appropriate icons from Heroicons
+- Implement proper form validation
+- Use sections to organize complex forms
+- Add filters for list views
+- Use badges for status columns
+
+### Model Relationships
+- Always define inverse relationships
+- Use eager loading to prevent N+1 queries
+- Document relationships in model docblocks
+
+### Architecture Pattern: Repository + Service Layer
+
+**IMPORTANT: Never mix business logic with controllers or database queries!**
+
+#### Layer Structure:
+1. **Controllers** (`app/Http/Controllers/`)
+   - Handle HTTP requests/responses only
+   - Validate input
+   - Call Services, never Repositories or Models directly
+   - Return JSON responses or views
+
+2. **Services** (`app/Services/`)
+   - Contain ALL business logic
+   - Use Repositories for data access
+   - Handle business rules, validations, transformations
+   - Examples: slug generation, status updates, counting logic
+
+3. **Repositories** (`app/Repositories/`)
+   - Handle ALL database queries
+   - Implement Repository Interfaces
+   - Return models or collections
+   - Use eager loading to prevent N+1 queries
+
+4. **Models** (`app/Models/`)
+   - Define relationships and attributes only
+   - No business logic in models
+   - Use for Eloquent relationships and casts
+
+#### Rules:
+- ✅ Controllers → Services → Repositories → Models
+- ❌ Controllers → Models (NEVER!)
+- ❌ Controllers → Repositories (NEVER!)
+- ❌ Services → Models directly (use Repositories)
+- ❌ Business logic in Controllers (use Services)
+- ❌ Database queries in Controllers (use Repositories)
+
+#### Repository Pattern:
+- Create Interface in `app/Repositories/Contracts/`
+- Create Implementation in `app/Repositories/`
+- Register bindings in `AppServiceProvider`
+- Services inject Repository Interfaces (not implementations)
+
+#### Service Pattern:
+- One Service per main Model
+- Services inject Repository Interfaces via constructor
+- All business logic methods in Services
+- Services are testable and reusable
+
+## Common Tasks
+
+### Adding a New Model
+1. Create migration: `php artisan make:migration create_[table_name]_table`
+2. Create model: `php artisan make:model [ModelName]`
+3. Define fillable, casts, and relationships
+4. Create Repository Interface: `app/Repositories/Contracts/[ModelName]RepositoryInterface.php`
+5. Create Repository Implementation: `app/Repositories/[ModelName]Repository.php`
+6. Register Repository binding in `AppServiceProvider`
+7. Create Service: `app/Services/[ModelName]Service.php`
+8. Create Controller (if needed): `app/Http/Controllers/Api/[ModelName]Controller.php`
+9. Create Filament resource: `php artisan make:filament-resource [ModelName]`
+10. Update navigation in AdminPanelProvider if needed
+
+### Database Migrations
+- Always use `foreignId()` for foreign keys
+- Add `->constrained()->onDelete('cascade')` for required relationships
+- Use `->nullable()->constrained()->onDelete('set null')` for optional relationships
+- Add indexes for foreign keys and frequently queried columns
+
+### Filament Forms
+- Use `Forms\Components\Section` to group related fields
+- Use `->live()` for fields that affect other fields
+- Use `->afterStateUpdated()` for auto-generating slugs
+- Use `->unique(ignoreRecord: true)` for unique fields in edit forms
+
+### Testing
+- Write feature tests for critical paths
+- Test model relationships
+- Test Filament resource forms and tables
+
+## Environment Configuration
+- Database connection: MySQL (configured in `.env`)
+- Default connection: `mysql`
+- Ensure `DB_CONNECTION=mysql` in `.env`
+
+## Common Commands
+- `php artisan migrate` - Run migrations
+- `php artisan migrate:fresh --seed` - Fresh migration with seeders
+- `php artisan make:model ModelName -m` - Create model with migration
+- `php artisan make:filament-resource ModelName` - Create Filament resource
+
+## Notes
+- Always check for existing relationships before adding new ones
+- Use transactions for operations that modify multiple tables
+- Implement proper authorization (policies) for Filament resources
+- Keep migrations reversible (implement proper `down()` methods)
+
+## When Adding Features
+1. Start with database migrations
+2. Create/update models with relationships
+3. Create Filament resources for admin management
+4. Add business logic to Services if needed
+5. Write tests for critical functionality
+6. Update documentation
+
+## Frontend Navigation & SPA-like Behavior
+
+### Using Livewire's `wire:navigate` for SPA Navigation
+
+This project uses Livewire's `wire:navigate` directive to provide SPA-like navigation without full page reloads. This improves user experience with faster transitions and preserved scroll positions.
+
+#### Basic Usage
+
+**ALWAYS use `wire:navigate` on internal navigation links:**
+
+```blade
+<!-- ✅ CORRECT: Internal navigation links -->
+<a href="/jobs" wire:navigate>View Jobs</a>
+<a href="/jobs/{{ $job->id }}" wire:navigate>View Job Details</a>
+<a href="/job-seeker/dashboard" wire:navigate>Dashboard</a>
+
+<!-- ❌ WRONG: Missing wire:navigate -->
+<a href="/jobs">View Jobs</a>
+```
+
+#### Programmatic Navigation in JavaScript
+
+**When navigating programmatically, use the global `navigateTo()` function:**
+
+```javascript
+// ✅ CORRECT: Use navigateTo() for programmatic navigation
+function handleApply(jobId) {
+    navigateTo(`/jobs/${jobId}/apply`);
+}
+
+// ❌ WRONG: Don't use window.location.href
+function handleApply(jobId) {
+    window.location.href = `/jobs/${jobId}/apply`; // This causes full page reload
+}
+```
+
+The `navigateTo()` function is defined in `resources/js/app.js` and uses Livewire's navigation when available, falling back to `window.location.href` if Livewire is not available.
+
+### JavaScript Execution with `wire:navigate`
+
+**CRITICAL: Inline `<script>` tags in Blade templates DO NOT execute with `wire:navigate` navigation.**
+
+This means any JavaScript defined in inline `<script>` tags will only run on initial page load, not when navigating via `wire:navigate`.
+
+#### Solution: Global JavaScript Functions
+
+**For JavaScript that needs to work with `wire:navigate`, define functions globally in `resources/js/`:**
+
+1. **Create a dedicated JavaScript file** (e.g., `resources/js/job-detail.js`)
+2. **Import it in `resources/js/app.js`** so it's always loaded
+3. **Attach functions to `window` object** to make them globally available
+
+**Example:**
+
+```javascript
+// resources/js/job-detail.js
+window.loadJobDetail = async function() {
+    // Function implementation
+    const jobId = getJobIdFromUrl();
+    // ... fetch and render job data
+};
+
+// resources/js/app.js
+import './job-detail.js'; // Import to make it globally available
+```
+
+**Then in your Blade template, you can call it:**
+
+```blade
+<script>
+    // This inline script can call the global function
+    if (window.location.pathname.match(/\/jobs\/\d+$/)) {
+        if (typeof window.loadJobDetail === 'function') {
+            window.loadJobDetail();
+        }
+    }
+</script>
+```
+
+#### Global Handler Pattern
+
+**For automatic execution on navigation, use a global handler in `app.js`:**
+
+```javascript
+// resources/js/app.js
+(function() {
+    function checkAndLoadJobDetail() {
+        if (window.location.pathname.match(/\/jobs\/\d+$/)) {
+            const element = document.getElementById('job-detail');
+            if (element && typeof window.loadJobDetail === 'function') {
+                const isSkeleton = element.innerHTML.includes('animate-pulse');
+                if (isSkeleton) {
+                    window.loadJobDetail();
+                }
+            }
+        }
+    }
+    
+    // Listen for Livewire navigation
+    if (typeof Livewire !== 'undefined') {
+        document.addEventListener('livewire:navigated', function() {
+            setTimeout(checkAndLoadJobDetail, 100);
+        });
+    }
+    
+    // Initial check
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkAndLoadJobDetail);
+    } else {
+        checkAndLoadJobDetail();
+    }
+})();
+```
+
+### Best Practices
+
+1. **Always use `wire:navigate` on internal links:**
+   - All `<a>` tags linking to routes within the application
+   - Navigation menu items
+   - Breadcrumb links
+   - "Back" buttons
+   - Related content links (e.g., "Similar jobs", "Other jobs from company")
+
+2. **Use `navigateTo()` for programmatic navigation:**
+   - Form submissions that redirect
+   - Button clicks that navigate
+   - Conditional redirects in JavaScript
+
+3. **Define page-specific JavaScript globally:**
+   - Create separate files in `resources/js/` for complex page logic
+   - Import them in `app.js` to ensure they're always available
+   - Use inline scripts only for simple initialization that calls global functions
+
+4. **Handle navigation events:**
+   - Use `livewire:navigated` event listener for code that needs to run after navigation
+   - Use `MutationObserver` if you need to detect DOM changes after navigation
+   - Always check if elements exist before accessing them
+
+5. **Avoid inline script dependencies:**
+   - Don't define large functions in inline `<script>` tags
+   - Don't rely on inline scripts executing on `wire:navigate` navigation
+   - Keep inline scripts minimal - only for simple initialization
+
+### Common Pitfalls
+
+1. **❌ Defining functions in inline scripts:**
+   ```blade
+   <script>
+       function loadData() { /* ... */ } // Won't work with wire:navigate!
+   </script>
+   ```
+   **✅ Solution:** Define in `resources/js/` and import in `app.js`
+
+2. **❌ Using `window.location.href` for navigation:**
+   ```javascript
+   window.location.href = '/jobs'; // Causes full page reload
+   ```
+   **✅ Solution:** Use `navigateTo('/jobs')`
+
+3. **❌ Missing `wire:navigate` on links:**
+   ```blade
+   <a href="/jobs">Jobs</a> <!-- Full page reload -->
+   ```
+   **✅ Solution:** Add `wire:navigate` attribute
+
+4. **❌ Assuming inline scripts run on navigation:**
+   ```blade
+   <script>
+       // This only runs on initial page load, not on wire:navigate
+       document.getElementById('element').addEventListener('click', ...);
+   </script>
+   ```
+   **✅ Solution:** Use global handlers or event delegation
+
+### File Organization
+
+```
+resources/js/
+├── app.js              # Main entry point, imports all modules
+├── job-detail.js       # Job detail page functionality
+├── job-search.js       # Job search functionality
+└── ...                 # Other page-specific modules
+```
+
+**Always import new modules in `app.js`:**
+
+```javascript
+// resources/js/app.js
+import './job-detail.js';
+import './job-search.js';
+// ... other imports
+```
+
+### Testing Navigation
+
+When testing navigation:
+1. Navigate between pages using `wire:navigate` links
+2. Verify JavaScript functions execute correctly
+3. Check browser console for errors
+4. Verify data loads without manual page reload
+5. Test browser back/forward buttons (they should work correctly)
+
+## Important Reminders
+- Never commit `.env` file
+- Always use migrations, never modify database directly
+- Use soft deletes for important records
+- Add proper validation to Filament forms
+- Use eager loading to optimize queries
+- Follow Laravel and Filament best practices
+- **Always use `wire:navigate` on internal links for SPA-like navigation**
+- **Define JavaScript functions globally in `resources/js/` files, not in inline scripts**
