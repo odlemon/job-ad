@@ -106,6 +106,12 @@ class JobAdvertisementRepository implements JobAdvertisementRepositoryInterface
             $query->where('employment_type', $filters['employment_type']);
         }
 
+        // Filter by remote option
+        if (isset($filters['is_remote']) && $filters['is_remote'] !== '') {
+            $isRemote = filter_var($filters['is_remote'], FILTER_VALIDATE_BOOLEAN);
+            $query->where('is_remote', $isRemote);
+        }
+
         // Filter by salary range
         if (isset($filters['salary_min']) && !empty($filters['salary_min'])) {
             $query->where(function ($q) use ($filters) {
@@ -121,7 +127,25 @@ class JobAdvertisementRepository implements JobAdvertisementRepositoryInterface
             });
         }
 
-        return $query->orderBy('published_at', 'desc')->paginate($perPage);
+        // Handle sorting
+        $sortBy = $filters['sort'] ?? 'latest';
+        switch ($sortBy) {
+            case 'oldest':
+                $query->orderBy('published_at', 'asc');
+                break;
+            case 'salary_high':
+                $query->orderByRaw('CAST(salary_max AS UNSIGNED) DESC');
+                break;
+            case 'salary_low':
+                $query->orderByRaw('CAST(salary_min AS UNSIGNED) ASC');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('published_at', 'desc');
+                break;
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function getSimilarJobs(JobAdvertisement $job, int $limit = 5): Collection

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobSeekerSkill extends Model
 {
+    protected $table = 'job_seeker_skills';
+
     protected $fillable = [
         'seeker_id',
         'skill_name',

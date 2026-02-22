@@ -10,6 +10,8 @@ class JobSeekerExperience extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'job_seeker_experiences';
+
     protected $fillable = [
         'seeker_id',
         'job_title',

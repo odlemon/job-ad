@@ -30,12 +30,17 @@ class JobSearchController extends Controller
             'employment_type' => $request->get('employment_type'),
             'salary_min' => $request->get('salary_min'),
             'salary_max' => $request->get('salary_max'),
+            'is_remote' => $request->get('is_remote'),
+            'sort' => $request->get('sort'),
         ];
 
-        // Remove empty filters
-        $filters = array_filter($filters, function ($value) {
+        // Remove empty filters (but keep is_remote if it's explicitly set)
+        $filters = array_filter($filters, function ($value, $key) {
+            if ($key === 'is_remote') {
+                return $value !== null && $value !== '';
+            }
             return $value !== null && $value !== '';
-        });
+        }, ARRAY_FILTER_USE_BOTH);
 
         $jobs = $this->service->search($filters, $perPage);
 

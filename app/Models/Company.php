@@ -18,14 +18,24 @@ class Company extends Model
         'email',
         'phone',
         'logo',
+        'cover_image',
+        'gallery_images',
         'industry',
         'size',
         'location',
+        'founded_year',
+        'linkedin',
+        'twitter',
+        'culture_benefits',
         'is_active',
+        'verified_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'founded_year' => 'integer',
+        'gallery_images' => 'array',
+        'verified_at' => 'datetime',
     ];
 
     /**

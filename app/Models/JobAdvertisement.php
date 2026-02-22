@@ -31,6 +31,7 @@ class JobAdvertisement extends Model
         'applications_count',
         'status',
         'published_at',
+        'application_questions',
     ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class JobAdvertisement extends Model
         'published_at' => 'datetime',
         'views_count' => 'integer',
         'applications_count' => 'integer',
+        'application_questions' => 'array',
     ];
 
     /**

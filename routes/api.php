@@ -57,6 +57,9 @@ Route::middleware(array_merge($sessionMiddleware, ['auth']))->group(function () 
 
     // Job Seeker routes
     Route::prefix('job-seeker')->middleware(['ensure.job.seeker'])->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [\App\Http\Controllers\JobSeeker\DashboardController::class, 'index']);
+        
         // Profile management
         Route::get('/profile', [JobSeekerController::class, 'profile']);
         Route::put('/profile', [JobSeekerController::class, 'updateProfile']);
@@ -68,6 +71,7 @@ Route::middleware(array_merge($sessionMiddleware, ['auth']))->group(function () 
 
         // Applications
         Route::get('/applications', [ApplicationController::class, 'index']);
+        Route::get('/applications/check/{jobId}', [ApplicationController::class, 'check']);
         Route::get('/applications/{id}', [ApplicationController::class, 'show']);
         Route::post('/applications', [ApplicationController::class, 'store']);
         Route::delete('/applications/{id}/withdraw', [ApplicationController::class, 'withdraw']);

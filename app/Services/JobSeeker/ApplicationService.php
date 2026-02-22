@@ -102,6 +102,16 @@ class ApplicationService
     }
 
     /**
+     * Check if a job seeker has already applied to a job.
+     */
+    public function hasApplied(string $seekerId, int $jobAdvertisementId): bool
+    {
+        return $this->repository->getBySeekerId($seekerId)
+            ->where('job_advertisement_id', $jobAdvertisementId)
+            ->exists();
+    }
+
+    /**
      * Withdraw application.
      * Note: We'll delete the application instead of changing status to 'withdrawn'
      * since 'withdrawn' is not in the enum. Alternatively, we could add it to the enum.

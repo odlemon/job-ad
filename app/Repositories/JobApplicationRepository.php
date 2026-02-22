@@ -112,4 +112,28 @@ class JobApplicationRepository implements JobApplicationRepositoryInterface
             $query->where('company_id', $companyId);
         })->count();
     }
+
+    public function getByUserId(int $userId): Collection
+    {
+        return JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function paginateByUserId(int $userId, int $perPage = 15): LengthAwarePaginator
+    {
+        return JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    public function getByUserIdPaginated(int $userId, int $perPage = 15): LengthAwarePaginator
+    {
+        return JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
 }

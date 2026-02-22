@@ -1,5 +1,9 @@
-// Import job detail functionality (must be loaded globally for wire:navigate)
+// Import page functionality (must be loaded globally for wire:navigate)
 import './job-detail.js';
+import './profile.js';
+import './applications.js';
+import './notifications.js';
+import './auth-modal.js';
 
 // Global loading utilities
 window.showLoading = function(element) {
@@ -323,82 +327,4 @@ window.navigateTo = function(url) {
     });
 })();
 
-// Global handler for profile pages (works with wire:navigate)
-// Optimized version with minimal retry logic
-(function() {
-    let isHandling = false;
-    
-    function checkAndLoadProfile() {
-        // Prevent duplicate execution
-        if (isHandling) return;
-        
-        if (window.location.pathname !== '/job-seeker/profile') {
-            return;
-        }
-        
-        const profileElement = document.querySelector('main');
-        if (!profileElement) {
-            return;
-        }
-        
-        const needsLoading = profileElement.getAttribute('data-profile-loaded') !== 'true';
-        const hasRealContent = profileElement.innerHTML.includes('Personal Information') ||
-                            profileElement.innerHTML.includes('Edit Profile');
-        const isSkeleton = profileElement.innerHTML.includes('animate-pulse');
-        
-        // If function is available, use it
-        if (typeof window.loadProfile === 'function') {
-            if (isSkeleton || !hasRealContent || needsLoading) {
-                isHandling = true;
-                window.loadProfile().finally(() => {
-                    isHandling = false;
-                });
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    // Check on initial load
-    function init() {
-        if (checkAndLoadProfile()) {
-            return;
-        }
-        // If function not ready, retry once after a short delay
-        if (typeof window.loadProfile !== 'function') {
-            setTimeout(() => {
-                if (typeof window.loadProfile === 'function') {
-                    checkAndLoadProfile();
-                }
-            }, 100);
-        }
-    }
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-    
-    // Listen for Livewire navigation - simplified
-    if (typeof Livewire !== 'undefined') {
-        document.addEventListener('livewire:navigated', function() {
-            // Reset handling flag on navigation
-            isHandling = false;
-            // Try immediately, then once more if needed
-            if (!checkAndLoadProfile()) {
-                setTimeout(() => {
-                    if (typeof window.loadProfile === 'function') {
-                        checkAndLoadProfile();
-                    }
-                }, 100);
-            }
-        });
-    }
-    
-    // Handle popstate (browser back/forward)
-    window.addEventListener('popstate', function() {
-        isHandling = false;
-        setTimeout(checkAndLoadProfile, 50);
-    });
-})();
+// Profile page handler is in profile.js (imported above)

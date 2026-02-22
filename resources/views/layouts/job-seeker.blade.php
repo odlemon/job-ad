@@ -14,8 +14,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="font-sans antialiased bg-gray-50">
-    @yield('content')
+<body class="font-sans antialiased bg-gray-50" data-user-type="job_seeker">
+    <div class="min-h-screen bg-gray-50">
+        @include('partials.job-seeker-sidebar')
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col ml-64">
+            @yield('content')
+        </div>
+    </div>
 
     @livewireScripts
     @stack('scripts')

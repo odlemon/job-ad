@@ -10,6 +10,8 @@ class JobSeekerReference extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'job_seeker_references';
+
     protected $fillable = [
         'seeker_id',
         'reference_name',

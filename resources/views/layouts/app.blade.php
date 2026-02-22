@@ -81,15 +81,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                             </svg>
                         </button>
-                        <!-- Login/Signup Button -->
+                        <!-- Login/Register Button -->
                         @if(auth()->check())
                             <a href="{{ route('dashboard') }}" wire:navigate class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" wire:navigate class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                                Login/Signup
-                            </a>
+                            <button onclick="window.openAuthModal('login')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                Login/Register
+                            </button>
                         @endif
                     </div>
                 </div>
@@ -123,12 +123,60 @@
                 window.location.href = url;
             }
         };
+        
+        // Fallback for auth modal - will be overridden by auth-modal.js if loaded
+        window.openAuthModal = window.openAuthModal || function(tab = 'login') {
+            const modal = document.getElementById('authModal');
+            if (!modal) {
+                console.error('Auth modal not found. Make sure the modal HTML is included.');
+                return;
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            // Basic tab switching
+            const loginTab = document.getElementById('loginTab');
+            const signUpTab = document.getElementById('signUpTab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const userTypeSelection = document.getElementById('userTypeSelection');
+            
+            if (tab === 'login') {
+                if (loginTab) {
+                    loginTab.classList.add('bg-blue-600', 'text-white');
+                    loginTab.classList.remove('bg-gray-100', 'text-gray-700');
+                }
+                if (signUpTab) {
+                    signUpTab.classList.remove('bg-blue-600', 'text-white');
+                    signUpTab.classList.add('bg-gray-100', 'text-gray-700');
+                }
+                if (loginForm) loginForm.classList.remove('hidden');
+                if (registerForm) registerForm.classList.add('hidden');
+                if (userTypeSelection) userTypeSelection.classList.add('hidden');
+            } else {
+                if (loginTab) {
+                    loginTab.classList.remove('bg-blue-600', 'text-white');
+                    loginTab.classList.add('bg-gray-100', 'text-gray-700');
+                }
+                if (signUpTab) {
+                    signUpTab.classList.add('bg-blue-600', 'text-white');
+                    signUpTab.classList.remove('bg-gray-100', 'text-gray-700');
+                }
+                if (loginForm) loginForm.classList.add('hidden');
+                if (registerForm) registerForm.classList.remove('hidden');
+                if (userTypeSelection) userTypeSelection.classList.remove('hidden');
+            }
+        };
     </script>
     
     @stack('scripts')
 
+    <!-- Auth Modal -->
+    @include('partials.auth-modal')
+
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white mt-20">
+    <footer class="bg-gray-900 text-white mt-20 hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>

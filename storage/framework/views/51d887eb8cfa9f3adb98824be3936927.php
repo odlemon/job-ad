@@ -15,8 +15,15 @@
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
 
 </head>
-<body class="font-sans antialiased bg-gray-50">
-    <?php echo $__env->yieldContent('content'); ?>
+<body class="font-sans antialiased bg-gray-50" data-user-type="job_seeker">
+    <div class="min-h-screen bg-gray-50">
+        <?php echo $__env->make('partials.job-seeker-sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col ml-64">
+            <?php echo $__env->yieldContent('content'); ?>
+        </div>
+    </div>
 
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
 

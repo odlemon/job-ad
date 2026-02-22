@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
 class JobAdvertisementService
 {
     public function __construct(
-        private JobAdvertisementRepositoryInterface $repository
+        private JobAdvertisementRepositoryInterface $repository,
+        private NotificationService $notificationService
     ) {
     }
 
@@ -52,7 +53,20 @@ class JobAdvertisementService
             $data['published_at'] = now();
         }
 
-        return $this->repository->create($data);
+        $job = $this->repository->create($data);
+        
+        // Send notifications to job seekers if job is published
+        // Wrap in try-catch to prevent notification errors from blocking job creation
+        if ($job->status === 'published') {
+            try {
+                $this->sendNewJobNotifications($job);
+            } catch (\Exception $e) {
+                // Log error but don't fail job creation
+                \Log::error('Failed to send new job notifications: ' . $e->getMessage());
+            }
+        }
+
+        return $job;
     }
 
     public function update(JobAdvertisement $job, array $data): JobAdvertisement
@@ -63,11 +77,19 @@ class JobAdvertisementService
         }
 
         // Business logic: Set published_at when status changes to published
-        if (isset($data['status']) && $data['status'] === 'published' && $job->status !== 'published') {
+        $wasPublished = $job->status === 'published';
+        if (isset($data['status']) && $data['status'] === 'published' && !$wasPublished) {
             $data['published_at'] = now();
         }
 
-        return $this->repository->update($job, $data);
+        $updatedJob = $this->repository->update($job, $data);
+        
+        // Send notifications if job was just published (status changed from non-published to published)
+        if (!$wasPublished && $updatedJob->status === 'published') {
+            $this->sendNewJobNotifications($updatedJob);
+        }
+
+        return $updatedJob;
     }
 
     public function delete(JobAdvertisement $job): bool
@@ -95,5 +117,24 @@ class JobAdvertisementService
     public function search(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         return $this->repository->search($filters, $perPage);
+    }
+
+    public function getByCompanyId(int $companyId): Collection
+    {
+        return $this->repository->getByCompanyId($companyId);
+    }
+
+    /**
+     * Send notifications to job seekers about a new job posting.
+     */
+    private function sendNewJobNotifications(JobAdvertisement $job): void
+    {
+        $companyName = $job->company ? $job->company->name : 'A company';
+        $this->notificationService->notifyNewJob(
+            $job->id,
+            $job->title,
+            $companyName,
+            $job->category_id
+        );
     }
 }

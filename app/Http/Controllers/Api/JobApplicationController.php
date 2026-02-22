@@ -40,7 +40,7 @@ class JobApplicationController extends Controller
             'cover_letter' => 'nullable|string',
             'resume_path' => 'nullable|string|max:255',
             'additional_info' => 'nullable|array',
-            'status' => 'nullable|in:pending,reviewing,shortlisted,rejected,hired',
+            'status' => 'nullable|in:applied,in_review,interview,offered,rejected',
         ]);
 
         $application = $this->service->create($validated);
@@ -83,7 +83,7 @@ class JobApplicationController extends Controller
             'cover_letter' => 'nullable|string',
             'resume_path' => 'nullable|string|max:255',
             'additional_info' => 'nullable|array',
-            'status' => 'nullable|in:pending,reviewing,shortlisted,rejected,hired',
+            'status' => 'nullable|in:applied,in_review,interview,offered,rejected',
             'notes' => 'nullable|string',
         ]);
 

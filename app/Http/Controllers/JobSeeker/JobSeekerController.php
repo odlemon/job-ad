@@ -96,7 +96,8 @@ class JobSeekerController extends Controller
             ], 422);
         }
 
-        $jobSeeker = $this->service->updateProfile($jobSeeker, $request->only([
+        // Get data and convert empty strings to null for nullable fields
+        $data = $request->only([
             'first_name',
             'last_name',
             'location',
@@ -115,7 +116,18 @@ class JobSeekerController extends Controller
             'open_to_opportunities',
             'hobbies',
             'bio',
-        ]));
+        ]);
+
+        // Convert empty strings to null for nullable date/string fields
+        $nullableFields = ['phone', 'address', 'gender', 'date_of_birth', 'employment_status', 
+                          'highest_education', 'license_issued_date', 'linkedin_url', 'website_url'];
+        foreach ($nullableFields as $field) {
+            if (isset($data[$field]) && $data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
+
+        $jobSeeker = $this->service->updateProfile($jobSeeker, $data);
 
         $jobSeeker->load('user');
 

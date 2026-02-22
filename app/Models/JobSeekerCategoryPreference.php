@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobSeekerCategoryPreference extends Model
 {
+    protected $table = 'job_seeker_category_preferences';
+
     protected $fillable = [
         'seeker_id',
         'category_id',

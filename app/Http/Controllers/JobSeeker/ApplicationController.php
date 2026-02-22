@@ -5,6 +5,8 @@ namespace App\Http\Controllers\JobSeeker;
 use App\Http\Controllers\Controller;
 use App\Services\JobSeeker\ApplicationService;
 use App\Services\JobSeeker\JobSeekerService;
+use App\Services\NotificationService;
+use App\Services\RemoteUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,9 @@ class ApplicationController extends Controller
 {
     public function __construct(
         private ApplicationService $applicationService,
-        private JobSeekerService $jobSeekerService
+        private JobSeekerService $jobSeekerService,
+        private RemoteUploadService $uploadService,
+        private NotificationService $notificationService
     ) {
     }
 
@@ -43,6 +47,23 @@ class ApplicationController extends Controller
         $applications = $this->applicationService->getPaginatedBySeeker($jobSeeker, $perPage);
 
         return response()->json($applications);
+    }
+
+    /**
+     * Check if user has already applied to a job.
+     */
+    public function check(int $jobId): JsonResponse
+    {
+        $user = Auth::user();
+        $jobSeeker = $this->jobSeekerService->getByUserId($user->id);
+        
+        if (!$jobSeeker) {
+            return response()->json(['has_applied' => false], 200);
+        }
+        
+        $hasApplied = $this->applicationService->hasApplied($jobSeeker->seeker_id, $jobId);
+        
+        return response()->json(['has_applied' => $hasApplied], 200);
     }
 
     /**
@@ -102,8 +123,6 @@ class ApplicationController extends Controller
 
         $validator = Validator::make($request->all(), [
             'job_advertisement_id' => 'required|exists:job_advertisements,id',
-            'cover_letter' => 'nullable|string',
-            'resume_path' => 'nullable|string|max:255',
             'additional_info' => 'nullable|array',
         ]);
 
@@ -115,21 +134,59 @@ class ApplicationController extends Controller
         }
 
         try {
-            $application = $this->applicationService->apply($jobSeeker, $request->only([
-                'job_advertisement_id',
-                'cover_letter',
-                'resume_path',
-                'additional_info',
-            ]));
+            // Build application data from job seeker profile
+            $applicationData = [
+                'job_advertisement_id' => $request->input('job_advertisement_id'),
+                'additional_info' => $request->input('additional_info', []),
+            ];
+
+            // Use job seeker's profile information
+            $applicationData['first_name'] = $jobSeeker->first_name;
+            $applicationData['last_name'] = $jobSeeker->last_name;
+            $applicationData['email'] = $jobSeeker->user->email;
+            $applicationData['phone'] = $jobSeeker->phone ?? $jobSeeker->user->phone;
+            
+            // Use job seeker's CV if available
+            if ($jobSeeker->cv_file_path) {
+                $applicationData['resume_path'] = $jobSeeker->cv_file_path;
+            }
+
+            $application = $this->applicationService->apply($jobSeeker, $applicationData);
+            
+            // Load relationships for notification
+            $application->load(['jobAdvertisement.company']);
+            
+            // Create notification for employer
+            if ($application->jobAdvertisement && $application->jobAdvertisement->company_id) {
+                // Find employer associated with this company
+                $employer = \App\Models\Employer::where('company_id', $application->jobAdvertisement->company_id)->first();
+                if ($employer && $employer->user_id) {
+                    $this->notificationService->notifyApplicationReceived(
+                        $employer->user_id,
+                        $application->id,
+                        $application->jobAdvertisement->title,
+                        "{$application->first_name} {$application->last_name}"
+                    );
+                }
+            }
 
             return response()->json([
                 'message' => 'Application submitted successfully',
                 'application' => $application,
             ], 201);
         } catch (\Exception $e) {
+            $statusCode = 400;
+            $message = $e->getMessage();
+            
+            // Check if it's a duplicate application error
+            if (str_contains(strtolower($message), 'already applied')) {
+                $statusCode = 422;
+            }
+            
             return response()->json([
-                'message' => $e->getMessage(),
-            ], 400);
+                'message' => $message,
+                'error' => $message,
+            ], $statusCode);
         }
     }
 

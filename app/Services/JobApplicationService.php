@@ -39,11 +39,31 @@ class JobApplicationService
         return $this->repository->getByStatus($status);
     }
 
+    public function getByUserId(int $userId): Collection
+    {
+        return $this->repository->getByUserId($userId);
+    }
+
+    public function getByUserIdPaginated(int $userId, int $perPage = 15)
+    {
+        return $this->repository->getByUserIdPaginated($userId, $perPage);
+    }
+
+    public function paginateByUserId(int $userId, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->repository->paginateByUserId($userId, $perPage);
+    }
+
+    public function getByCompanyId(int $companyId): Collection
+    {
+        return $this->repository->getByCompanyId($companyId);
+    }
+
     public function create(array $data): JobApplication
     {
         // Business logic: Set default status if not provided
         if (!isset($data['status'])) {
-            $data['status'] = 'pending';
+            $data['status'] = 'applied';
         }
 
         // Business logic: Increment application count on job advertisement
@@ -54,8 +74,8 @@ class JobApplicationService
 
     public function update(JobApplication $application, array $data): JobApplication
     {
-        // Business logic: Set reviewed_at when status changes from pending
-        if (isset($data['status']) && $application->status === 'pending' && $data['status'] !== 'pending') {
+        // Business logic: Set reviewed_at when status changes from applied
+        if (isset($data['status']) && $application->status === 'applied' && $data['status'] !== 'applied') {
             $data['reviewed_at'] = now();
         }
 

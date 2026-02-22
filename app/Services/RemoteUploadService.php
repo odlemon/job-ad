@@ -20,8 +20,11 @@ class RemoteUploadService
         'term-sheets' => 'term-sheets',
         'term-sheet-signatures' => 'term-sheet-signatures',
         'cv' => 'cv',
+        'resumes' => 'resumes',
         'profile-photos' => 'profile-photos',
         'company-logos' => 'company-logos',
+        'company-gallery' => 'company-gallery',
+        'company-covers' => 'company-gallery', // Use company-gallery directory for covers
         'job-documents' => 'job-documents',
         'certifications' => 'certifications',
         'temp' => 'temp',
@@ -178,7 +181,7 @@ class RemoteUploadService
      * Download file from server
      */
     public function downloadFile(string $filePath): string
-    {
+    {   
         $url = str_starts_with($filePath, 'http') 
             ? $filePath 
             : "{$this->mediaBaseUrl}/{$filePath}";

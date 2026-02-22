@@ -48,6 +48,9 @@ window.loadJobDetail = async function() {
                 checkCompanyFollowed(job.company.id);
             }
             
+            // Check if user has already applied
+            checkApplicationStatus(job.id);
+            
             // Format dates
             const postedDate = job.published_at ? new Date(job.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
             const deadlineDate = job.application_deadline ? new Date(job.application_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
@@ -293,12 +296,14 @@ window.loadJobDetail = async function() {
                         <!-- Apply Section -->
                         <div class="bg-white rounded-xl shadow-sm p-6">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Interested in this job?</h3>
-                            <button onclick="handleApply(${job.id})" class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                                </svg>
-                                Apply for this job
-                            </button>
+                            <div id="apply-button-container">
+                                <button id="apply-btn-${job.id}" onclick="handleApply(${job.id})" class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                    </svg>
+                                    Apply for this job
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Other Jobs from Company -->
@@ -402,6 +407,38 @@ async function checkCompanyFollowed(companyId) {
         }
     } catch (error) {
         // Not logged in or error - ignore
+    }
+}
+
+async function checkApplicationStatus(jobId) {
+    try {
+        const response = await fetch(`${API_BASE}/job-seeker/applications/check/${jobId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const container = document.getElementById('apply-button-container');
+            const applyBtn = document.getElementById(`apply-btn-${jobId}`);
+            
+            if (data.has_applied && container && applyBtn) {
+                applyBtn.disabled = true;
+                applyBtn.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-pink-600', 'hover:from-pink-600', 'hover:to-pink-700');
+                applyBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                applyBtn.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Already Applied
+                `;
+                applyBtn.onclick = null;
+            }
+        }
+    } catch (error) {
+        // Not logged in or error - ignore, button will work normally
     }
 }
 
