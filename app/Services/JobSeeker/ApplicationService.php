@@ -54,8 +54,9 @@ class ApplicationService
         }
 
         // Business logic: Set default status if not provided
+        // DB enum: applied | in_review | interview | offered | rejected
         if (!isset($data['status'])) {
-            $data['status'] = 'pending';
+            $data['status'] = 'applied';
         }
 
         // Business logic: Link to job seeker
@@ -91,8 +92,8 @@ class ApplicationService
             'status' => $status,
         ];
 
-        // Business logic: Set reviewed_at when status changes from pending
-        if ($application->status === 'pending' && $status !== 'pending') {
+        // Business logic: Set reviewed_at when status leaves the initial applied state
+        if ($application->status === 'applied' && $status !== 'applied') {
             $data['reviewed_at'] = now();
             if ($reviewedBy) {
                 $data['reviewed_by'] = $reviewedBy;
