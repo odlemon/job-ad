@@ -43,10 +43,48 @@ class ApplicationController extends Controller
             ], 404);
         }
 
-        $perPage = $request->get('per_page', 15);
-        $applications = $this->applicationService->getPaginatedBySeeker($jobSeeker, $perPage);
+        $perPage = (int) $request->get('per_page', $request->get('limit', 15));
+        $status = $request->get('status');
+        $statuses = null;
+        if ($status) {
+            $statusMap = [
+                'applied' => ['pending', 'submitted', 'applied'],
+                'in_review' => ['reviewing', 'in_review', 'shortlisted'],
+                'interview' => ['interview', 'interviewing'],
+                'offered' => ['offered', 'hired', 'accepted'],
+                'rejected' => ['rejected', 'declined'],
+            ];
+            $statuses = $statusMap[$status] ?? [$status];
+        }
 
-        return response()->json($applications);
+        $applications = $this->applicationService->getPaginatedBySeeker($jobSeeker, $perPage, $statuses);
+        $items = collect($applications->items());
+        $jobModels = $items->pluck('jobAdvertisement')->filter()->values();
+        $presented = collect(\App\Support\ScoopJobPresenter::jobs($jobModels, $jobSeeker->seeker_id))->keyBy('id');
+
+        $data = $items->map(function ($app) use ($presented) {
+            $job = $app->jobAdvertisement;
+            return [
+                'id' => $app->id,
+                'status' => $app->status,
+                'status_message' => $app->status_message ?? $app->notes,
+                'applied_at' => optional($app->created_at)?->toIso8601String(),
+                'updated_at' => optional($app->updated_at)?->toIso8601String(),
+                'invite_sent_at' => optional($app->invite_sent_at)?->toIso8601String(),
+                'job' => $job ? $presented->get($job->id) : null,
+                'job_advertisement' => $job,
+            ];
+        })->values();
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $applications->currentPage(),
+                'last_page' => $applications->lastPage(),
+                'total' => $applications->total(),
+                'per_page' => $applications->perPage(),
+            ],
+        ]);
     }
 
     /**

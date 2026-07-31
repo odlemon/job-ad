@@ -55,7 +55,7 @@ class JobAdvertisementController extends Controller
             'currency' => 'nullable|string|max:3',
             'location' => 'nullable|string|max:255',
             'is_remote' => 'nullable|boolean',
-            'application_deadline' => 'nullable|date',
+            'hide_salary' => 'nullable|boolean',
             'status' => 'nullable|in:draft,published,closed,archived',
         ]);
 
@@ -107,7 +107,7 @@ class JobAdvertisementController extends Controller
             'currency' => 'nullable|string|max:3',
             'location' => 'nullable|string|max:255',
             'is_remote' => 'nullable|boolean',
-            'application_deadline' => 'nullable|date',
+            'hide_salary' => 'nullable|boolean',
             'status' => 'nullable|in:draft,published,closed,archived',
         ]);
 

@@ -114,7 +114,7 @@
 
                 <!-- Actions -->
                 <div class="flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <a href="{{ route('employer.applications.index', ['job_id' => $job->id]) }}" wire:navigate class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                    <a href="{{ route('employer.applications.index', ['job_id' => $job->id]) }}" wire:navigate class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">
                         View Applications ({{ $job->applications_count ?? 0 }})
                     </a>
                     <div class="flex items-center space-x-3">

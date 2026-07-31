@@ -8,9 +8,9 @@
     }
 @endphp
 
-<!-- Top Header Bar -->
-<header class="bg-white border-b border-gray-200 sticky top-0 z-40 ml-64">
-    <div class="px-6 py-4">
+<!-- Top Header Bar (end-to-end full width) -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-40 w-full" style="margin-left: -16rem; width: calc(100% + 16rem);">
+    <div class="px-6 py-4 pl-64">
         <div class="flex items-center justify-between">
             <!-- Left: Logo and Portal Name -->
             <div class="flex items-center space-x-4">

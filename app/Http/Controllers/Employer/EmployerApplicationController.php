@@ -3,11 +3,18 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
+use App\Models\JobAdvertisement;
+use App\Models\JobApplication;
+use App\Models\JobCampaign;
+use App\Services\ApplicationMatchScoreService;
 use App\Services\JobApplicationService;
 use App\Services\JobAdvertisementService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\View;
+use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -20,7 +27,8 @@ class EmployerApplicationController extends Controller
     public function __construct(
         private JobApplicationService $applicationService,
         private JobAdvertisementService $jobService,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private ApplicationMatchScoreService $matchScoreService
     ) {
     }
 
@@ -57,8 +65,7 @@ class EmployerApplicationController extends Controller
                 return $application->status === $status;
             });
         } elseif ($status === 'talent_pool') {
-            // Talent pool not implemented yet, return empty
-            $applications = collect([]);
+            $applications = $applications->filter(fn($a) => $a->in_talent_pool);
         }
         
         // Get stats
@@ -69,11 +76,13 @@ class EmployerApplicationController extends Controller
             'pending' => $allApplications->where('status', 'pending')->count(),
             'reviewing' => $allApplications->where('status', 'reviewing')->count(),
             'shortlisted' => $allApplications->where('status', 'shortlisted')->count(),
+            'interview_requested' => $allApplications->where('status', 'interview_requested')->count(),
             'rejected' => $allApplications->where('status', 'rejected')->count(),
             'hired' => $allApplications->where('status', 'hired')->count(),
             'new_today' => $allApplications->filter(function($app) use ($today) {
                 return $app->created_at >= $today;
             })->count(),
+            'talent_pool' => $allApplications->where('in_talent_pool', true)->count(),
         ];
         
         // Get jobs for filter dropdown
@@ -85,6 +94,51 @@ class EmployerApplicationController extends Controller
             'currentStatus' => $status,
             'currentJobId' => $jobId,
             'jobs' => $jobs,
+        ]);
+    }
+
+    /**
+     * Job Applicants page: applicants for a single job (from campaigns / job view).
+     * Dedicated layout with back link, job details card, summary stats, and applicant list.
+     */
+    public function jobApplicants(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        if (!$employer || !$employer->company_id) {
+            return redirect()->route('employer.dashboard')
+                ->with('error', 'Please set up your company profile first.');
+        }
+
+        $job = JobAdvertisement::where('id', $id)
+            ->where('company_id', $employer->company_id)
+            ->with([
+                'company',
+                'campaigns' => fn ($q) => $q->orderByDesc('launched_at'),
+                'applications' => fn ($q) => $q->with(['jobSeeker.experiences', 'jobSeeker.educations']),
+            ])
+            ->firstOrFail();
+
+        $applications = $job->applications;
+        foreach ($applications as $app) {
+            $app->match_score = $this->matchScoreService->calculate($app);
+        }
+        $primaryCampaign = $job->campaigns->first();
+        $viewsCount = $primaryCampaign ? ($primaryCampaign->views_count ?? 0) : ($job->views_count ?? 0);
+
+        $stats = [
+            'total' => $applications->count(),
+            'shortlisted' => $applications->where('status', 'shortlisted')->count(),
+            'selected' => $applications->where('status', 'hired')->count(),
+            'rejected' => $applications->where('status', 'rejected')->count(),
+        ];
+
+        return view('employer.applications.job-applicants', [
+            'job' => $job,
+            'applications' => $applications,
+            'stats' => $stats,
+            'viewsCount' => $viewsCount,
         ]);
     }
 
@@ -126,6 +180,8 @@ class EmployerApplicationController extends Controller
             'user', 
             'reviewer'
         ]);
+
+        $application->match_score = $this->matchScoreService->calculate($application);
         
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json([
@@ -187,6 +243,8 @@ class EmployerApplicationController extends Controller
             'user', 
             'reviewer'
         ]);
+
+        $updatedApplication->match_score = $this->matchScoreService->calculate($updatedApplication);
         
         // Create notification for job seeker if status changed
         if (isset($validated['status']) && $oldStatus !== $validated['status']) {
@@ -207,12 +265,294 @@ class EmployerApplicationController extends Controller
                     $updatedApplication->jobAdvertisement->company->name
                 );
             }
+            if ($validated['status'] === 'hired') {
+                $applicantName = $updatedApplication->jobSeeker
+                    ? trim($updatedApplication->jobSeeker->first_name . ' ' . $updatedApplication->jobSeeker->last_name)
+                    : ($updatedApplication->first_name . ' ' . $updatedApplication->last_name);
+                $this->notificationService->notifyAdmins(
+                    'application_hired',
+                    'Someone Was Hired',
+                    $applicantName . ' was hired for ' . $updatedApplication->jobAdvertisement->title . ' at ' . $updatedApplication->jobAdvertisement->company->name,
+                    [
+                        'application_id' => $updatedApplication->id,
+                        'job_id' => $updatedApplication->job_advertisement_id,
+                        'company_id' => $updatedApplication->jobAdvertisement->company_id,
+                    ]
+                );
+            }
         }
 
         return response()->json([
             'message' => 'Application status updated successfully',
             'application' => $updatedApplication,
         ], 200);
+    }
+
+    /**
+     * Download applicant profile as PDF.
+     */
+    public function downloadPdf(int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        $application = $this->applicationService->getById($id);
+        if (!$application) {
+            abort(404, 'Application not found');
+        }
+        if ($application->jobAdvertisement->company_id !== $employer->company_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $application->load([
+            'jobAdvertisement.company',
+            'jobSeeker.experiences',
+            'jobSeeker.educations',
+            'jobSeeker.skills',
+            'jobSeeker.languages',
+            'jobSeeker.certifications',
+            'jobSeeker.references',
+        ]);
+
+        $pdf = Pdf::loadView('employer.applications.application_profile_pdf', ['application' => $application]);
+        $filename = 'applicant-' . \Str::slug($application->first_name . ' ' . $application->last_name) . '-' . $application->id . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Request an interview: set status, save date/time/location/notes, notify applicant.
+     */
+    public function requestInterview(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        $application = $this->applicationService->getById($id);
+        if (!$application) {
+            return response()->json(['message' => 'Application not found'], 404);
+        }
+        if ($application->jobAdvertisement->company_id !== $employer->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'scheduled_date' => 'required|date',
+            'scheduled_time' => 'required|string|max:20',
+            'location' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $date = $validated['scheduled_date'];
+        $time = $validated['scheduled_time'];
+        $scheduledAt = \Carbon\Carbon::parse($date . ' ' . $time);
+
+        // Keep main pipeline status as-is, but mark interview fields
+        $application->interview_scheduled_at = $scheduledAt;
+        $application->interview_location = $validated['location'] ?? null;
+        $application->interview_notes = $validated['notes'] ?? null;
+        $application->interview_status = 'pending';
+        $application->save();
+
+        $jobSeekerUserId = $application->jobSeeker?->user_id ?? $application->user_id;
+        if ($jobSeekerUserId) {
+            $this->notificationService->notifyInterviewRequested(
+                $jobSeekerUserId,
+                $application->id,
+                $application->jobAdvertisement->title,
+                $application->jobAdvertisement->company->name,
+                $scheduledAt,
+                $validated['location'] ?? null,
+                $validated['notes'] ?? null
+            );
+        }
+
+        $application->load([
+            'jobAdvertisement.company',
+            'jobAdvertisement.category',
+            'jobSeeker.experiences',
+            'jobSeeker.educations',
+            'jobSeeker.skills',
+            'jobSeeker.languages',
+            'jobSeeker.certifications',
+            'jobSeeker.references',
+            'user',
+            'reviewer',
+        ]);
+        $application->match_score = $this->matchScoreService->calculate($application);
+
+        return response()->json([
+            'message' => 'Interview request sent successfully',
+            'application' => $application,
+        ], 200);
+    }
+
+    /**
+     * Toggle talent pool status for an application.
+     */
+    public function toggleTalentPool(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        $application = $this->applicationService->getById($id);
+
+        if (!$application) {
+            return response()->json(['message' => 'Application not found'], 404);
+        }
+
+        if ($application->jobAdvertisement->company_id !== $employer->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $application->in_talent_pool = !$application->in_talent_pool;
+        $application->save();
+
+        return response()->json([
+            'message' => $application->in_talent_pool ? 'Added to talent pool' : 'Removed from talent pool',
+            'in_talent_pool' => $application->in_talent_pool,
+        ]);
+    }
+
+    /**
+     * List applicants in talent pool for a job (for Invite Applicants modal).
+     */
+    public function talentPoolForJob(int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        if (!$employer || !$employer->company_id) {
+            return response()->json(['message' => 'Company profile not set up'], 403);
+        }
+
+        $job = JobAdvertisement::where('id', $id)
+            ->where('company_id', $employer->company_id)
+            ->first();
+
+        if (!$job) {
+            return response()->json(['message' => 'Job not found'], 404);
+        }
+
+        $applications = JobApplication::where('job_advertisement_id', $id)
+            ->where('in_talent_pool', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'job' => [
+                'id' => $job->id,
+                'title' => $job->title,
+                'company_name' => $job->company->name ?? 'Company',
+            ],
+            'applicants' => $applications->map(fn ($app) => [
+                'id' => $app->id,
+                'first_name' => $app->first_name,
+                'last_name' => $app->last_name,
+                'email' => $app->email,
+                'invited' => (bool) $app->invite_sent_at,
+            ]),
+        ]);
+    }
+
+    /**
+     * Send invite email to an applicant (talent pool) to apply to the job.
+     */
+    public function inviteApplicant(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        if (!$employer || !$employer->company_id) {
+            return response()->json(['message' => 'Company profile not set up'], 403);
+        }
+
+        $application = JobApplication::with(['jobAdvertisement.company'])
+            ->where('id', $id)
+            ->where('in_talent_pool', true)
+            ->first();
+
+        if (!$application) {
+            return response()->json(['message' => 'Application not found or not in talent pool'], 404);
+        }
+
+        if ($application->jobAdvertisement->company_id !== $employer->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $job = $application->jobAdvertisement;
+        $companyName = $job->company->name ?? 'Our company';
+        $jobTitle = $job->title;
+        $applicantName = trim($application->first_name . ' ' . $application->last_name) ?: 'Candidate';
+        $applicantEmail = $application->email;
+
+        if (!$applicantEmail) {
+            return response()->json(['message' => 'Applicant has no email'], 400);
+        }
+
+        $applyUrl = url('/jobs/' . $job->id);
+        $htmlBody = View::make('emails.invite-applicant', [
+            'applicantName' => $applicantName,
+            'jobTitle' => $jobTitle,
+            'companyName' => $companyName,
+            'applyUrl' => $applyUrl,
+        ])->render();
+
+        $subject = "You're invited to apply: {$jobTitle} at {$companyName}";
+        $fromAddress = config('mail.from.address', 'noreply@kyntaro.com');
+        $fromName = config('mail.from.name', 'JobHub');
+        $apiToken = config('mail.mailers.smtp.password');
+
+        try {
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Zoho-enczapikey ' . $apiToken,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post('https://api.zeptomail.com/v1.1/email', [
+                'from' => [
+                    'address' => $fromAddress,
+                    'name' => $fromName,
+                ],
+                'to' => [
+                    [
+                        'email_address' => [
+                            'address' => $applicantEmail,
+                            'name' => $applicantName,
+                        ],
+                    ],
+                ],
+                'subject' => $subject,
+                'htmlbody' => $htmlBody,
+            ]);
+
+            if (!$response->successful()) {
+                $body = $response->json() ?? $response->body();
+                $errMsg = is_array($body) ? ($body['message'] ?? $body['error'] ?? json_encode($body)) : $body;
+                throw new \RuntimeException('ZeptoMail API error: ' . $errMsg);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Invite applicant email failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send invite email',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        $application->invite_sent_at = now();
+        $application->save();
+
+        // Increment invitation_sent_count on the job's primary campaign
+        $campaign = JobCampaign::where('job_advertisement_id', $job->id)
+            ->orderByDesc('launched_at')
+            ->first();
+        if ($campaign) {
+            $campaign->increment('invitation_sent_count');
+        }
+
+        return response()->json([
+            'message' => 'Invitation sent successfully',
+        ]);
     }
 
     /**
@@ -248,7 +588,7 @@ class EmployerApplicationController extends Controller
                 return $application->status === $status;
             });
         } elseif ($status === 'talent_pool') {
-            $applications = collect([]);
+            $applications = $applications->filter(fn($a) => $a->in_talent_pool);
         }
         
         // Filter by search term
@@ -335,39 +675,33 @@ class EmployerApplicationController extends Controller
         $status = $request->get('status', 'all');
         $jobId = $request->get('job_id');
         $search = $request->get('search', '');
+        $ids = $request->get('ids');
         
-        // Get all applications for company's jobs with relationships
         $applications = $this->applicationService->getByCompanyId($employer->company_id);
-        $applications->load(['jobSeeker.experiences', 'jobAdvertisement.company']);
+        $applications->load(['jobSeeker.experiences', 'jobSeeker.skills', 'jobSeeker.educations', 'jobAdvertisement.company']);
         
-        // Apply filters
-        if ($jobId) {
-            $applications = $applications->filter(function ($application) use ($jobId) {
-                return $application->job_advertisement_id == $jobId;
-            });
-        }
-        
-        if ($status !== 'all' && $status !== 'talent_pool') {
-            $applications = $applications->filter(function ($application) use ($status) {
-                return $application->status === $status;
-            });
-        } elseif ($status === 'talent_pool') {
-            $applications = collect([]);
-        }
-        
-        if ($search) {
-            $searchLower = strtolower($search);
-            $applications = $applications->filter(function ($application) use ($searchLower) {
-                $fullName = strtolower($application->first_name . ' ' . $application->last_name);
-                $jobTitle = strtolower($application->jobAdvertisement->title ?? '');
-                $companyName = strtolower($application->jobAdvertisement->company->name ?? '');
-                $email = strtolower($application->email ?? '');
-                
-                return str_contains($fullName, $searchLower) ||
-                       str_contains($jobTitle, $searchLower) ||
-                       str_contains($companyName, $searchLower) ||
-                       str_contains($email, $searchLower);
-            });
+        if ($ids) {
+            $idArray = is_array($ids) ? $ids : explode(',', $ids);
+            $applications = $applications->filter(fn($a) => in_array($a->id, $idArray));
+        } else {
+            if ($jobId) {
+                $applications = $applications->filter(fn($a) => $a->job_advertisement_id == $jobId);
+            }
+            if ($status !== 'all' && $status !== 'talent_pool') {
+                $applications = $applications->filter(fn($a) => $a->status === $status);
+            } elseif ($status === 'talent_pool') {
+                $applications = $applications->filter(fn($a) => $a->in_talent_pool);
+            }
+            if ($search) {
+                $searchLower = strtolower($search);
+                $applications = $applications->filter(function ($application) use ($searchLower) {
+                    $fullName = strtolower($application->first_name . ' ' . $application->last_name);
+                    $jobTitle = strtolower($application->jobAdvertisement->title ?? '');
+                    $companyName = strtolower($application->jobAdvertisement->company->name ?? '');
+                    $email = strtolower($application->email ?? '');
+                    return str_contains($fullName, $searchLower) || str_contains($jobTitle, $searchLower) || str_contains($companyName, $searchLower) || str_contains($email, $searchLower);
+                });
+            }
         }
         
         $spreadsheet = new Spreadsheet();
@@ -460,6 +794,7 @@ class EmployerApplicationController extends Controller
                 'pending' => 'Pending',
                 'reviewing' => 'Reviewing',
                 'shortlisted' => 'Shortlisted',
+                'interview_requested' => 'Interview Requested',
                 'rejected' => 'Rejected',
                 'hired' => 'Hired',
             ];

@@ -1,0 +1,23 @@
+# Admin API — HTTP Client (JetBrains / VS Code REST Client)
+# Base URL: use your backend URL, e.g. http://localhost:8000 or https://your-api.com
+# After running "Admin Login", copy the "token" from the response into @token below.
+
+@baseUrl = http://localhost:8000
+@token = YOUR_TOKEN_HERE
+
+### Admin Login
+POST {{baseUrl}}/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@jobs.com",
+  "password": "admin123"
+}
+
+### Admin Me (authenticated — set @token from login response first)
+GET {{baseUrl}}/api/admin/me
+Authorization: Bearer {{token}}
+
+### Admin Logout (authenticated)
+POST {{baseUrl}}/api/admin/logout
+Authorization: Bearer {{token}}

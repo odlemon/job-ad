@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Repositories\CompanyRepository;
+use Illuminate\Auth\Middleware\Authenticate;
 use App\Repositories\Contracts\CompanyRepositoryInterface;
 use App\Repositories\Contracts\JobAdvertisementRepositoryInterface;
 use App\Repositories\Contracts\JobApplicationRepositoryInterface;
@@ -35,6 +36,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Redirect unauthenticated users to landing page instead of login (token/session expiry)
+        Authenticate::redirectUsing(function ($request) {
+            if ($request->expectsJson()) {
+                return null; // Let framework return 401 JSON for API
+            }
+            return route('landing');
+        });
+
         // Log all database queries in development (to debug slow queries)
         if (config('app.debug')) {
             \DB::listen(function ($query) {

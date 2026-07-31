@@ -68,9 +68,9 @@
                     <!-- Main Navigation -->
                     <div class="hidden md:flex items-center space-x-6">
                         <a href="{{ route('jobs.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Search Jobs</a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600 transition">Search Tenders</a>
+                        <a href="{{ route('tenders.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Tenders</a>
                         <a href="#" class="text-gray-700 hover:text-blue-600 transition">Job Categories</a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600 transition">Companies</a>
+                        <a href="{{ route('companies.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Companies</a>
                     </div>
 
                     <!-- Right Side Actions -->
@@ -83,11 +83,11 @@
                         </button>
                         <!-- Login/Register Button -->
                         @if(auth()->check())
-                            <a href="{{ route('dashboard') }}" wire:navigate class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <a href="{{ route('dashboard') }}" wire:navigate class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
                                 Dashboard
                             </a>
                         @else
-                            <button onclick="window.openAuthModal('login')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <button onclick="window.openAuthModal('login')" class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
                                 Login/Register
                             </button>
                         @endif
@@ -106,6 +106,9 @@
     
     <!-- SPA Navigation Helper Script -->
     <script>
+        window.IS_AUTHENTICATED = @json(auth()->check());
+        window.AUTH_USER = @json(auth()->check() ? auth()->user() : null);
+
         // Show loading indicator during navigation
         document.addEventListener('livewire:navigate', () => {
             document.getElementById('page-loading').classList.remove('hidden');
@@ -174,6 +177,9 @@
 
     <!-- Auth Modal -->
     @include('partials.auth-modal')
+
+    <!-- Apply Modal -->
+    @include('partials.apply-modal')
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white mt-20 hidden">

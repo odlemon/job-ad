@@ -43,9 +43,9 @@ class JobAdvertisementService
 
     public function create(array $data): JobAdvertisement
     {
-        // Business logic: Auto-generate slug if not provided
+        // Business logic: Auto-generate unique slug if not provided
         if (!isset($data['slug']) && isset($data['title'])) {
-            $data['slug'] = Str::slug($data['title']);
+            $data['slug'] = $this->makeUniqueSlug(Str::slug($data['title']));
         }
 
         // Business logic: Set published_at if status is published
@@ -71,9 +71,9 @@ class JobAdvertisementService
 
     public function update(JobAdvertisement $job, array $data): JobAdvertisement
     {
-        // Business logic: Auto-update slug if title changed
+        // Business logic: Auto-update slug if title changed (keep unique)
         if (isset($data['title']) && $data['title'] !== $job->title) {
-            $data['slug'] = Str::slug($data['title']);
+            $data['slug'] = $this->makeUniqueSlug(Str::slug($data['title']), $job->id);
         }
 
         // Business logic: Set published_at when status changes to published
@@ -122,6 +122,31 @@ class JobAdvertisementService
     public function getByCompanyId(int $companyId): Collection
     {
         return $this->repository->getByCompanyId($companyId);
+    }
+
+    /**
+     * Generate a unique slug for job advertisements. If the base slug exists, appends a suffix.
+     *
+     * @param string $baseSlug The desired slug (e.g. from title).
+     * @param int|null $excludeId When updating, the current job id to exclude from uniqueness check.
+     */
+    private function makeUniqueSlug(string $baseSlug, ?int $excludeId = null): string
+    {
+        $slug = $baseSlug;
+        $query = JobAdvertisement::where('slug', $slug);
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
+        }
+        $counter = 1;
+        while ($query->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $query = JobAdvertisement::where('slug', $slug);
+            if ($excludeId !== null) {
+                $query->where('id', '!=', $excludeId);
+            }
+            $counter++;
+        }
+        return $slug;
     }
 
     /**

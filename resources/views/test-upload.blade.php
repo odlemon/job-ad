@@ -30,7 +30,7 @@
                         <option value="application-documents">Application Documents</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
                     Upload File
                 </button>
                 <div id="singleResult" class="mt-4 p-4 bg-gray-50 rounded-lg hidden"></div>

@@ -24,9 +24,13 @@ class JobAdvertisement extends Model
         'salary_min',
         'salary_max',
         'currency',
+        'hide_salary',
         'location',
+        'island',
+        'district',
         'is_remote',
-        'application_deadline',
+        'work_environment',
+        'education_level',
         'views_count',
         'applications_count',
         'status',
@@ -36,7 +40,7 @@ class JobAdvertisement extends Model
 
     protected $casts = [
         'is_remote' => 'boolean',
-        'application_deadline' => 'date',
+        'hide_salary' => 'boolean',
         'published_at' => 'datetime',
         'views_count' => 'integer',
         'applications_count' => 'integer',
@@ -65,5 +69,29 @@ class JobAdvertisement extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(JobApplication::class, 'job_advertisement_id');
+    }
+
+    /**
+     * Get the campaigns for the job advertisement.
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(JobCampaign::class);
+    }
+
+    /**
+     * Get the saved-job records (job seekers who saved this job).
+     */
+    public function savedJobs(): HasMany
+    {
+        return $this->hasMany(SavedJob::class, 'job_id');
+    }
+
+    /**
+     * Get the share records (job seekers who shared this job).
+     */
+    public function jobShares(): HasMany
+    {
+        return $this->hasMany(JobShare::class, 'job_id');
     }
 }

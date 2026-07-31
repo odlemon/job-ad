@@ -1,80 +1,51 @@
 @extends('layouts.employer')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-white">
     @include('partials.employer-navbar')
 
     <div class="flex">
         @include('partials.employer-sidebar')
 
-        <!-- Main Content -->
-        <main class="flex-1 p-8 ml-64">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header -->
-                <div class="flex items-start justify-between mb-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Job Listings</h1>
-                        <p class="text-sm text-gray-500 mt-1">Manage and track all your job postings</p>
-                    </div>
-                    <button type="button" onclick="openCreateJobModal(event)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg hover:from-blue-700 hover:to-cyan-600 transition font-semibold text-sm flex items-center space-x-2 shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span>Post New Job</span>
-                    </button>
-                </div>
-
-                <!-- Search and Filter Bar -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-                    <form method="GET" action="{{ route('employer.jobs.index') }}" class="flex items-center space-x-3">
-                        <!-- Search Input -->
-                        <div class="flex-1 relative">
-                            <svg class="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                            <input 
-                                type="text" 
-                                name="search" 
-                                value="{{ $search }}" 
-                                placeholder="Search jobs..." 
-                                class="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                            >
+        <main class="flex-1 p-6 ml-64 w-0 min-w-0">
+            <div class="w-full">
+                {{-- Single white block: header + search/filter + table (sharp corners, one unit) --}}
+                <div class="bg-white border border-gray-200 shadow-sm overflow-hidden" style="border-radius: 0;">
+                    {{-- Header row --}}
+                    <div class="flex items-start justify-between px-6 py-4 border-b border-gray-200">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Job Listings</h1>
+                            <p class="text-sm text-gray-500 mt-1">Manage and track all your job postings.</p>
                         </div>
-
-                        <!-- Status Filter -->
-                        <div class="relative">
-                            <select 
-                                name="status" 
-                                onchange="this.form.submit()" 
-                                class="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2.5 pr-9 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer font-medium text-gray-700"
-                            >
-                                <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>All Status</option>
-                                <option value="active" {{ $currentStatus === 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="paused" {{ $currentStatus === 'paused' ? 'selected' : '' }}>Paused</option>
-                                <option value="draft" {{ $currentStatus === 'draft' ? 'selected' : '' }}>Draft</option>
-                                <option value="closed" {{ $currentStatus === 'closed' ? 'selected' : '' }}>Closed</option>
-                            </select>
-                            <svg class="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-
-                        <!-- Filter Button -->
-                        <button type="button" class="px-4 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center space-x-2 text-sm font-medium text-gray-700">
-                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                            </svg>
-                            <span>Filter</span>
+                        <button type="button" onclick="openCreateJobModal(event)" class="inline-flex items-center gap-2 px-5 py-2.5 text-white font-medium text-sm transition shadow-md bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500" style="border-radius: 0;">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Post New Job
                         </button>
-                    </form>
                 </div>
 
-                <!-- Jobs Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" style="overflow-y: visible;">
-                    <div class="overflow-x-auto" style="overflow-y: visible;">
+                    {{-- Search + Filter row (realtime search, no submit) --}}
+                    <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-200 bg-gray-50/80">
+                            <div class="flex-1 relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" id="jobs-search" value="{{ $search ?? '' }}" placeholder="Search jobs..." class="w-full pl-10 pr-4 py-2 border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="border-radius: 0;">
+                            </div>
+                            <div class="relative">
+                            <select id="jobs-status" class="appearance-none bg-white border border-gray-300 px-4 py-2 pr-9 text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer font-medium text-gray-700" style="border-radius: 0;">
+                                <option value="all">All Status</option>
+                                <option value="published">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="paused">Paused</option>
+                                <option value="closed">Closed</option>
+                                </select>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+
+                    <!-- Jobs Table (same container) -->
+                    <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead>
-                                <tr class="border-b border-gray-200">
+                                <tr class="border-b border-gray-200 bg-gray-50/50">
                                     <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">JOB TITLE</th>
                                     <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">LOCATION</th>
                                     <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">TYPE</th>
@@ -86,32 +57,35 @@
                             </thead>
                             <tbody>
                                 @forelse($jobs as $job)
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition group" data-job-id="{{ $job->id }}" style="border-left: 3px solid #f59e0b;">
+                                    @php
+                                        $hasActiveCampaign = $job->relationLoaded('campaigns') && $job->campaigns->where('status', 'active')->isNotEmpty();
+                                        $rowStatus = $job->status === 'draft' && $job->published_at ? 'paused' : $job->status;
+                                    @endphp
+                                    <tr class="job-row border-b border-gray-100 hover:bg-gray-50/50 transition group" data-job-id="{{ $job->id }}" data-job-title="{{ strtolower(e($job->title)) }}" data-job-location="{{ strtolower(e($job->location ?? ($job->is_remote ? 'remote' : ''))) }}" data-status="{{ $rowStatus }}">
                                         <!-- JOB TITLE -->
                                         <td class="px-6 py-4">
                                             <div class="flex items-center">
-                                                <!-- Blue square icon -->
-                                                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                                    </svg>
+                                                <div class="w-9 h-9 bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0" style="border-radius: 0;">
+                                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                                 </div>
                                                 <div>
-                                                    <div class="flex items-center space-x-2">
+                                                    <div class="flex items-center gap-2 flex-wrap">
                                                         <span class="text-sm font-semibold text-gray-900">{{ $job->title }}</span>
-                                                        @if($job->status === 'published' && $job->created_at->diffInDays(now()) < 7)
-                                                            <span class="px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded-md uppercase tracking-wide">Promoted</span>
+                                                        @if($hasActiveCampaign)
+                                                            <span class="px-2.5 py-0.5 text-xs font-bold text-white uppercase tracking-wide rounded-md" style="background-color: #f97316;">Promoted</span>
                                                         @endif
                                                     </div>
-                                                    @if($job->salary_min || $job->salary_max)
-                                                        <div class="text-xs text-gray-400 mt-0.5">
+                                                    <div class="text-xs text-gray-400 mt-0.5">
+                                                        @if($job->hide_salary)
+                                                            Negotiable
+                                                        @elseif($job->salary_min || $job->salary_max)
                                                             @php
                                                                 $min = is_numeric($job->salary_min) ? ($job->salary_min >= 1000 ? '$' . number_format($job->salary_min / 1000, 0) . 'k' : '$' . $job->salary_min) : '$' . $job->salary_min;
                                                                 $max = is_numeric($job->salary_max) ? ($job->salary_max >= 1000 ? '$' . number_format($job->salary_max / 1000, 0) . 'k' : '$' . $job->salary_max) : '$' . $job->salary_max;
                                                             @endphp
                                                             {{ $min }} - {{ $max }}
-                                                        </div>
                                                     @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -148,7 +122,7 @@
                                                     $statusInfo = ['label' => 'paused', 'class' => 'bg-amber-50 text-amber-600 border border-amber-200'];
                                                 }
                                             @endphp
-                                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md {{ $statusInfo['class'] }}">
+                                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full {{ $statusInfo['class'] }}">
                                                 {{ $statusInfo['label'] }}
                                             </span>
                                         </td>
@@ -174,63 +148,28 @@
                                             </div>
                                         </td>
 
-                                        <!-- ACTIONS -->
-                                        <td class="px-6 py-4" style="position: relative; overflow: visible;">
+                                        <!-- ACTIONS: Edit, Stats, Delete only -->
+                                        <td class="px-6 py-4">
                                             <div class="flex items-center space-x-1">
-                                                <!-- Edit -->
-                                                <button onclick="openEditJobModal({{ $job->id }})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
-                                                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                    </svg>
+                                                <button onclick="openEditJobModal({{ $job->id }})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition" style="border-radius: 0;" title="Edit">
+                                                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 </button>
-
-                                                <!-- Pause/Play -->
-                                                @if($job->status === 'published')
-                                                    <button onclick="toggleJobStatus({{ $job->id }})" class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Pause">
-                                                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
+                                                <a href="{{ route('employer.jobs.stats', $job->id) }}" class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition inline-block" style="border-radius: 0;" title="Statistics">
+                                                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                                </a>
+                                                <button onclick="deleteJob({{ $job->id }})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition" style="border-radius: 0;" title="Delete">
+                                                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
-                                                @else
-                                                    <button onclick="toggleJobStatus({{ $job->id }})" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition" title="Activate">
-                                                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
-                                                    </button>
-                                                @endif
-
-                                                <!-- Analytics/Chart -->
-                                                <button onclick="openShowJobModal({{ $job->id }})" class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition" title="Analytics">
-                                                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                                    </svg>
-                                                </button>
-
-                                                <!-- More Options -->
-                                                <div class="relative inline-block" style="z-index: 9999;">
-                                                    <button onclick="toggleMoreMenu({{ $job->id }})" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition" title="More options">
-                                                        <svg class="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24">
-                                                            <circle cx="12" cy="5" r="1.5"></circle>
-                                                            <circle cx="12" cy="12" r="1.5"></circle>
-                                                            <circle cx="12" cy="19" r="1.5"></circle>
-                                                        </svg>
-                                                    </button>
-                                                    <div id="more-menu-{{ $job->id }}" class="hidden absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden" style="z-index: 99999; min-width: 12rem; position: absolute;">
-                                                        <button onclick="openShowJobModal({{ $job->id }})" class="w-full text-left block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition whitespace-nowrap">View Details</button>
-                                                        <button onclick="deleteJob({{ $job->id }})" class="w-full text-left block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition whitespace-nowrap">Delete</button>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr>
+                                    <tr id="jobs-empty-state">
                                         <td colspan="7" class="px-6 py-16 text-center">
                                             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                                </svg>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
                                             </div>
                                             <h3 class="text-lg font-semibold text-gray-900 mb-1">No job postings found</h3>
                                             <p class="text-sm text-gray-500 mb-6">Get started by creating your first job posting.</p>
@@ -243,6 +182,11 @@
                                         </td>
                                     </tr>
                                 @endforelse
+                                @if($jobs->isNotEmpty())
+                                    <tr id="jobs-no-results" class="hidden border-b border-gray-100">
+                                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">No jobs match your filters.</td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -253,6 +197,50 @@
 </div>
 
 <script>
+(function() {
+    function applyJobsFilters() {
+        var search = (document.getElementById('jobs-search') && document.getElementById('jobs-search').value || '').trim().toLowerCase();
+        var status = (document.getElementById('jobs-status') && document.getElementById('jobs-status').value) || 'all';
+        var rows = document.querySelectorAll('tbody .job-row');
+        var noResults = document.getElementById('jobs-no-results');
+        var visible = 0;
+        rows.forEach(function(row) {
+            var title = (row.getAttribute('data-job-title') || '').toLowerCase();
+            var location = (row.getAttribute('data-job-location') || '').toLowerCase();
+            var rowStatus = row.getAttribute('data-status') || '';
+            var matchSearch = !search || title.indexOf(search) !== -1 || location.indexOf(search) !== -1;
+            var matchStatus = status === 'all' || rowStatus === status;
+            var show = matchSearch && matchStatus;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        if (noResults) {
+            noResults.classList.toggle('hidden', visible > 0);
+        }
+    }
+    function setupJobsFilters() {
+        var searchEl = document.getElementById('jobs-search');
+        var statusEl = document.getElementById('jobs-status');
+        if (!searchEl && !statusEl) return;
+        var debounce = null;
+        if (searchEl) {
+            searchEl.addEventListener('input', function() {
+                clearTimeout(debounce);
+                debounce = setTimeout(applyJobsFilters, 150);
+            });
+        }
+        if (statusEl) {
+            statusEl.addEventListener('change', applyJobsFilters);
+        }
+        applyJobsFilters();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupJobsFilters);
+    } else {
+        setupJobsFilters();
+    }
+})();
+
 async function toggleJobStatus(jobId) {
     try {
         const response = await fetch(`/employer/jobs/${jobId}/toggle-status`, {
@@ -306,7 +294,7 @@ function updateJobStatusInTable(jobId, newStatus) {
         }
     }
     
-    statusCell.innerHTML = `<span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${statusClass}">${statusLabel}</span>`;
+    statusCell.innerHTML = `<span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${statusClass}">${statusLabel}</span>`;
     
     // Update pause/play button
     if (pausePlayBtn) {
@@ -331,29 +319,6 @@ function updateJobStatusInTable(jobId, newStatus) {
     }
 }
 
-function toggleMoreMenu(jobId) {
-    const menu = document.getElementById(`more-menu-${jobId}`);
-    if (menu) {
-        menu.classList.toggle('hidden');
-    }
-    
-    // Close other menus
-    document.querySelectorAll('[id^="more-menu-"]').forEach(m => {
-        if (m.id !== `more-menu-${jobId}`) {
-            m.classList.add('hidden');
-        }
-    });
-}
-
-// Close menus when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('[onclick*="toggleMoreMenu"]') && !e.target.closest('[id^="more-menu-"]')) {
-        document.querySelectorAll('[id^="more-menu-"]').forEach(menu => {
-            menu.classList.add('hidden');
-        });
-    }
-});
-
 async function deleteJob(jobId) {
     if (!confirm('Are you sure you want to delete this job posting?')) {
         return;
@@ -369,10 +334,12 @@ async function deleteJob(jobId) {
         });
         
         if (response.ok) {
-            // Remove row from table
             const row = document.querySelector(`tr[data-job-id="${jobId}"]`);
             if (row) {
                 row.remove();
+                if (!document.querySelector('tbody .job-row')) {
+                    window.location.reload();
+                }
             } else {
                 window.location.reload();
             }
@@ -398,7 +365,9 @@ function addJobToTable(job) {
     
     // Format salary
     let salaryDisplay = '';
-    if (job.salary_min || job.salary_max) {
+    if (job.hide_salary) {
+        salaryDisplay = `<div class="text-xs text-gray-400 mt-0.5">Negotiable</div>`;
+    } else if (job.salary_min || job.salary_max) {
         const min = job.salary_min ? (job.salary_min >= 1000 ? '$' + Math.round(job.salary_min / 1000) + 'k' : '$' + job.salary_min.toLocaleString()) : '';
         const max = job.salary_max ? (job.salary_max >= 1000 ? '$' + Math.round(job.salary_max / 1000) + 'k' : '$' + job.salary_max.toLocaleString()) : '';
         if (min && max) {
@@ -424,9 +393,9 @@ function addJobToTable(job) {
         statusClass = 'bg-red-50 text-red-600 border border-red-200';
     }
     
-    // Check if promoted (published within last 7 days)
-    const promotedBadge = (job.status === 'published' && new Date(job.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000) 
-        ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded-md uppercase tracking-wide">Promoted</span>' 
+    const hasPromoted = Array.isArray(job.campaigns) && job.campaigns.some(function(c) { return c && c.status === 'active'; });
+    const promotedBadge = hasPromoted
+        ? '<span class="px-2.5 py-0.5 text-xs font-bold text-white uppercase tracking-wide rounded-md" style="background-color: #f97316;">Promoted</span>'
         : '';
     
     // Format employment type
@@ -434,20 +403,25 @@ function addJobToTable(job) {
     
     // Location
     const location = job.is_remote ? 'Remote' : (job.location || 'Not specified');
+    const rowStatus = (job.status === 'draft' && job.published_at) ? 'paused' : (job.status || 'draft');
+    const titleLower = (job.title || '').toLowerCase();
+    const locationLower = (job.is_remote ? 'remote' : (job.location || '')).toLowerCase();
     
     // Create new row
     const newRow = document.createElement('tr');
     newRow.setAttribute('data-job-id', job.id);
-    newRow.className = 'border-b border-gray-100 hover:bg-gray-50/50 transition group';
-    newRow.style.borderLeft = '3px solid #f59e0b';
+    newRow.setAttribute('data-job-title', titleLower);
+    newRow.setAttribute('data-job-location', locationLower);
+    newRow.setAttribute('data-status', rowStatus);
+    newRow.className = 'job-row border-b border-gray-100 hover:bg-gray-50/50 transition group';
     newRow.innerHTML = `
         <!-- JOB TITLE -->
         <td class="px-6 py-4">
             <div class="flex items-center">
                 <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
                 </div>
                 <div>
                     <div class="flex items-center space-x-2">
@@ -471,7 +445,7 @@ function addJobToTable(job) {
 
         <!-- STATUS -->
         <td class="px-6 py-4">
-            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${statusClass}">
+            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${statusClass}">
                 ${statusLabel}
             </span>
         </td>
@@ -497,53 +471,18 @@ function addJobToTable(job) {
             </div>
         </td>
 
-        <!-- ACTIONS -->
-        <td class="px-6 py-4" style="position: relative; overflow: visible;">
+        <!-- ACTIONS: Edit, Stats, Delete only -->
+        <td class="px-6 py-4">
             <div class="flex items-center space-x-1">
-                <!-- Edit -->
-                <button onclick="openEditJobModal(${job.id})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
+                <button onclick="openEditJobModal(${job.id})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition" style="border-radius: 0;" title="Edit">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 </button>
-
-                <!-- Pause/Play -->
-                ${job.status === 'published' ? `
-                    <button onclick="toggleJobStatus(${job.id})" class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Pause">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                <a href="/employer/jobs/${job.id}/stats" class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition inline-block" style="border-radius: 0;" title="Statistics">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </a>
+                <button onclick="deleteJob(${job.id})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition" style="border-radius: 0;" title="Delete">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
-                ` : `
-                    <button onclick="toggleJobStatus(${job.id})" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition" title="Activate">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </button>
-                `}
-
-                <!-- Analytics/Chart -->
-                <button onclick="openShowJobModal(${job.id})" class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition" title="Analytics">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
-                </button>
-
-                <!-- More Options -->
-                <div class="relative inline-block" style="z-index: 9999;">
-                    <button onclick="toggleMoreMenu(${job.id})" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition" title="More options">
-                        <svg class="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="5" r="1.5"></circle>
-                            <circle cx="12" cy="12" r="1.5"></circle>
-                            <circle cx="12" cy="19" r="1.5"></circle>
-                        </svg>
-                    </button>
-                    <div id="more-menu-${job.id}" class="hidden absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden" style="z-index: 99999; min-width: 12rem; position: absolute;">
-                        <button onclick="openShowJobModal(${job.id})" class="w-full text-left block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition whitespace-nowrap">View Details</button>
-                        <button onclick="deleteJob(${job.id})" class="w-full text-left block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition whitespace-nowrap">Delete</button>
-                    </div>
-                </div>
             </div>
         </td>
     `;
@@ -575,14 +514,17 @@ function showSimpleToast(message, type = 'success') {
     }, 5000);
 }
 
-// Create Job Modal Functions
+// Create Job Modal - 3-step wizard
+let cjmStep = 1;
+let cjmSkills = [];
+
 function openCreateJobModal(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    cjmStep = 1;
+    cjmSkills = [];
     document.getElementById('create-job-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    cjmRenderStep();
     return false;
 }
 
@@ -590,35 +532,162 @@ function closeCreateJobModal() {
     document.getElementById('create-job-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.getElementById('create-job-form').reset();
-    // Clear errors
-    document.querySelectorAll('[id^="error-"]').forEach(el => {
-        el.classList.add('hidden');
-        el.textContent = '';
-    });
+    cjmSkills = [];
+    const sl = document.getElementById('cjm-skills-list');
+    if (sl) sl.innerHTML = '';
+    document.querySelectorAll('[id^="error-"]').forEach(el => { el.classList.add('hidden'); el.textContent = ''; });
 }
 
-// Handle form submission
+function cjmRenderStep() {
+    document.getElementById('cjm-step-1').classList.toggle('hidden', cjmStep !== 1);
+    document.getElementById('cjm-step-2').classList.toggle('hidden', cjmStep !== 2);
+    document.getElementById('cjm-step-3').classList.toggle('hidden', cjmStep !== 3);
+    document.getElementById('cjm-step-label').textContent = `Step ${cjmStep} of 3`;
+
+    // Indicators
+    for (let i = 1; i <= 3; i++) {
+        const ind = document.getElementById('cjm-ind-' + i);
+        if (i <= cjmStep) {
+            ind.className = 'w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold';
+        } else {
+            ind.className = 'w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold';
+        }
+    }
+    for (let i = 1; i <= 2; i++) {
+        const line = document.getElementById('cjm-line-' + i);
+        line.className = i < cjmStep ? 'w-16 h-0.5 bg-blue-600' : 'w-16 h-0.5 bg-gray-300';
+    }
+
+    // Buttons
+    const prev = document.getElementById('cjm-btn-prev');
+    const cancel = document.getElementById('cjm-btn-cancel');
+    const next = document.getElementById('cjm-btn-next');
+    const submit = document.getElementById('cjm-btn-submit');
+    prev.classList.toggle('hidden', cjmStep === 1);
+    cancel.classList.toggle('hidden', cjmStep !== 1);
+    next.classList.toggle('hidden', cjmStep === 3);
+    submit.classList.toggle('hidden', cjmStep !== 3);
+
+    if (cjmStep === 3) cjmBuildReview();
+}
+
+function cjmNextStep() {
+    if (cjmStep === 1) {
+        const title = document.getElementById('modal_title').value.trim();
+        if (!title) { document.getElementById('modal_title').focus(); return; }
+    }
+    if (cjmStep === 2) {
+        const desc = document.getElementById('modal_description').value.trim();
+        if (!desc) { document.getElementById('modal_description').focus(); return; }
+    }
+    if (cjmStep < 3) { cjmStep++; cjmRenderStep(); }
+}
+
+function cjmPrevStep() {
+    if (cjmStep > 1) { cjmStep--; cjmRenderStep(); }
+}
+
+function cjmBuildReview() {
+    const v = k => { const e = document.getElementById(k); return e ? (e.options ? (e.selectedOptions[0]?.text || e.value) : e.value) : ''; };
+    const rows = [
+        ['Position', v('modal_title') || 'Not specified'],
+        ['Category', v('modal_category_id') || 'Not specified'],
+        ['Location', `${v('modal_island') || ''} ${v('modal_district') ? '- ' + v('modal_district') : ''}`.trim() || 'Not specified'],
+        ['Type', `${v('modal_employment_type')} - ${v('modal_work_environment')}`],
+        ['Education', v('modal_education_level') || 'Not specified'],
+        ['Salary', document.getElementById('modal_hide_salary')?.checked ? 'Negotiable' : `${parseInt(document.getElementById('modal_salary_min')?.value || 0).toLocaleString()} SCR - ${parseInt(document.getElementById('modal_salary_max')?.value || 100000).toLocaleString()} SCR`],
+    ];
+    document.getElementById('cjm-review-content').innerHTML = rows.map(([l, r]) =>
+        `<div class="flex items-center justify-between py-1.5"><span class="text-gray-500">${l}:</span><span class="font-medium text-gray-900 text-right">${r}</span></div>`
+    ).join('');
+}
+
+// Skills tag input
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('create-job-form');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
+    const skillInput = document.getElementById('cjm-skill-input');
+    if (skillInput) {
+        skillInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
             e.preventDefault();
-            
-            const submitBtn = document.getElementById('create-job-submit-btn');
+                const val = this.value.trim();
+                if (val && !cjmSkills.includes(val)) {
+                    cjmSkills.push(val);
+                    cjmRenderSkills();
+                }
+                this.value = '';
+            }
+            if (e.key === 'Backspace' && !this.value && cjmSkills.length) {
+                cjmSkills.pop();
+                cjmRenderSkills();
+            }
+        });
+    }
+});
+
+function cjmRenderSkills() {
+    const list = document.getElementById('cjm-skills-list');
+    const hidden = document.getElementById('modal_requirements');
+    list.innerHTML = cjmSkills.map((s, i) =>
+        `<span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">${s}<button type="button" onclick="cjmRemoveSkill(${i})" class="text-blue-500 hover:text-blue-700 ml-0.5">&times;</button></span>`
+    ).join('');
+    hidden.value = cjmSkills.join(', ');
+}
+
+function cjmRemoveSkill(i) { cjmSkills.splice(i, 1); cjmRenderSkills(); }
+
+// Toggle hide salary
+function cjmToggleHideSalary(checked) {
+    const wrapper = document.getElementById('cjm-salary-slider-wrapper');
+    if (checked) {
+        wrapper.style.opacity = '0.3';
+        wrapper.style.pointerEvents = 'none';
+    } else {
+        wrapper.style.opacity = '1';
+        wrapper.style.pointerEvents = 'auto';
+    }
+}
+
+// Dual-range salary slider
+document.addEventListener('DOMContentLoaded', function() {
+    const rangeMin = document.getElementById('cjm-range-min');
+    const rangeMax = document.getElementById('cjm-range-max');
+    if (!rangeMin || !rangeMax) return;
+
+    function updateSalaryRange() {
+        let minVal = parseInt(rangeMin.value);
+        let maxVal = parseInt(rangeMax.value);
+        if (minVal > maxVal) { [minVal, maxVal] = [maxVal, minVal]; rangeMin.value = minVal; rangeMax.value = maxVal; }
+        document.getElementById('modal_salary_min').value = minVal;
+        document.getElementById('modal_salary_max').value = maxVal;
+        document.getElementById('cjm-sal-min').textContent = minVal.toLocaleString() + ' SCR';
+        document.getElementById('cjm-sal-max').textContent = maxVal.toLocaleString() + ' SCR';
+        const pctMin = (minVal / 100000) * 100;
+        const pctMax = ((100000 - maxVal) / 100000) * 100;
+        document.getElementById('cjm-range-fill').style.left = pctMin + '%';
+        document.getElementById('cjm-range-fill').style.right = pctMax + '%';
+    }
+    rangeMin.addEventListener('input', updateSalaryRange);
+    rangeMax.addEventListener('input', updateSalaryRange);
+});
+
+async function cjmSubmit() {
+    const form = document.getElementById('create-job-form');
+    const submitBtn = document.getElementById('cjm-btn-submit');
             const loadingIcon = document.getElementById('create-job-loading');
             const formData = new FormData(form);
             
-            // Salary values are already in actual amounts, no conversion needed
+    // Set location from island + district
+    const island = formData.get('island') || '';
+    const district = formData.get('district') || '';
+    if (island || district) formData.set('location', [island, district].filter(Boolean).join(', '));
             
-            // Show loading
+    // Set is_remote from work_environment
+    const we = formData.get('work_environment');
+    if (we === 'remote') formData.set('is_remote', '1');
+
             submitBtn.disabled = true;
             loadingIcon.classList.remove('hidden');
-            
-            // Clear previous errors
-            document.querySelectorAll('[id^="error-"]').forEach(el => {
-                el.classList.add('hidden');
-                el.textContent = '';
-            });
+    document.querySelectorAll('[id^="error-"]').forEach(el => { el.classList.add('hidden'); el.textContent = ''; });
             
             try {
                 const response = await fetch('{{ route("employer.jobs.store") }}', {
@@ -630,423 +699,535 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData
                 });
                 
-                let data;
-                try {
-                    const responseText = await response.text();
-                    console.log('Raw response:', responseText);
-                    data = JSON.parse(responseText);
-                    console.log('Parsed response data:', data);
-                } catch (jsonError) {
-                    console.error('Failed to parse JSON response:', jsonError);
-                    console.error('Response status:', response.status);
-                    console.error('Response headers:', response.headers);
-                    throw new Error('Invalid response from server');
-                }
+        let data;
+        try {
+            const responseText = await response.text();
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            throw new Error('Invalid response from server');
+        }
                 
                 if (response.ok) {
-                    // Extract job from response (could be data.job or just data)
-                    const job = data.job || data;
-                    
-                    if (!job || !job.id) {
-                        console.error('Invalid job data received:', data);
-                        alert('Job was created but could not be displayed. Please refresh the page.');
-                        closeCreateJobModal();
-                        // Reload page to show the new job
-                        setTimeout(() => window.location.reload(), 1000);
-                        return;
-                    }
-                    
-                    // Ensure job has all required fields for display
-                    if (!job.company) {
-                        job.company = { name: 'Company' };
-                    }
-                    if (!job.category) {
-                        job.category = null;
-                    }
-                    if (job.applications_count === undefined) {
-                        job.applications_count = 0;
-                    }
-                    if (job.views_count === undefined) {
-                        job.views_count = 0;
-                    }
-                    if (!job.created_at) {
-                        job.created_at = new Date().toISOString();
-                    }
-                    
-                    // Success - close modal first
+            const job = data.job || data;
+            if (!job || !job.id) {
                     closeCreateJobModal();
-                    
-                    // Show success message
-                    const successMessage = data.message || 'Job posting created successfully!';
+                setTimeout(() => window.location.reload(), 1000);
+                return;
+            }
+            closeCreateJobModal();
                     if (typeof window.showSuccessToast === 'function') {
-                        window.showSuccessToast(successMessage);
-                    } else {
-                        // Create a simple toast notification
-                        showSimpleToast(successMessage, 'success');
-                    }
-                    
-                    // Add new job to table dynamically
-                    try {
-                        addJobToTable(job);
-                    } catch (error) {
-                        console.error('Error adding job to table:', error);
-                        // If adding to table fails, reload the page
-                        setTimeout(() => window.location.reload(), 1500);
-                    }
+                window.showSuccessToast(data.message || 'Job created! Redirecting to create campaign…');
+            }
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            if (!job.company) job.company = { name: 'Company' };
+            if (!job.category) job.category = null;
+            if (job.applications_count === undefined) job.applications_count = 0;
+            if (job.views_count === undefined) job.views_count = 0;
+            if (!job.created_at) job.created_at = new Date().toISOString();
+            try { addJobToTable(job); } catch (e) { setTimeout(() => window.location.reload(), 1500); }
                 } else {
-                    // Show validation errors
                     if (data.errors) {
+                // Go back to the step with errors
+                if (data.errors.title || data.errors.category_id || data.errors.island || data.errors.district) { cjmStep = 1; cjmRenderStep(); }
+                else if (data.errors.description) { cjmStep = 2; cjmRenderStep(); }
                         Object.keys(data.errors).forEach(field => {
                             const errorEl = document.getElementById(`error-${field}`);
-                            if (errorEl) {
-                                errorEl.textContent = data.errors[field][0];
-                                errorEl.classList.remove('hidden');
-                            }
+                    if (errorEl) { errorEl.textContent = data.errors[field][0]; errorEl.classList.remove('hidden'); }
                         });
                     } else {
-                        const errorMessage = data.message || 'Failed to create job posting';
-                        if (typeof window.showErrorToast === 'function') {
-                            window.showErrorToast(errorMessage);
-                        } else {
-                            alert(errorMessage);
-                        }
+                if (typeof window.showErrorToast === 'function') window.showErrorToast(data.message || 'Failed to create job posting');
                     }
                 }
             } catch (error) {
-                console.error('Error creating job:', error);
-                const errorMessage = error.message || 'An error occurred while creating the job posting';
-                if (typeof window.showErrorToast === 'function') {
-                    window.showErrorToast(errorMessage);
-                } else {
-                    alert(errorMessage);
-                }
+        if (typeof window.showErrorToast === 'function') window.showErrorToast(error.message || 'An error occurred');
             } finally {
                 submitBtn.disabled = false;
                 loadingIcon.classList.add('hidden');
             }
-        });
     }
     
     // Close modal on outside click
+document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('create-job-modal');
     if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCreateJobModal();
-            }
-        });
+        modal.addEventListener('click', function(e) { if (e.target === this) closeCreateJobModal(); });
     }
 });
 </script>
 
-<!-- Create Job Modal -->
-<div id="create-job-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+<!-- Create Job Modal (3-step wizard) -->
+<div id="create-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-200 flex-shrink-0" style="background:linear-gradient(180deg,#f0f4ff 0%,#fff 100%);">
             <div class="flex items-center justify-between">
-                <h3 class="text-2xl font-bold text-gray-900">Post New Job</h3>
-                <button onclick="closeCreateJobModal()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Create Job Posting</h3>
+                    <p id="cjm-step-label" class="text-sm text-blue-600 mt-0.5">Step 1 of 3</p>
+                </div>
+                <button onclick="closeCreateJobModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
         
-        <form id="create-job-form" class="p-6">
+        <!-- Body (scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6 bg-white">
+            <form id="create-job-form">
             @csrf
             
-            <!-- Basic Information -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
-                
-                <div class="space-y-6">
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-8">
+                    <div id="cjm-ind-1" class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div id="cjm-line-1" class="w-16 h-0.5 bg-gray-300"></div>
+                    <div id="cjm-ind-2" class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold">2</div>
+                    <div id="cjm-line-2" class="w-16 h-0.5 bg-gray-300"></div>
+                    <div id="cjm-ind-3" class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold">3</div>
+                </div>
+
+                <!-- STEP 1: Basic Information -->
+                <div id="cjm-step-1">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Basic Information</h4>
+                    <div class="space-y-5">
                     <div>
-                        <label for="modal_title" class="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
-                        <input type="text" id="modal_title" name="title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Senior Software Engineer">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                                Job Title *
+                            </label>
+                            <input type="text" id="modal_title" name="title" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Senior Software Engineer">
                         <p id="error-title" class="mt-1 text-sm text-red-600 hidden"></p>
                     </div>
-
                     <div>
-                        <label for="modal_category_id" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select id="modal_category_id" name="category_id" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+                                Category *
+                            </label>
+                            <select id="modal_category_id" name="category_id" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select a category</option>
                             @foreach($categories ?? [] as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
                     </div>
-
+                        <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="modal_description" class="block text-sm font-medium text-gray-700 mb-2">Job Description *</label>
-                        <textarea id="modal_description" name="description" required rows="6" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea>
-                        <p id="error-description" class="mt-1 text-sm text-red-600 hidden"></p>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                                    Island *
+                                </label>
+                                <select id="modal_island" name="island" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select an island</option>
+                                    <option value="Mahe">Mahé</option>
+                                    <option value="Praslin">Praslin</option>
+                                    <option value="La Digue">La Digue</option>
+                                    <option value="Silhouette">Silhouette</option>
+                                    <option value="Other">Other</option>
+                                </select>
                     </div>
-
                     <div>
-                        <label for="modal_requirements" class="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
-                        <textarea id="modal_requirements" name="requirements" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List the required skills, qualifications, and experience..."></textarea>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                                    District *
+                                </label>
+                                <select id="modal_district" name="district" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select a district</option>
+                                    <option value="Victoria">Victoria</option>
+                                    <option value="Anse Royale">Anse Royale</option>
+                                    <option value="Beau Vallon">Beau Vallon</option>
+                                    <option value="Glacis">Glacis</option>
+                                    <option value="Grand Anse Mahe">Grand Anse Mahé</option>
+                                    <option value="Grand Anse Praslin">Grand Anse Praslin</option>
+                                    <option value="Baie Lazare">Baie Lazare</option>
+                                    <option value="Takamaka">Takamaka</option>
+                                    <option value="Port Glaud">Port Glaud</option>
+                                    <option value="Other">Other</option>
+                                </select>
                     </div>
-
-                    <div>
-                        <label for="modal_benefits" class="block text-sm font-medium text-gray-700 mb-2">Benefits</label>
-                        <textarea id="modal_benefits" name="benefits" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List the benefits and perks..."></textarea>
                     </div>
-                </div>
-            </div>
-
-            <!-- Job Details -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Job Details</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label for="modal_employment_type" class="block text-sm font-medium text-gray-700 mb-2">Employment Type</label>
-                        <select id="modal_employment_type" name="employment_type" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select type</option>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Job Type *
+                                </label>
+                                <select id="modal_employment_type" name="employment_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="full_time">Full Time</option>
                             <option value="part_time">Part Time</option>
                             <option value="contract">Contract</option>
-                            <option value="freelance">Freelance</option>
-                            <option value="internship">Internship</option>
+                                    <option value="temporary">Temporary</option>
                         </select>
                     </div>
-
                     <div>
-                        <label for="modal_experience_level" class="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
-                        <select id="modal_experience_level" name="experience_level" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select level</option>
-                            <option value="entry">Entry Level</option>
-                            <option value="mid">Mid Level</option>
-                            <option value="senior">Senior Level</option>
-                            <option value="executive">Executive</option>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+                                    Work Environment *
+                                </label>
+                                <select id="modal_work_environment" name="work_environment" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="on_site">On-site</option>
+                                    <option value="remote">Remote</option>
+                                    <option value="hybrid">Hybrid</option>
                         </select>
                     </div>
-
                     <div>
-                        <label for="modal_location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                        <input type="text" id="modal_location" name="location" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., New York, NY">
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+                                    Education Level
+                                </label>
+                                <select id="modal_education_level" name="education_level" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Not specified</option>
+                                    <option value="high_school">High School</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="bachelors">Bachelor's Degree</option>
+                                    <option value="masters">Master's Degree</option>
+                                    <option value="phd">PhD</option>
+                                </select>
                     </div>
-
+                        </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Remote Work</label>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="modal_is_remote" name="is_remote" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="modal_is_remote" class="ml-2 text-sm text-gray-700">This is a remote position</label>
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Salary Range (Optional)
+                            </label>
+                            <div id="cjm-salary-slider-wrapper">
+                                <div class="relative h-6 mt-2">
+                                    <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full -translate-y-1/2"></div>
+                                    <div id="cjm-range-fill" class="absolute top-1/2 h-1 bg-blue-500 rounded-full -translate-y-1/2" style="left:0%;right:0%"></div>
+                                    <input type="range" id="cjm-range-min" min="0" max="100000" step="1000" value="0" class="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer">
+                                    <input type="range" id="cjm-range-max" min="0" max="100000" step="1000" value="100000" class="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer">
+                        </div>
+                                <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                                    <span>0 SCR</span>
+                                    <span>100k SCR</span>
+                    </div>
+                                <div class="flex items-center justify-center gap-2 mt-3">
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium border border-emerald-200" id="cjm-sal-min">0 SCR</span>
+                                    <span class="text-gray-400">-</span>
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium border border-emerald-200" id="cjm-sal-max">100,000 SCR</span>
+                    </div>
+                            </div>
+                            <div class="flex items-center mt-3">
+                                <input type="checkbox" id="modal_hide_salary" name="hide_salary" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" onchange="cjmToggleHideSalary(this.checked)">
+                                <label for="modal_hide_salary" class="ml-2 text-sm text-gray-600">Don't show salary (display as "Negotiable")</label>
+                            </div>
+                            <input type="hidden" id="modal_salary_min" name="salary_min" value="0">
+                            <input type="hidden" id="modal_salary_max" name="salary_max" value="100000">
                         </div>
                     </div>
-
-                    <div>
-                        <label for="modal_salary_min" class="block text-sm font-medium text-gray-700 mb-2">Salary Min</label>
-                        <input type="number" id="modal_salary_min" name="salary_min" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 3000">
                     </div>
 
+                <!-- STEP 2: Job Details -->
+                <div id="cjm-step-2" class="hidden">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Job Details</h4>
+                    <div class="space-y-5">
                     <div>
-                        <label for="modal_salary_max" class="block text-sm font-medium text-gray-700 mb-2">Salary Max</label>
-                        <input type="number" id="modal_salary_max" name="salary_max" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 5000">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                                Job Description *
+                            </label>
+                            <div id="cjm-desc-toolbar" class="flex items-center gap-1 border border-gray-300 border-b-0 rounded-t-lg px-3 py-2 bg-gray-50">
+                                <button type="button" onclick="document.execCommand('bold')" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 font-bold text-sm">B</button>
+                                <button type="button" onclick="document.execCommand('italic')" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 italic text-sm">I</button>
+                                <button type="button" onclick="document.execCommand('underline')" class="p-1.5 rounded hover:bg-gray-200 text-gray-600 underline text-sm">U</button>
+                                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                                <button type="button" onclick="document.execCommand('justifyLeft')" class="p-1.5 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h12M3 18h18"/></svg></button>
+                                <button type="button" onclick="document.execCommand('justifyCenter')" class="p-1.5 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M3 18h18"/></svg></button>
+                                <button type="button" onclick="document.execCommand('justifyRight')" class="p-1.5 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M9 12h12M3 18h18"/></svg></button>
+                                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                                <button type="button" onclick="document.execCommand('insertUnorderedList')" class="p-1.5 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+                                <button type="button" onclick="document.execCommand('insertOrderedList')" class="p-1.5 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 6h11M10 12h11M10 18h11M3 6l2 0M3 12l2 0M3 18l2 0"/></svg></button>
                     </div>
-
+                            <textarea id="modal_description" name="description" required rows="8" class="w-full border border-gray-300 rounded-b-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Provide a detailed description of the role, responsibilities, and what makes this position great..."></textarea>
+                            <p id="error-description" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
                     <div>
-                        <label for="modal_currency" class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                        <select id="modal_currency" name="currency" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="SCR">SCR</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="modal_application_deadline" class="block text-sm font-medium text-gray-700 mb-2">Application Deadline</label>
-                        <input type="date" id="modal_application_deadline" name="application_deadline" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+                                Required Skills
+                            </label>
+                            <div class="border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent bg-white">
+                                <div id="cjm-skills-list" class="flex flex-wrap gap-2 mb-0"></div>
+                                <input type="text" id="cjm-skill-input" class="w-full border-0 outline-none p-0 text-sm mt-1 focus:ring-0" placeholder="Type a skill and press Enter...">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Press Enter to add a skill, Backspace to remove the last one</p>
+                            <input type="hidden" id="modal_requirements" name="requirements" value="">
                     </div>
                 </div>
             </div>
 
-            <!-- Publishing Options -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Publishing Options</h2>
-                
-                <div>
-                    <label for="modal_status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select id="modal_status" name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="draft">Save as Draft</option>
-                        <option value="published">Publish Immediately</option>
-                    </select>
-                    <p class="mt-2 text-sm text-gray-500">Draft jobs are saved but not visible to job seekers. Published jobs are immediately visible.</p>
+                <!-- STEP 3: Review & Publish -->
+                <div id="cjm-step-3" class="hidden">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Review & Publish</h4>
+                    <div id="cjm-review-summary" class="border border-gray-200 rounded-lg p-5 bg-white">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                            <span class="font-semibold text-gray-900">Job Summary</span>
                 </div>
+                        <div id="cjm-review-content" class="space-y-2 text-sm"></div>
+                    </div>
+                    <input type="hidden" name="status" value="published">
+                </div>
+            </form>
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                <button type="button" onclick="closeCreateJobModal()" class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-shrink-0 bg-white">
+            <button type="button" id="cjm-btn-prev" onclick="cjmPrevStep()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm hidden">
+                Previous
+            </button>
+            <button type="button" id="cjm-btn-cancel" onclick="closeCreateJobModal()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
                     Cancel
                 </button>
-                <button type="submit" id="create-job-submit-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center space-x-2">
-                    <span>Create Job Posting</span>
-                    <svg id="create-job-loading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+            <div class="flex-1"></div>
+            <button type="button" id="cjm-btn-next" onclick="cjmNextStep()" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium text-sm">
+                Next Step
+            </button>
+            <button type="button" id="cjm-btn-submit" onclick="cjmSubmit()" class="hidden px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium text-sm flex items-center gap-2">
+                <span>Create Campaign</span>
+                <svg id="create-job-loading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
-        </form>
     </div>
 </div>
 
-<!-- Edit Job Modal -->
-<div id="edit-job-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+<!-- Edit Job Modal (3-step wizard) -->
+<div id="edit-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-200 flex-shrink-0" style="background:linear-gradient(180deg,#f0f4ff 0%,#fff 100%);">
             <div class="flex items-center justify-between">
-                <h3 class="text-2xl font-bold text-gray-900">Edit Job Posting</h3>
-                <button onclick="closeEditJobModal()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Edit Job Posting</h3>
+                    <p id="ejm-step-label" class="text-sm text-blue-600 mt-0.5">Step 1 of 3</p>
+                </div>
+                <button onclick="closeEditJobModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
         
-        <form id="edit-job-form" class="p-6">
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto p-6 bg-white">
+            <form id="edit-job-form">
             @csrf
             @method('PUT')
             <input type="hidden" id="edit-job-id" name="job_id">
             
-            <!-- Basic Information -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
-                
-                <div class="space-y-6">
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center mb-8">
+                    <div id="ejm-ind-1" class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div id="ejm-line-1" class="w-16 h-0.5 bg-gray-300"></div>
+                    <div id="ejm-ind-2" class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold">2</div>
+                    <div id="ejm-line-2" class="w-16 h-0.5 bg-gray-300"></div>
+                    <div id="ejm-ind-3" class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold">3</div>
+                </div>
+
+                <!-- STEP 1: Basic Information -->
+                <div id="ejm-step-1">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Basic Information</h4>
+                    <div class="space-y-5">
                     <div>
-                        <label for="edit_title" class="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
-                        <input type="text" id="edit_title" name="title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Senior Software Engineer">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                                Job Title *
+                            </label>
+                            <input type="text" id="edit_title" name="title" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Senior Software Engineer">
                         <p id="error-edit-title" class="mt-1 text-sm text-red-600 hidden"></p>
                     </div>
-
                     <div>
-                        <label for="edit_category_id" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select id="edit_category_id" name="category_id" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+                                Category *
+                            </label>
+                            <select id="edit_category_id" name="category_id" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select a category</option>
                             @foreach($categories ?? [] as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
                     </div>
-
+                        <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="edit_description" class="block text-sm font-medium text-gray-700 mb-2">Job Description *</label>
-                        <textarea id="edit_description" name="description" required rows="6" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea>
-                        <p id="error-edit-description" class="mt-1 text-sm text-red-600 hidden"></p>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                                    Island *
+                                </label>
+                                <select id="edit_island" name="island" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select an island</option>
+                                    <option value="Mahe">Mahé</option>
+                                    <option value="Praslin">Praslin</option>
+                                    <option value="La Digue">La Digue</option>
+                                    <option value="Silhouette">Silhouette</option>
+                                    <option value="Other">Other</option>
+                                </select>
                     </div>
-
                     <div>
-                        <label for="edit_requirements" class="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
-                        <textarea id="edit_requirements" name="requirements" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List the required skills, qualifications, and experience..."></textarea>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                                    District *
+                                </label>
+                                <select id="edit_district" name="district" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select a district</option>
+                                    <option value="Victoria">Victoria</option>
+                                    <option value="Anse Royale">Anse Royale</option>
+                                    <option value="Beau Vallon">Beau Vallon</option>
+                                    <option value="Glacis">Glacis</option>
+                                    <option value="Grand Anse Mahe">Grand Anse Mahé</option>
+                                    <option value="Grand Anse Praslin">Grand Anse Praslin</option>
+                                    <option value="Baie Lazare">Baie Lazare</option>
+                                    <option value="Takamaka">Takamaka</option>
+                                    <option value="Port Glaud">Port Glaud</option>
+                                    <option value="Other">Other</option>
+                                </select>
                     </div>
-
-                    <div>
-                        <label for="edit_benefits" class="block text-sm font-medium text-gray-700 mb-2">Benefits</label>
-                        <textarea id="edit_benefits" name="benefits" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List the benefits and perks..."></textarea>
                     </div>
-                </div>
-            </div>
-
-            <!-- Job Details -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Job Details</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label for="edit_employment_type" class="block text-sm font-medium text-gray-700 mb-2">Employment Type</label>
-                        <select id="edit_employment_type" name="employment_type" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select type</option>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Job Type *
+                                </label>
+                                <select id="edit_employment_type" name="employment_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="full_time">Full Time</option>
                             <option value="part_time">Part Time</option>
                             <option value="contract">Contract</option>
-                            <option value="freelance">Freelance</option>
-                            <option value="internship">Internship</option>
+                                    <option value="temporary">Temporary</option>
                         </select>
                     </div>
-
                     <div>
-                        <label for="edit_experience_level" class="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
-                        <select id="edit_experience_level" name="experience_level" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select level</option>
-                            <option value="entry">Entry Level</option>
-                            <option value="mid">Mid Level</option>
-                            <option value="senior">Senior Level</option>
-                            <option value="executive">Executive</option>
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+                                    Work Environment *
+                                </label>
+                                <select id="edit_work_environment" name="work_environment" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="on_site">On-site</option>
+                                    <option value="remote">Remote</option>
+                                    <option value="hybrid">Hybrid</option>
                         </select>
                     </div>
-
                     <div>
-                        <label for="edit_location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                        <input type="text" id="edit_location" name="location" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., New York, NY">
+                                <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+                                    Education Level
+                                </label>
+                                <select id="edit_education_level" name="education_level" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Not specified</option>
+                                    <option value="high_school">High School</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="bachelors">Bachelor's Degree</option>
+                                    <option value="masters">Master's Degree</option>
+                                    <option value="phd">PhD</option>
+                                </select>
                     </div>
-
+                        </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Remote Work</label>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="edit_is_remote" name="is_remote" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="edit_is_remote" class="ml-2 text-sm text-gray-700">This is a remote position</label>
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Salary Range (Optional)
+                            </label>
+                            <div id="ejm-salary-slider-wrapper">
+                                <div class="relative h-6 mt-2">
+                                    <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full -translate-y-1/2"></div>
+                                    <div id="ejm-range-fill" class="absolute top-1/2 h-1 bg-blue-500 rounded-full -translate-y-1/2" style="left:0%;right:0%"></div>
+                                    <input type="range" id="ejm-range-min" min="0" max="100000" step="1000" value="0" class="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer">
+                                    <input type="range" id="ejm-range-max" min="0" max="100000" step="1000" value="100000" class="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer">
+                        </div>
+                                <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                                    <span>0 SCR</span>
+                                    <span>100k SCR</span>
+                    </div>
+                                <div class="flex items-center justify-center gap-2 mt-3">
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium border border-emerald-200" id="ejm-sal-min">0 SCR</span>
+                                    <span class="text-gray-400">-</span>
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium border border-emerald-200" id="ejm-sal-max">100,000 SCR</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center mt-3">
+                                <input type="checkbox" id="edit_hide_salary" name="hide_salary" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" onchange="ejmToggleHideSalary(this.checked)">
+                                <label for="edit_hide_salary" class="ml-2 text-sm text-gray-600">Don't show salary (display as "Negotiable")</label>
+                            </div>
+                            <input type="hidden" id="edit_salary_min" name="salary_min" value="0">
+                            <input type="hidden" id="edit_salary_max" name="salary_max" value="100000">
                         </div>
                     </div>
-
-                    <div>
-                        <label for="edit_salary_min" class="block text-sm font-medium text-gray-700 mb-2">Salary Min</label>
-                        <input type="number" id="edit_salary_min" name="salary_min" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 3000">
                     </div>
 
+                <!-- STEP 2: Job Details -->
+                <div id="ejm-step-2" class="hidden">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Job Details</h4>
+                    <div class="space-y-5">
                     <div>
-                        <label for="edit_salary_max" class="block text-sm font-medium text-gray-700 mb-2">Salary Max</label>
-                        <input type="number" id="edit_salary_max" name="salary_max" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 5000">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                                Job Description *
+                            </label>
+                            <textarea id="edit_description" name="description" required rows="8" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Provide a detailed description of the role, responsibilities, and what makes this position great..."></textarea>
+                            <p id="error-edit-description" class="mt-1 text-sm text-red-600 hidden"></p>
                     </div>
-
                     <div>
-                        <label for="edit_currency" class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                        <select id="edit_currency" name="currency" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="SCR">SCR</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                        </select>
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+                                Required Skills
+                            </label>
+                            <div class="border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent bg-white">
+                                <div id="ejm-skills-list" class="flex flex-wrap gap-2 mb-0"></div>
+                                <input type="text" id="ejm-skill-input" class="w-full border-0 outline-none p-0 text-sm mt-1 focus:ring-0" placeholder="Type a skill and press Enter...">
                     </div>
-
+                            <p class="text-xs text-gray-500 mt-1">Press Enter to add a skill, Backspace to remove the last one</p>
+                            <input type="hidden" id="edit_requirements" name="requirements" value="">
+                        </div>
                     <div>
-                        <label for="edit_application_deadline" class="block text-sm font-medium text-gray-700 mb-2">Application Deadline</label>
-                        <input type="date" id="edit_application_deadline" name="application_deadline" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                                Benefits
+                            </label>
+                            <textarea id="edit_benefits" name="benefits" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List the benefits and perks..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Publishing Options -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Publishing Options</h2>
-                
+                <!-- STEP 3: Review & Publish -->
+                <div id="ejm-step-3" class="hidden">
+                    <h4 class="text-lg font-bold text-gray-900 mb-5">Review & Publish</h4>
+                    <div id="ejm-review-summary" class="border border-gray-200 rounded-lg p-5 bg-white mb-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                            <span class="font-semibold text-gray-900">Job Summary</span>
+                        </div>
+                        <div id="ejm-review-content" class="space-y-2 text-sm"></div>
+                    </div>
                 <div>
-                    <label for="edit_status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select id="edit_status" name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <label class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                        <select id="edit_status" name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="draft">Draft</option>
                         <option value="published">Published</option>
                         <option value="closed">Closed</option>
                         <option value="archived">Archived</option>
                     </select>
                 </div>
+                </div>
+            </form>
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                <button type="button" onclick="closeEditJobModal()" class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-shrink-0 bg-white">
+            <button type="button" id="ejm-btn-prev" onclick="ejmPrevStep()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm hidden">
+                Previous
+            </button>
+            <button type="button" id="ejm-btn-cancel" onclick="closeEditJobModal()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
                     Cancel
                 </button>
-                <button type="submit" id="edit-job-submit-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center space-x-2">
-                    <span>Update Job Posting</span>
-                    <svg id="edit-job-loading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+            <div class="flex-1"></div>
+            <button type="button" id="ejm-btn-next" onclick="ejmNextStep()" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium text-sm">
+                Next Step
+            </button>
+            <button type="button" id="ejm-btn-submit" onclick="ejmSubmit()" class="hidden px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium text-sm flex items-center gap-2">
+                <span>Update Job</span>
+                <svg id="edit-job-loading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
-        </form>
     </div>
 </div>
 
@@ -1077,60 +1258,78 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-// Edit Job Modal Functions
+// Edit Job Modal - 3-step wizard
+let ejmStep = 1;
+let ejmSkills = [];
+
 async function openEditJobModal(jobId) {
     const modal = document.getElementById('edit-job-modal');
     const form = document.getElementById('edit-job-form');
+    ejmStep = 1;
+    ejmSkills = [];
     
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    ejmRenderStep();
     
-    // Show loading state
     form.style.opacity = '0.5';
     form.style.pointerEvents = 'none';
     
     try {
         const response = await fetch(`/employer/jobs/${jobId}/edit`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            },
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         });
-        
         const data = await response.json();
-        
         if (response.ok) {
             const job = data.job;
-            
-            // Populate form fields
             document.getElementById('edit-job-id').value = job.id;
             document.getElementById('edit_title').value = job.title || '';
             document.getElementById('edit_category_id').value = job.category_id || '';
             document.getElementById('edit_description').value = job.description || '';
-            document.getElementById('edit_requirements').value = job.requirements || '';
             document.getElementById('edit_benefits').value = job.benefits || '';
             document.getElementById('edit_employment_type').value = job.employment_type || '';
-            document.getElementById('edit_experience_level').value = job.experience_level || '';
-            document.getElementById('edit_location').value = job.location || '';
-            document.getElementById('edit_is_remote').checked = job.is_remote || false;
-            document.getElementById('edit_salary_min').value = job.salary_min || '';
-            document.getElementById('edit_salary_max').value = job.salary_max || '';
-            document.getElementById('edit_currency').value = job.currency || 'SCR';
-            document.getElementById('edit_application_deadline').value = job.application_deadline ? job.application_deadline.split('T')[0] : '';
+            document.getElementById('edit_island').value = job.island || '';
+            document.getElementById('edit_district').value = job.district || '';
+            document.getElementById('edit_work_environment').value = job.work_environment || '';
+            document.getElementById('edit_education_level').value = job.education_level || '';
             document.getElementById('edit_status').value = job.status || 'draft';
             
-            // Clear errors
-            document.querySelectorAll('[id^="error-edit-"]').forEach(el => {
-                el.classList.add('hidden');
-                el.textContent = '';
-            });
+            // Salary slider
+            const salMin = parseInt(job.salary_min) || 0;
+            const salMax = parseInt(job.salary_max) || 100000;
+            document.getElementById('ejm-range-min').value = salMin;
+            document.getElementById('ejm-range-max').value = salMax;
+            document.getElementById('edit_salary_min').value = salMin;
+            document.getElementById('edit_salary_max').value = salMax;
+            document.getElementById('ejm-sal-min').textContent = salMin.toLocaleString() + ' SCR';
+            document.getElementById('ejm-sal-max').textContent = salMax.toLocaleString() + ' SCR';
+            const pctMin = (salMin / 100000) * 100;
+            const pctMax = ((100000 - salMax) / 100000) * 100;
+            document.getElementById('ejm-range-fill').style.left = pctMin + '%';
+            document.getElementById('ejm-range-fill').style.right = pctMax + '%';
+
+            // Hide salary checkbox
+            const hideSal = job.hide_salary || false;
+            document.getElementById('edit_hide_salary').checked = hideSal;
+            ejmToggleHideSalary(hideSal);
+
+            // Skills from requirements
+            if (job.requirements) {
+                ejmSkills = job.requirements.split(',').map(s => s.trim()).filter(Boolean);
         } else {
-            alert('Failed to load job data');
+                ejmSkills = [];
+            }
+            ejmRenderSkills();
+            document.getElementById('edit_requirements').value = job.requirements || '';
+
+            document.querySelectorAll('[id^="error-edit-"]').forEach(el => { el.classList.add('hidden'); el.textContent = ''; });
+        } else {
+            if (typeof window.showErrorToast === 'function') window.showErrorToast('Failed to load job data');
             closeEditJobModal();
         }
     } catch (error) {
         console.error('Error loading job:', error);
-        alert('An error occurred while loading the job');
+        if (typeof window.showErrorToast === 'function') window.showErrorToast('An error occurred while loading the job');
         closeEditJobModal();
     } finally {
         form.style.opacity = '1';
@@ -1142,10 +1341,145 @@ function closeEditJobModal() {
     document.getElementById('edit-job-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.getElementById('edit-job-form').reset();
-    document.querySelectorAll('[id^="error-edit-"]').forEach(el => {
-        el.classList.add('hidden');
-        el.textContent = '';
-    });
+    ejmSkills = [];
+    const sl = document.getElementById('ejm-skills-list');
+    if (sl) sl.innerHTML = '';
+    document.querySelectorAll('[id^="error-edit-"]').forEach(el => { el.classList.add('hidden'); el.textContent = ''; });
+}
+
+function ejmRenderStep() {
+    document.getElementById('ejm-step-1').classList.toggle('hidden', ejmStep !== 1);
+    document.getElementById('ejm-step-2').classList.toggle('hidden', ejmStep !== 2);
+    document.getElementById('ejm-step-3').classList.toggle('hidden', ejmStep !== 3);
+    document.getElementById('ejm-step-label').textContent = `Step ${ejmStep} of 3`;
+    for (let i = 1; i <= 3; i++) {
+        const ind = document.getElementById('ejm-ind-' + i);
+        ind.className = i <= ejmStep
+            ? 'w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold'
+            : 'w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center text-sm font-bold';
+    }
+    for (let i = 1; i <= 2; i++) {
+        document.getElementById('ejm-line-' + i).className = i < ejmStep ? 'w-16 h-0.5 bg-blue-600' : 'w-16 h-0.5 bg-gray-300';
+    }
+    document.getElementById('ejm-btn-prev').classList.toggle('hidden', ejmStep === 1);
+    document.getElementById('ejm-btn-cancel').classList.toggle('hidden', ejmStep !== 1);
+    document.getElementById('ejm-btn-next').classList.toggle('hidden', ejmStep === 3);
+    document.getElementById('ejm-btn-submit').classList.toggle('hidden', ejmStep !== 3);
+    if (ejmStep === 3) ejmBuildReview();
+}
+
+function ejmNextStep() {
+    if (ejmStep === 1) { if (!document.getElementById('edit_title').value.trim()) { document.getElementById('edit_title').focus(); return; } }
+    if (ejmStep === 2) { if (!document.getElementById('edit_description').value.trim()) { document.getElementById('edit_description').focus(); return; } }
+    if (ejmStep < 3) { ejmStep++; ejmRenderStep(); }
+}
+function ejmPrevStep() { if (ejmStep > 1) { ejmStep--; ejmRenderStep(); } }
+
+function ejmBuildReview() {
+    const v = k => { const e = document.getElementById(k); return e ? (e.options ? (e.selectedOptions[0]?.text || e.value) : e.value) : ''; };
+    const rows = [
+        ['Position', v('edit_title') || 'Not specified'],
+        ['Category', v('edit_category_id') || 'Not specified'],
+        ['Location', `${v('edit_island') || ''} ${v('edit_district') ? '- ' + v('edit_district') : ''}`.trim() || 'Not specified'],
+        ['Type', `${v('edit_employment_type')} - ${v('edit_work_environment')}`],
+        ['Education', v('edit_education_level') || 'Not specified'],
+        ['Salary', document.getElementById('edit_hide_salary')?.checked ? 'Negotiable' : `${parseInt(document.getElementById('edit_salary_min')?.value || 0).toLocaleString()} SCR - ${parseInt(document.getElementById('edit_salary_max')?.value || 100000).toLocaleString()} SCR`],
+        ['Status', v('edit_status')],
+    ];
+    document.getElementById('ejm-review-content').innerHTML = rows.map(([l, r]) =>
+        `<div class="flex items-center justify-between py-1.5"><span class="text-gray-500">${l}:</span><span class="font-medium text-gray-900 text-right">${r}</span></div>`
+    ).join('');
+}
+
+function ejmToggleHideSalary(checked) {
+    const wrapper = document.getElementById('ejm-salary-slider-wrapper');
+    if (wrapper) { wrapper.style.opacity = checked ? '0.3' : '1'; wrapper.style.pointerEvents = checked ? 'none' : 'auto'; }
+}
+
+function ejmRenderSkills() {
+    const list = document.getElementById('ejm-skills-list');
+    const hidden = document.getElementById('edit_requirements');
+    list.innerHTML = ejmSkills.map((s, i) =>
+        `<span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">${s}<button type="button" onclick="ejmRemoveSkill(${i})" class="text-blue-500 hover:text-blue-700 ml-0.5">&times;</button></span>`
+    ).join('');
+    hidden.value = ejmSkills.join(', ');
+}
+function ejmRemoveSkill(i) { ejmSkills.splice(i, 1); ejmRenderSkills(); }
+
+// Edit skills tag input
+document.addEventListener('DOMContentLoaded', function() {
+    const skillInput = document.getElementById('ejm-skill-input');
+    if (skillInput) {
+        skillInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); const val = this.value.trim(); if (val && !ejmSkills.includes(val)) { ejmSkills.push(val); ejmRenderSkills(); } this.value = ''; }
+            if (e.key === 'Backspace' && !this.value && ejmSkills.length) { ejmSkills.pop(); ejmRenderSkills(); }
+        });
+    }
+    // Edit salary dual range
+    const erjMin = document.getElementById('ejm-range-min');
+    const erjMax = document.getElementById('ejm-range-max');
+    if (erjMin && erjMax) {
+        function updateEditSalaryRange() {
+            let minVal = parseInt(erjMin.value), maxVal = parseInt(erjMax.value);
+            if (minVal > maxVal) { [minVal, maxVal] = [maxVal, minVal]; erjMin.value = minVal; erjMax.value = maxVal; }
+            document.getElementById('edit_salary_min').value = minVal;
+            document.getElementById('edit_salary_max').value = maxVal;
+            document.getElementById('ejm-sal-min').textContent = minVal.toLocaleString() + ' SCR';
+            document.getElementById('ejm-sal-max').textContent = maxVal.toLocaleString() + ' SCR';
+            document.getElementById('ejm-range-fill').style.left = (minVal / 100000 * 100) + '%';
+            document.getElementById('ejm-range-fill').style.right = ((100000 - maxVal) / 100000 * 100) + '%';
+        }
+        erjMin.addEventListener('input', updateEditSalaryRange);
+        erjMax.addEventListener('input', updateEditSalaryRange);
+    }
+});
+
+async function ejmSubmit() {
+    const form = document.getElementById('edit-job-form');
+    const jobId = document.getElementById('edit-job-id').value;
+    const submitBtn = document.getElementById('ejm-btn-submit');
+    const loadingIcon = document.getElementById('edit-job-loading');
+    const formData = new FormData(form);
+
+    const island = formData.get('island') || '';
+    const district = formData.get('district') || '';
+    if (island || district) formData.set('location', [island, district].filter(Boolean).join(', '));
+    const we = formData.get('work_environment');
+    if (we === 'remote') formData.set('is_remote', '1');
+
+    submitBtn.disabled = true;
+    loadingIcon.classList.remove('hidden');
+    document.querySelectorAll('[id^="error-edit-"]').forEach(el => { el.classList.add('hidden'); el.textContent = ''; });
+
+    try {
+        const response = await fetch(`/employer/jobs/${jobId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+            body: formData
+        });
+        const data = await response.json();
+        if (response.ok) {
+            closeEditJobModal();
+            if (typeof window.showSuccessToast === 'function') window.showSuccessToast('Job posting updated successfully!');
+            updateJobRowInTable(data.job);
+        } else {
+            if (data.errors) {
+                if (data.errors.title || data.errors.category_id || data.errors.island || data.errors.district) { ejmStep = 1; ejmRenderStep(); }
+                else if (data.errors.description) { ejmStep = 2; ejmRenderStep(); }
+                Object.keys(data.errors).forEach(field => {
+                    const errorEl = document.getElementById(`error-edit-${field}`);
+                    if (errorEl) { errorEl.textContent = data.errors[field][0]; errorEl.classList.remove('hidden'); }
+                });
+            } else {
+                if (typeof window.showErrorToast === 'function') window.showErrorToast(data.message || 'Failed to update job posting');
+            }
+        }
+    } catch (error) {
+        if (typeof window.showErrorToast === 'function') window.showErrorToast('An error occurred while updating the job posting');
+    } finally {
+        submitBtn.disabled = false;
+        loadingIcon.classList.add('hidden');
+    }
 }
 
 // Show Job Modal Functions
@@ -1235,12 +1569,7 @@ async function openShowJobModal(jobId) {
                             <p class="text-sm font-medium text-gray-900">${salaryDisplay}</p>
                         </div>
                         ` : ''}
-                        ${job.application_deadline ? `
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Application Deadline</p>
-                            <p class="text-sm font-medium text-gray-900">${new Date(job.application_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                        </div>
-                        ` : ''}
+                        
                     </div>
 
                     <div class="mb-6">
@@ -1299,124 +1628,71 @@ async function openShowJobModal(jobId) {
 function closeShowJobModal() {
     document.getElementById('show-job-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
-}
-
-// Handle edit form submission
-document.addEventListener('DOMContentLoaded', function() {
-    const editForm = document.getElementById('edit-job-form');
-    if (editForm) {
-        editForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const jobId = document.getElementById('edit-job-id').value;
-            const submitBtn = document.getElementById('edit-job-submit-btn');
-            const loadingIcon = document.getElementById('edit-job-loading');
-            const formData = new FormData(editForm);
-            
-            // Salary values are already in actual amounts, no conversion needed
-            
-            // Show loading
-            submitBtn.disabled = true;
-            loadingIcon.classList.remove('hidden');
-            
-            // Clear previous errors
-            document.querySelectorAll('[id^="error-edit-"]').forEach(el => {
-                el.classList.add('hidden');
-                el.textContent = '';
-            });
-            
-            try {
-                const response = await fetch(`/employer/jobs/${jobId}`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Success - close modal and update table row
-                    closeEditJobModal();
-                    
-                    if (typeof window.showSuccessToast === 'function') {
-                        window.showSuccessToast('Job posting updated successfully!');
-                    } else {
-                        alert('Job posting updated successfully!');
-                    }
-                    
-                    // Update the table row
-                    updateJobRowInTable(data.job);
-                } else {
-                    // Show validation errors
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(field => {
-                            const errorEl = document.getElementById(`error-edit-${field}`);
-                            if (errorEl) {
-                                errorEl.textContent = data.errors[field][0];
-                                errorEl.classList.remove('hidden');
-                            }
-                        });
-                    } else {
-                        alert(data.message || 'Failed to update job posting');
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating job:', error);
-                alert('An error occurred while updating the job posting');
-            } finally {
-                submitBtn.disabled = false;
-                loadingIcon.classList.add('hidden');
-            }
-        });
     }
     
     // Close modals on outside click
+document.addEventListener('DOMContentLoaded', function() {
     ['edit-job-modal', 'show-job-modal'].forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
-                    if (modalId === 'edit-job-modal') {
-                        closeEditJobModal();
-                    } else {
-                        closeShowJobModal();
-                    }
+                    if (modalId === 'edit-job-modal') closeEditJobModal();
+                    else closeShowJobModal();
                 }
             });
         }
     });
 });
 
-// Function to update job row in table
+// Function to update job row in table (real-time after edit)
 function updateJobRowInTable(job) {
-    const row = document.querySelector(`tr[data-job-id="${job.id}"]`);
+    const row = document.querySelector('tr[data-job-id="' + job.id + '"]');
     if (!row) return;
     
-    // Update title
-    const titleCell = row.querySelector('td:first-child');
+    var hasPromoted = Array.isArray(job.campaigns) && job.campaigns.some(function(c) { return c && c.status === 'active'; });
+    var salaryHtml = '';
+    if (job.hide_salary) {
+        salaryHtml = '<div class="text-xs text-gray-400 mt-0.5">Negotiable</div>';
+    } else if (job.salary_min || job.salary_max) {
+        var min = job.salary_min != null ? (job.salary_min >= 1000 ? '$' + Math.round(job.salary_min / 1000) + 'k' : '$' + job.salary_min) : '';
+        var max = job.salary_max != null ? (job.salary_max >= 1000 ? '$' + Math.round(job.salary_max / 1000) + 'k' : '$' + job.salary_max) : '';
+        if (min && max) salaryHtml = '<div class="text-xs text-gray-400 mt-0.5">' + min + ' - ' + max + '</div>';
+    }
+    var promotedBadge = hasPromoted ? '<span class="px-2.5 py-0.5 text-xs font-bold text-white uppercase tracking-wide rounded-md" style="background-color: #f97316;">Promoted</span>' : '';
+
+    var titleCell = row.querySelector('td:first-child');
     if (titleCell) {
-        const titleText = titleCell.querySelector('.text-sm.font-medium');
-        if (titleText) {
-            titleText.textContent = job.title;
-        }
+        titleCell.innerHTML = '<div class="flex items-center">' +
+            '<div class="w-9 h-9 bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0" style="border-radius: 0;">' +
+            '<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>' +
+            '<div><div class="flex items-center gap-2 flex-wrap"><span class="text-sm font-semibold text-gray-900">' + (job.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>' + promotedBadge + '</div>' + salaryHtml + '</div></div>';
     }
-    
-    // Update location
-    const locationCell = row.querySelector('td:nth-child(2)');
+
+    var locationCell = row.querySelector('td:nth-child(2)');
     if (locationCell) {
-        locationCell.textContent = job.is_remote ? 'Remote' : (job.location || 'Not specified');
+        var loc = job.is_remote ? 'Remote' : (job.location || 'Not specified');
+        locationCell.innerHTML = '<span class="text-sm text-gray-600">' + (loc || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
     }
     
-    // Update employment type
-    const typeCell = row.querySelector('td:nth-child(3)');
+    var typeCell = row.querySelector('td:nth-child(3)');
     if (typeCell) {
-        typeCell.textContent = job.employment_type ? job.employment_type.replace('_', '-').replace(/\b\w/g, l => l.toUpperCase()) : 'Full-time';
+        var typeStr = job.employment_type ? job.employment_type.replace(/_/g, '-').replace(/\b\w/g, function(l) { return l.toUpperCase(); }) : 'Full-time';
+        typeCell.innerHTML = '<span class="text-sm text-gray-600">' + (typeStr || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
     }
-    
-    // Update status
+
+    row.setAttribute('data-job-title', (job.title || '').toLowerCase());
+    row.setAttribute('data-job-location', (job.is_remote ? 'remote' : (job.location || '')).toLowerCase());
+    var rowStatus = (job.status === 'draft' && job.published_at) ? 'paused' : (job.status || 'draft');
+    row.setAttribute('data-status', rowStatus);
+
+    if (row.querySelector('td:nth-child(5) span.font-medium')) {
+        row.querySelector('td:nth-child(5) span.font-medium').textContent = job.applications_count != null ? job.applications_count : '';
+    }
+    if (row.querySelector('td:nth-child(6) span.font-medium')) {
+        row.querySelector('td:nth-child(6) span.font-medium').textContent = (job.views_count != null ? Number(job.views_count).toLocaleString() : '0');
+    }
+
     updateJobStatusInTable(job.id, job.status);
 }
 </script>

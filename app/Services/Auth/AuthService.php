@@ -99,13 +99,44 @@ class AuthService
     }
 
     /**
+     * Change password for authenticated user.
+     */
+    public function changePassword(User $user, string $currentPassword, string $newPassword): bool
+    {
+        if (! Hash::check($currentPassword, $user->password)) {
+            return false;
+        }
+
+        $user->update(['password' => Hash::make($newPassword)]);
+
+        return true;
+    }
+
+    /**
+     * Soft-delete / deactivate account.
+     */
+    public function deleteAccount(User $user): void
+    {
+        $user->tokens()->delete();
+        $user->update([
+            'is_active' => false,
+            'email' => $user->email.'__deleted_'.$user->id.'_'.time(),
+            'password' => Hash::make(Str::random(32)),
+        ]);
+    }
+
+    /**
      * Register a new employer user.
      */
     public function registerEmployer(array $userData, array $employerData): User
     {
-        // Create user
+        // Create user — use first_name + last_name for the user's display name
+        $firstName = $employerData['first_name'] ?? '';
+        $lastName = $employerData['last_name'] ?? '';
+        $fullName = trim("{$firstName} {$lastName}");
+
         $user = User::create([
-            'name' => $employerData['company_name'] ?? $userData['email'],
+            'name' => $fullName ?: ($employerData['company_name'] ?? $userData['email']),
             'email' => $userData['email'],
             'password' => Hash::make($userData['password']),
             'user_type' => 'employer',
@@ -118,20 +149,24 @@ class AuthService
         $company = $this->companyRepository->create([
             'name' => $employerData['company_name'],
             'slug' => Str::slug($employerData['company_name']),
-            'description' => $employerData['company_description'] ?? null,
             'website' => $employerData['website'] ?? null,
             'email' => $userData['email'],
             'phone' => $userData['phone'] ?? null,
             'industry' => $employerData['industry'] ?? null,
             'size' => $employerData['company_size'] ?? null,
-            'location' => $employerData['address'] ?? null,
             'is_active' => true,
         ]);
 
         // Create employer profile and link to company
-        $employerData['user_id'] = $user->id;
-        $employerData['company_id'] = $company->id;
-        $this->employerRepository->create($employerData);
+        $this->employerRepository->create([
+            'user_id' => $user->id,
+            'company_id' => $company->id,
+            'company_name' => $employerData['company_name'],
+            'industry' => $employerData['industry'] ?? null,
+            'company_size' => $employerData['company_size'] ?? null,
+            'website' => $employerData['website'] ?? null,
+            'business_certificate_path' => $employerData['business_certificate_path'] ?? null,
+        ]);
 
         // Auto-login after registration
         Auth::login($user);

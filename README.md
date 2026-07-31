@@ -58,6 +58,10 @@ A modern Laravel-based job advertisement platform with Filament PHP admin panel.
    php artisan serve
    ```
 
+   Or double-click `serve.bat` in the project root.
+
+   Open: **http://127.0.0.1:8000**
+
 8. **Access the admin panel**:
    - Navigate to: `http://localhost:8000/admin`
    - Login with your admin credentials
@@ -131,6 +135,134 @@ The Filament admin panel provides:
 - **File Uploads**: Support for company logos and resumes
 - **Status Badges**: Visual status indicators
 - **Relationship Management**: Easy selection of related records
+
+## 🖥️ Development Server (`php artisan serve`)
+
+### Quick start
+
+From the project root:
+
+```bash
+php artisan serve
+```
+
+Alternative: double-click **`serve.bat`**.
+
+The app should be available at **http://127.0.0.1:8000**.
+
+You may see a harmless PHP warning about the `imagick` extension at startup. The server still runs normally without it.
+
+### Problem that was fixed (Windows)
+
+On this machine, `php artisan serve` was failing with errors such as:
+
+- `Could not write the development server router. Check storage/ permissions.`
+- `Failed opening required '...\public\index.php'`
+- `Failed opening required '...\vendor\...\server.php'`
+
+The server would not start, or would stop immediately.
+
+### Root causes
+
+1. **`public/index.php` was missing** — Laravel’s normal web entry point was not present.
+2. **The default serve flow needed a router script** — when `index.php` is missing, PHP’s built-in server needs a separate router file.
+3. **Router file creation failed** — writes to `app/Console/Commands/`, `storage/`, and sometimes `%TEMP%` were blocked by file permissions on Windows.
+4. **Vendor router missing** — `vendor/laravel/framework/.../server.php` was also absent, so Laravel’s stock serve command could not fall back cleanly.
+
+### Fix applied
+
+These steps were taken to make local development reliable:
+
+#### 1. Restore `public/index.php`
+
+The standard Laravel front controller was recreated at `public/index.php`:
+
+```php
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require __DIR__.'/../vendor/autoload.php';
+
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->handleRequest(Request::capture());
+```
+
+If this file is ever deleted again, you can also run:
+
+```bash
+php artisan app:restore-public-index
+```
+
+#### 2. Add a custom `serve` command (`DevServe`)
+
+File: `app/Console/Commands/DevServe.php`
+
+Registered in `bootstrap/app.php`:
+
+```php
+->withCommands([
+    \App\Console\Commands\DevServe::class,
+])
+```
+
+Behavior:
+
+- **If `public/index.php` exists** (normal case): run  
+  `php -S 127.0.0.1:8000 -t public`  
+  No router file is written. No extra permissions are needed.
+- **If `public/index.php` is missing** (fallback): try to use or create a router script in `app/Console/Commands/serve-router.php` or `%TEMP%\job-ad-serve-router.php`.
+
+This avoids the storage-permissions error in the common case.
+
+#### 3. Add `serve.bat`
+
+File: `serve.bat` in the project root — a one-click launcher that runs:
+
+```bat
+php -d display_startup_errors=0 artisan serve
+```
+
+### If the server breaks again
+
+1. **Confirm `public/index.php` exists**:
+   ```powershell
+   Test-Path public\index.php
+   ```
+   If `False`, restore it (see step 1 above) or run `php artisan app:restore-public-index`.
+
+2. **Confirm the custom serve command is registered** — check that `bootstrap/app.php` includes `DevServe::class` in `withCommands([...])`.
+
+3. **Start the server**:
+   ```bash
+   php artisan serve
+   ```
+
+4. **Direct fallback** (bypasses Artisan, useful for debugging):
+   ```bash
+   php -d display_startup_errors=0 -S 127.0.0.1:8000 -t public
+   ```
+
+5. **Verify it is working** — open http://127.0.0.1:8000 in a browser. You should get HTTP 200, not a connection error.
+
+### Files involved in this fix
+
+| File | Purpose |
+|------|---------|
+| `public/index.php` | Laravel web entry point |
+| `app/Console/Commands/DevServe.php` | Custom `php artisan serve` command |
+| `app/Console/Commands/RestorePublicIndex.php` | Artisan helper to restore `public/index.php` |
+| `bootstrap/app.php` | Registers `DevServe` |
+| `serve.bat` | Windows launcher for the dev server |
 
 ## 🔧 Development
 

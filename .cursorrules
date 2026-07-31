@@ -131,6 +131,7 @@ app/
 10. Update navigation in AdminPanelProvider if needed
 
 ### Database Migrations
+- **Never run destructive migrations:** Do NOT use `migrate:fresh`, `migrate:fresh --seed`, or `migrate:reset`. These wipe the database and destroy all data. Only run `php artisan migrate` to apply new migrations. Preserve user data at all times.
 - Always use `foreignId()` for foreign keys
 - Add `->constrained()->onDelete('cascade')` for required relationships
 - Use `->nullable()->constrained()->onDelete('set null')` for optional relationships
@@ -154,9 +155,13 @@ app/
 
 ## Common Commands
 - `php artisan migrate` - Run migrations
-- `php artisan migrate:fresh --seed` - Fresh migration with seeders
 - `php artisan make:model ModelName -m` - Create model with migration
 - `php artisan make:filament-resource ModelName` - Create Filament resource
+- `npm run build` - Rebuild frontend assets — **run after every UI change**
+
+## Frontend Assets (IMPORTANT)
+- **Always run `npm run build` after making UI changes** (Blade/CSS/JS/Tailwind). Compiled assets in `public/build/` are otherwise stale and changes may not appear.
+- After editing views, Tailwind, or JS: run `npm run build` before asking the user to test.
 
 ## Notes
 - Always check for existing relationships before adding new ones
@@ -171,6 +176,12 @@ app/
 4. Add business logic to Services if needed
 5. Write tests for critical functionality
 6. Update documentation
+
+## Task Workflow (Todo + Verify)
+- **For multi-step or detailed requests:** Create a **detailed todo list** (TodoWrite) with specific, checkable items before implementing.
+- **While implementing:** Mark items in progress and complete as you go.
+- **After implementing:** **Review the todo list** and verify each item was done correctly (design, behavior, edge cases). Fix anything missed before finishing.
+- Use this workflow for UI changes, new pages, and feature requests so nothing is overlooked.
 
 ## Frontend Navigation & SPA-like Behavior
 
@@ -209,6 +220,22 @@ function handleApply(jobId) {
 ```
 
 The `navigateTo()` function is defined in `resources/js/app.js` and uses Livewire's navigation when available, falling back to `window.location.href` if Livewire is not available.
+
+## UI Design Rules
+
+### Primary Buttons & Active Navigation
+
+- **Primary button color scheme**:
+  - All primary action buttons (e.g. `Apply`, `Save`, `Export`, `Login`, key CTAs) MUST use the blue gradient style:
+  - Tailwind classes: `bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-md`
+  - On hover, prefer: `hover:from-blue-600 hover:to-cyan-500`
+- **Where to apply**:
+  - CTA buttons in layouts, auth modal, employer & job-seeker dashboards, profile modals, application actions, etc.
+  - Active sidebar items and status tabs already use this gradient; keep them consistent with this scheme.
+- **What NOT to do**:
+  - Do NOT introduce new solid `bg-blue-600 text-white` primary buttons.
+  - When you see an existing `bg-blue-600 text-white` primary button, refactor it to use the gradient classes above.
+  - Avoid mixing random color schemes for primary actions; the gradient blue → cyan is the single source of truth.
 
 ### JavaScript Execution with `wire:navigate`
 

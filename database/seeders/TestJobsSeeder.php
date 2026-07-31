@@ -205,7 +205,6 @@ Requirements:
                 'salary_min' => 25000,
                 'salary_max' => 35000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(30),
             ],
             [
                 'slug' => 'frontend-developer',
@@ -235,7 +234,6 @@ Requirements:
                 'salary_min' => 18000,
                 'salary_max' => 25000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(25),
             ],
             [
                 'slug' => 'junior-php-developer',
@@ -263,7 +261,6 @@ Requirements:
                 'salary_min' => 12000,
                 'salary_max' => 18000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(20),
             ],
             [
                 'slug' => 'full-stack-developer',
@@ -291,7 +288,6 @@ Requirements:
                 'salary_min' => 20000,
                 'salary_max' => 28000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(28),
             ],
             // Hospitality Jobs
             [
@@ -321,7 +317,6 @@ Requirements:
                 'salary_min' => 30000,
                 'salary_max' => 40000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(35),
             ],
             [
                 'slug' => 'chef-de-cuisine',
@@ -350,7 +345,6 @@ Requirements:
                 'salary_min' => 25000,
                 'salary_max' => 35000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(30),
             ],
             [
                 'slug' => 'waiter-waitress',
@@ -379,7 +373,6 @@ Requirements:
                 'salary_min' => 8000,
                 'salary_max' => 12000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(15),
             ],
             [
                 'slug' => 'receptionist',
@@ -408,7 +401,6 @@ Requirements:
                 'salary_min' => 10000,
                 'salary_max' => 15000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(20),
             ],
             // Sales & Marketing Jobs
             [
@@ -438,7 +430,6 @@ Requirements:
                 'salary_min' => 22000,
                 'salary_max' => 30000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(25),
             ],
             [
                 'slug' => 'marketing-specialist',
@@ -467,7 +458,6 @@ Requirements:
                 'salary_min' => 15000,
                 'salary_max' => 22000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(22),
             ],
             [
                 'slug' => 'retail-sales-associate',
@@ -496,7 +486,6 @@ Requirements:
                 'salary_min' => 7000,
                 'salary_max' => 10000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(18),
             ],
             // Customer Service Jobs
             [
@@ -526,7 +515,6 @@ Requirements:
                 'salary_min' => 12000,
                 'salary_max' => 18000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(20),
             ],
             [
                 'slug' => 'call-center-agent',
@@ -555,7 +543,6 @@ Requirements:
                 'salary_min' => 10000,
                 'salary_max' => 15000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(18),
             ],
             // Administrative Jobs
             [
@@ -585,7 +572,6 @@ Requirements:
                 'salary_min' => 11000,
                 'salary_max' => 16000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(22),
             ],
             [
                 'slug' => 'office-manager',
@@ -614,7 +600,6 @@ Requirements:
                 'salary_min' => 20000,
                 'salary_max' => 28000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(28),
             ],
             // Finance Jobs
             [
@@ -644,7 +629,6 @@ Requirements:
                 'salary_min' => 18000,
                 'salary_max' => 25000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(25),
             ],
             [
                 'slug' => 'financial-analyst',
@@ -673,7 +657,6 @@ Requirements:
                 'salary_min' => 20000,
                 'salary_max' => 28000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(30),
             ],
             // Healthcare Jobs
             [
@@ -703,7 +686,6 @@ Requirements:
                 'salary_min' => 20000,
                 'salary_max' => 28000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(28),
             ],
             [
                 'slug' => 'medical-receptionist',
@@ -732,7 +714,6 @@ Requirements:
                 'salary_min' => 10000,
                 'salary_max' => 15000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(20),
             ],
             // Education Jobs
             [
@@ -762,7 +743,6 @@ Requirements:
                 'salary_min' => 18000,
                 'salary_max' => 25000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(30),
             ],
             [
                 'slug' => 'it-intern',
@@ -791,7 +771,6 @@ Requirements:
                 'salary_min' => 5000,
                 'salary_max' => 8000,
                 'currency' => 'SCR',
-                'application_deadline' => now()->addDays(15),
             ],
         ];
 
@@ -815,9 +794,8 @@ Requirements:
                     'salary_min' => $jobData['salary_min'],
                     'salary_max' => $jobData['salary_max'],
                     'currency' => $jobData['currency'],
-                    'application_deadline' => $jobData['application_deadline'],
                     'status' => 'published',
-                    'published_at' => now()->subDays(rand(0, 7)), // Randomize publish date
+                    'published_at' => now()->subDays(rand(0, 7)),
                     'views_count' => rand(0, 500),
                     'applications_count' => rand(0, 20),
                 ]

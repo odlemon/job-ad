@@ -87,10 +87,57 @@
             cvInput.addEventListener('change', handleCvUpload);
         }
 
+        const docFileTrigger = document.getElementById('document-file-trigger');
+        const docFile = document.getElementById('document-file');
+        const docUploadBtn = document.getElementById('document-upload-btn');
+        if (docFileTrigger && docFile) {
+            docFileTrigger.addEventListener('click', function() { docFile.click(); });
+        }
+        if (docFile) {
+            docFile.addEventListener('change', function() {
+                var nameEl = document.getElementById('document-file-name');
+                var file = docFile.files && docFile.files[0];
+                if (nameEl) nameEl.textContent = file ? file.name : '';
+                if (docUploadBtn) docUploadBtn.disabled = !(file && document.getElementById('document-name') && document.getElementById('document-name').value.trim());
+            });
+        }
+        const docNameEl = document.getElementById('document-name');
+        if (docNameEl) {
+            docNameEl.addEventListener('input', function() {
+                var file = document.getElementById('document-file');
+                var hasFile = file && file.files && file.files.length > 0;
+                if (docUploadBtn) docUploadBtn.disabled = !(hasFile && this.value.trim());
+            });
+        }
+        if (docUploadBtn) {
+            docUploadBtn.removeEventListener('click', handleDocumentUpload);
+            docUploadBtn.addEventListener('click', handleDocumentUpload);
+        }
+
         const dobInput = document.getElementById('date_of_birth');
         if (dobInput) {
             dobInput.removeEventListener('change', calculateAge);
             dobInput.addEventListener('change', calculateAge);
+        }
+        const licenseDateInput = document.getElementById('license_issued_date');
+        if (licenseDateInput) {
+            licenseDateInput.removeEventListener('change', updateLicenseIssuedDateDisplay);
+            licenseDateInput.addEventListener('change', updateLicenseIssuedDateDisplay);
+        }
+        const drivingLicenseSelect = document.getElementById('driving_license');
+        if (drivingLicenseSelect) {
+            drivingLicenseSelect.removeEventListener('change', toggleLicenseIssuedDateFromDrivingLicense);
+            drivingLicenseSelect.addEventListener('change', toggleLicenseIssuedDateFromDrivingLicense);
+        }
+        const currentExpCheckbox = document.getElementById('exp-is-current');
+        if (currentExpCheckbox) {
+            currentExpCheckbox.removeEventListener('change', onCurrentExperienceToggle);
+            currentExpCheckbox.addEventListener('change', onCurrentExperienceToggle);
+        }
+        const currentEduCheckbox = document.getElementById('edu-is-current');
+        if (currentEduCheckbox) {
+            currentEduCheckbox.removeEventListener('change', onCurrentEducationToggle);
+            currentEduCheckbox.addEventListener('change', onCurrentEducationToggle);
         }
 
         const bioInput = document.getElementById('bio');
@@ -135,7 +182,7 @@
             });
 
             if (response.status === 401 || response.status === 403) {
-                window.location.href = '/login';
+                window.location.href = '/';
                 return;
             }
 
@@ -152,6 +199,7 @@
                 updatePersonalInfoForm();
                 updateAboutSection();
                 updateJobPreferences();
+                updateSalaryRangeSection();
                 updateDocuments();
                 updateSocialLinks();
                 updateVisibility();
@@ -190,23 +238,10 @@
         const headerName = document.getElementById('profile-header-name');
         const headerInitials = document.getElementById('profile-header-initials');
         const userInitials = document.getElementById('user-initials');
-        const headerTitle = document.getElementById('profile-header-title');
-        
+
         if (headerName) headerName.textContent = fullName;
         if (headerInitials) headerInitials.textContent = initials;
         if (userInitials) userInitials.textContent = initials;
-
-        // Set title from most recent/current experience
-        if (headerTitle) {
-            let title = '';
-            if (experiences && experiences.length > 0) {
-                // Find current job first, otherwise most recent
-                const currentJob = experiences.find(exp => exp.is_current);
-                const mostRecent = experiences.sort((a, b) => new Date(b.start_date) - new Date(a.start_date))[0];
-                title = (currentJob || mostRecent)?.job_title || '';
-            }
-            headerTitle.textContent = title || 'Job Seeker';
-        }
 
         if (profileData.profile_photo) {
             const img = document.getElementById('profile-header-photo-img');
@@ -269,7 +304,105 @@
         if (profileData.date_of_birth) {
             calculateAge();
         }
+        updateLicenseIssuedDateDisplay();
+        applyEmploymentStatusGreen();
+        if (typeof window.setPersonalInfoEditable === 'function') {
+            window.setPersonalInfoEditable(false);
+        }
     }
+
+    function updateLicenseIssuedDateDisplay() {
+        const el = document.getElementById('license_issued_date');
+        const display = document.getElementById('license-issued-date-display');
+        if (!el || !display) return;
+        if (el.value) {
+            const d = new Date(el.value);
+            display.textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } else {
+            display.textContent = '';
+        }
+    }
+
+    function applyEmploymentStatusGreen() {
+        const sel = document.getElementById('employment_status');
+        if (!sel) return;
+        if (sel.value === 'currently_employed' && sel.disabled) {
+            sel.classList.add('text-green-600');
+            sel.classList.remove('text-gray-900');
+        } else {
+            sel.classList.remove('text-green-600');
+            sel.classList.add('text-gray-900');
+        }
+    }
+
+    function toggleLicenseIssuedDateFromDrivingLicense() {
+        const drivingEl = document.getElementById('driving_license');
+        const licenseDateEl = document.getElementById('license_issued_date');
+        if (!drivingEl || !licenseDateEl) return;
+        const saveBtn = document.getElementById('personal-info-save-btn');
+        const isEditMode = saveBtn && !saveBtn.classList.contains('hidden');
+        if (!isEditMode) return;
+        const hasLicense = drivingEl.value === '1';
+        licenseDateEl.disabled = !hasLicense;
+        if (hasLicense) {
+            licenseDateEl.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            licenseDateEl.classList.add('bg-white', 'text-gray-900');
+        } else {
+            licenseDateEl.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            licenseDateEl.classList.remove('bg-white', 'text-gray-900');
+            licenseDateEl.value = '';
+            const display = document.getElementById('license-issued-date-display');
+            if (display) display.textContent = '';
+        }
+    }
+
+    window.cancelPersonalInfoEdit = function() {
+        if (typeof updatePersonalInfoForm === 'function') updatePersonalInfoForm();
+        if (typeof window.setPersonalInfoEditable === 'function') window.setPersonalInfoEditable(false);
+    };
+
+    window.setPersonalInfoEditable = function(editable) {
+        const inputs = document.querySelectorAll('.personal-info-input');
+        const editBtn = document.getElementById('personal-info-edit-btn');
+        const saveBtn = document.getElementById('personal-info-save-btn');
+        const cancelBtn = document.getElementById('personal-info-cancel-btn');
+
+        inputs.forEach(function(inp) {
+            if (inp.id === 'email') return;
+            if (inp.id === 'license_issued_date') {
+                if (editable) {
+                    if (document.getElementById('driving_license').value === '1') {
+                        inp.disabled = false;
+                        inp.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                        inp.classList.add('bg-white', 'text-gray-900');
+                    } else {
+                        inp.disabled = true;
+                        inp.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                        inp.classList.remove('bg-white', 'text-gray-900');
+                    }
+                } else {
+                    inp.disabled = true;
+                    inp.classList.remove('bg-white', 'text-gray-900');
+                    inp.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                }
+                return;
+            }
+            inp.disabled = !editable;
+            if (editable) {
+                inp.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed', 'text-green-600');
+                inp.classList.add('bg-white', 'text-gray-900');
+            } else {
+                inp.classList.remove('bg-white', 'text-gray-900');
+                inp.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            }
+        });
+
+        if (editBtn) editBtn.classList.toggle('hidden', editable);
+        if (saveBtn) saveBtn.classList.toggle('hidden', !editable);
+        if (cancelBtn) cancelBtn.classList.toggle('hidden', !editable);
+        if (editable && typeof toggleLicenseIssuedDateFromDrivingLicense === 'function') toggleLicenseIssuedDateFromDrivingLicense();
+        if (!editable && typeof applyEmploymentStatusGreen === 'function') applyEmploymentStatusGreen();
+    };
 
     function updateAboutSection() {
         const bio = profileData.bio || '';
@@ -287,48 +420,406 @@
         if (!displayDiv) return;
 
         if (preferences.length === 0) {
-            displayDiv.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm">No preferences set</span>';
+            displayDiv.innerHTML = '<span class="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">No preferences set</span>';
         } else {
             displayDiv.innerHTML = preferences.map(pref => {
                 const labels = {
                     'full_time': { text: 'Full Time', class: 'bg-blue-100 text-blue-700' },
-                    'part_time': { text: 'Part Time', class: 'bg-gray-100 text-gray-700' },
+                    'part_time': { text: 'Part Time', class: 'bg-purple-100 text-purple-700' },
                     'contract': { text: 'Contract', class: 'bg-green-100 text-green-700' }
                 };
                 const label = labels[pref] || { text: pref, class: 'bg-gray-100 text-gray-700' };
-                return `<span class="px-4 py-2 ${label.class} rounded-full text-sm">${label.text}</span>`;
+                return `<span class="px-4 py-1.5 ${label.class} rounded-md text-sm">${label.text}</span>`;
             }).join('');
         }
     }
 
-    function updateDocuments() {
-        const cvDocumentItem = document.getElementById('cv-document-item');
-        if (!cvDocumentItem) return;
+    // ===== Salary Range =====
+    const SALARY_MIN = 0;
+    const SALARY_MAX = 100000;
+    const SALARY_STEP = 1000;
+    const SALARY_MIN_GAP = 1000;
 
-        if (profileData.cv_file_path) {
-            const filename = profileData.cv_file_path.split('/').pop() || 'Resume.pdf';
-            const updatedDate = profileData.cv_uploaded_at ? new Date(profileData.cv_uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently';
-            const fnEl = document.getElementById('cv-filename');
-            const updEl = document.getElementById('cv-updated');
-            const linkEl = document.getElementById('cv-view-link');
-            if (fnEl) {
-                fnEl.textContent = filename;
-                fnEl.title = filename; // Show full filename on hover
+    function formatSalary(amount) {
+        if (amount == null) return '0 SCR';
+        return amount.toLocaleString('en-US') + ' SCR';
+    }
+
+    function clampSalary(value) {
+        if (value == null || isNaN(value)) return 0;
+        return Math.min(SALARY_MAX, Math.max(SALARY_MIN, value));
+    }
+
+    function updateSalaryRangeSection() {
+        const minRaw = profileData.expected_salary_min;
+        const maxRaw = profileData.expected_salary_max;
+        let min = clampSalary(minRaw);
+        let max = clampSalary(maxRaw);
+        if (min === 0 && max === 0) {
+            min = 0;
+            max = SALARY_MAX;
+        }
+        if (min > max - SALARY_MIN_GAP) {
+            min = Math.max(SALARY_MIN, max - SALARY_MIN_GAP);
+        }
+
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        const minBadge = document.getElementById('salary-min-badge');
+        const maxBadge = document.getElementById('salary-max-badge');
+
+        if (!minInput || !maxInput) return;
+
+        minInput.value = min;
+        maxInput.value = max;
+
+        if (minBadge) minBadge.textContent = formatSalary(min);
+        if (maxBadge) maxBadge.textContent = formatSalary(max);
+
+        updateSalarySliderTrack();
+    }
+
+    function updateSalarySliderTrack() {
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        if (!minInput || !maxInput) return;
+
+        const min = parseInt(minInput.value || '0', 10);
+        const max = parseInt(maxInput.value || '0', 10);
+        const left = ((min - SALARY_MIN) / (SALARY_MAX - SALARY_MIN)) * 100;
+        const right = ((max - SALARY_MIN) / (SALARY_MAX - SALARY_MIN)) * 100;
+
+        const trackGradient = `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${left}%, #3b82f6 ${left}%, #3b82f6 ${right}%, #e5e7eb ${right}%, #e5e7eb 100%)`;
+        minInput.style.background = trackGradient;
+    }
+
+    function handleSalaryRangeInput(changed) {
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        const minBadge = document.getElementById('salary-min-badge');
+        const maxBadge = document.getElementById('salary-max-badge');
+        if (!minInput || !maxInput) return;
+
+        let min = parseInt(minInput.value || '0', 10);
+        let max = parseInt(maxInput.value || '0', 10);
+
+        if (changed === 'min' && min > max - SALARY_MIN_GAP) {
+            min = max - SALARY_MIN_GAP;
+            minInput.value = min;
+        }
+        if (changed === 'max' && max < min + SALARY_MIN_GAP) {
+            max = min + SALARY_MIN_GAP;
+            maxInput.value = max;
+        }
+
+        if (minBadge) minBadge.textContent = formatSalary(min);
+        if (maxBadge) maxBadge.textContent = formatSalary(max);
+
+        updateSalarySliderTrack();
+    }
+
+    window.editSalaryRange = function() {
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        const actions = document.getElementById('salary-range-actions');
+        const editBtn = document.getElementById('salary-range-edit-btn');
+        if (minInput) {
+            minInput.disabled = false;
+            minInput.classList.remove('cursor-default');
+            minInput.classList.add('cursor-pointer');
+        }
+        if (maxInput) {
+            maxInput.disabled = false;
+            maxInput.classList.remove('cursor-default', 'pointer-events-none');
+            maxInput.classList.add('cursor-pointer');
+        }
+        if (actions) actions.classList.remove('hidden');
+        if (editBtn) editBtn.classList.add('hidden');
+
+        minInput.addEventListener('input', () => handleSalaryRangeInput('min'));
+        maxInput.addEventListener('input', () => handleSalaryRangeInput('max'));
+    };
+
+    window.cancelSalaryRange = function() {
+        // Reset sliders from current profileData and disable editing
+        updateSalaryRangeSection();
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        const actions = document.getElementById('salary-range-actions');
+        const editBtn = document.getElementById('salary-range-edit-btn');
+        if (minInput) {
+            minInput.disabled = true;
+            minInput.classList.remove('cursor-pointer');
+            minInput.classList.add('cursor-default');
+        }
+        if (maxInput) {
+            maxInput.disabled = true;
+            maxInput.classList.remove('cursor-pointer');
+            maxInput.classList.add('cursor-default', 'pointer-events-none');
+        }
+        if (actions) actions.classList.add('hidden');
+        if (editBtn) editBtn.classList.remove('hidden');
+    };
+
+    window.saveSalaryRange = async function() {
+        const minInput = document.getElementById('salary_min_range');
+        const maxInput = document.getElementById('salary_max_range');
+        const saveButton = document.getElementById('salary-range-save-btn');
+        if (!minInput || !maxInput) return;
+
+        let expected_salary_min = parseInt(minInput.value || '0', 10);
+        let expected_salary_max = parseInt(maxInput.value || '0', 10);
+        if (expected_salary_min > expected_salary_max - SALARY_MIN_GAP) {
+            expected_salary_min = expected_salary_max - SALARY_MIN_GAP;
+        }
+
+        const originalText = saveButton ? saveButton.innerHTML : '';
+
+        try {
+            if (saveButton) setButtonLoading(saveButton, true, '', originalText);
+
+            const response = await fetch(`${API_BASE}/job-seeker/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ expected_salary_min, expected_salary_max })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                const updated = data.data || data.job_seeker || {};
+                profileData.expected_salary_min = updated.expected_salary_min ?? expected_salary_min;
+                profileData.expected_salary_max = updated.expected_salary_max ?? expected_salary_max;
+                updateSalaryRangeSection();
+                window.cancelSalaryRange();
+                showSuccessToast('Salary range saved!');
+            } else {
+                const msg = data.errors ? Object.values(data.errors).flat().join(', ') : data.message;
+                showErrorToast(msg || 'Failed to save salary range');
             }
-            if (updEl) updEl.textContent = `Updated ${updatedDate}`;
-            if (linkEl) linkEl.href = profileData.cv_file_path;
-            cvDocumentItem.classList.remove('hidden');
-        } else {
-            cvDocumentItem.classList.add('hidden');
+        } catch (error) {
+            console.error('Error saving salary range:', error);
+            showErrorToast('An error occurred');
+        } finally {
+            if (saveButton) setButtonLoading(saveButton, false, '', originalText);
+        }
+    };
+
+    function updateDocuments() {
+        const listEl = document.getElementById('documents-list');
+        const emptyEl = document.getElementById('documents-empty');
+        if (!listEl) return;
+
+        const documents = profileData.documents || [];
+        if (documents.length === 0) {
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.classList.remove('hidden');
+            return;
+        }
+        if (emptyEl) emptyEl.classList.add('hidden');
+
+        listEl.innerHTML = documents.map(function(doc) {
+            const dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            const primaryBadge = doc.is_primary ? '<span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Primary resume</span>' : '';
+            return '<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-4 document-item" data-document-id="' + doc.id + '">' +
+                '<div class="flex items-center space-x-3 min-w-0 flex-1">' +
+                '<div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">' +
+                '<svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></div>' +
+                '<div class="min-w-0 flex-1">' +
+                '<p class="font-medium text-gray-900 truncate" title="' + (doc.name || '').replace(/"/g, '&quot;') + '">' + (doc.name || 'Document') + '</p>' +
+                '<p class="text-xs text-gray-500">' + dateStr + '</p>' +
+                '</div>' +
+                (primaryBadge ? '<div class="flex-shrink-0">' + primaryBadge + '</div>' : '') +
+                '</div>' +
+                '<div class="flex items-center space-x-2 flex-shrink-0">' +
+                (!doc.is_primary ? '<button type="button" class="document-set-primary text-blue-600 hover:text-blue-700 text-sm font-medium px-2 py-1 rounded hover:bg-blue-50 transition" data-id="' + doc.id + '">Set primary</button>' : '') +
+                '<a href="' + (doc.file_path || '#') + '" target="_blank" download class="text-gray-600 hover:text-gray-700 text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 transition inline-flex items-center">Download</a>' +
+                '<button type="button" class="document-delete text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition" data-id="' + doc.id + '">Delete</button>' +
+                '</div></div>';
+        }).join('');
+
+        listEl.querySelectorAll('.document-set-primary').forEach(function(btn) {
+            btn.addEventListener('click', function() { setPrimaryDocument(parseInt(btn.dataset.id, 10)); });
+        });
+        listEl.querySelectorAll('.document-delete').forEach(function(btn) {
+            btn.addEventListener('click', function() { deleteDocument(parseInt(btn.dataset.id, 10)); });
+        });
+    }
+
+    async function setPrimaryDocument(id) {
+        try {
+            const response = await fetch(`${API_BASE}/job-seeker/documents/${id}/primary`, {
+                method: 'PUT',
+                headers: { 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({})
+            });
+            const data = await response.json();
+            if (response.ok) {
+                profileData.documents = data.documents || data.data?.documents || profileData.documents;
+                profileData.cv_file_path = data.data?.cv_file_path ?? profileData.cv_file_path;
+                updateDocuments();
+                updateProfileStrength();
+                showSuccessToast('Primary resume updated');
+            } else {
+                showErrorToast(data.message || 'Failed to set primary document');
+            }
+        } catch (e) {
+            showErrorToast('An error occurred');
         }
     }
 
-    function updateSocialLinks() {
-        const linkedinEl = document.getElementById('linkedin_url');
-        const websiteEl = document.getElementById('website_url');
-        if (linkedinEl) linkedinEl.value = profileData.linkedin_url || '';
-        if (websiteEl) websiteEl.value = profileData.website_url || '';
+    async function deleteDocument(id) {
+        if (!confirm('Delete this document?')) return;
+        try {
+            const response = await fetch(`${API_BASE}/job-seeker/documents/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+                credentials: 'include'
+            });
+            const data = await response.json();
+            if (response.ok) {
+                profileData.documents = (profileData.documents || []).filter(function(d) { return d.id !== id; });
+                var primary = profileData.documents && profileData.documents.find(function(d) { return d.is_primary; });
+                profileData.cv_file_path = primary ? primary.file_path : null;
+                updateDocuments();
+                updateProfileStrength();
+                showSuccessToast('Document deleted');
+            } else {
+                showErrorToast(data.message || 'Failed to delete document');
+            }
+        } catch (e) {
+            showErrorToast('An error occurred');
+        }
     }
+
+    async function handleDocumentUpload() {
+        const nameEl = document.getElementById('document-name');
+        const fileEl = document.getElementById('document-file');
+        const isPrimaryEl = document.getElementById('document-is-primary');
+        const btn = document.getElementById('document-upload-btn');
+        const errEl = document.getElementById('document-name-error');
+        var name = nameEl && nameEl.value ? nameEl.value.trim() : '';
+        var file = fileEl && fileEl.files && fileEl.files[0];
+        if (!name) {
+            if (errEl) { errEl.textContent = 'Please enter a document name.'; errEl.classList.remove('hidden'); }
+            return;
+        }
+        if (errEl) errEl.classList.add('hidden');
+        if (!file) {
+            showErrorToast('Please choose a file');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            showErrorToast('File size must be less than 10MB');
+            return;
+        }
+        var formData = new FormData();
+        formData.append('name', name);
+        formData.append('file', file);
+        formData.append('is_primary', (isPrimaryEl && isPrimaryEl.checked) ? '1' : '0');
+        var originalText = btn ? btn.innerHTML : '';
+        try {
+            if (btn) setButtonLoading(btn, true, '', originalText);
+            const response = await fetch(`${API_BASE}/job-seeker/documents`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+                credentials: 'include',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok) {
+                profileData.documents = profileData.documents || [];
+                profileData.documents.push(data.data);
+                if (data.data && data.data.is_primary) {
+                    profileData.cv_file_path = data.data.file_path;
+                }
+                updateDocuments();
+                updateProfileStrength();
+                showSuccessToast('Document uploaded');
+                nameEl.value = '';
+                fileEl.value = '';
+                if (isPrimaryEl) isPrimaryEl.checked = false;
+                document.getElementById('document-file-name').textContent = '';
+                if (btn) btn.disabled = true;
+            } else {
+                showErrorToast(data.message || (data.errors && data.errors.name ? data.errors.name[0] : 'Upload failed'));
+            }
+        } catch (e) {
+            showErrorToast('An error occurred');
+        } finally {
+            if (btn) setButtonLoading(btn, false, '', originalText);
+        }
+    }
+
+    function displayUrl(url) {
+        if (!url) return '';
+        try {
+            const u = url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+            return u;
+        } catch (e) {
+            return url;
+        }
+    }
+
+    function ensureUrlHasProtocol(url) {
+        if (!url || !url.trim()) return '';
+        const s = url.trim();
+        if (/^https?:\/\//i.test(s)) return s;
+        return 'https://' + s;
+    }
+
+    function updateSocialLinks() {
+        const links = {
+            facebook_url: profileData.facebook_url || '',
+            instagram_url: profileData.instagram_url || '',
+            linkedin_url: profileData.linkedin_url || '',
+            website_url: profileData.website_url || ''
+        };
+        const ids = ['facebook', 'instagram', 'linkedin', 'website'];
+        let hasAny = false;
+        ids.forEach(function(key) {
+            const urlKey = key + '_url';
+            const url = links[urlKey];
+            const row = document.getElementById('social-link-' + key + '-row');
+            const linkEl = document.getElementById('social-link-' + key);
+            if (row) row.classList.toggle('hidden', !url);
+            if (linkEl) {
+                if (url) {
+                    linkEl.href = ensureUrlHasProtocol(url);
+                    linkEl.textContent = displayUrl(url);
+                    linkEl.classList.remove('hidden');
+                    hasAny = true;
+                } else {
+                    linkEl.href = '#';
+                    linkEl.textContent = '';
+                }
+            }
+            const inp = document.getElementById(urlKey);
+            if (inp) inp.value = url;
+        });
+        const emptyEl = document.getElementById('social-links-empty');
+        if (emptyEl) emptyEl.classList.toggle('hidden', hasAny);
+    }
+
+    window.setSocialLinksEditable = function(editable) {
+        const display = document.getElementById('social-links-display');
+        const edit = document.getElementById('social-links-edit');
+        const editBtn = document.getElementById('social-links-edit-btn');
+        if (display) display.classList.toggle('hidden', editable);
+        if (edit) edit.classList.toggle('hidden', !editable);
+        if (editBtn) editBtn.classList.toggle('hidden', editable);
+        if (editable) {
+            document.getElementById('facebook_url').value = profileData.facebook_url || '';
+            document.getElementById('instagram_url').value = profileData.instagram_url || '';
+            document.getElementById('linkedin_url').value = profileData.linkedin_url || '';
+            document.getElementById('website_url').value = profileData.website_url || '';
+        }
+    };
+
+    window.cancelSocialLinksEdit = function() {
+        window.setSocialLinksEditable(false);
+    };
 
     function updateVisibility() {
         const publicEl = document.getElementById('public_profile');
@@ -351,12 +842,12 @@
             status: basicInfoComplete ? 'Done' : 'Pending'
         });
 
-        // Resume Uploaded
-        const resumeComplete = !!profileData.cv_file_path;
+        // Resume / primary document
+        const hasPrimary = !!profileData.cv_file_path || (profileData.documents && profileData.documents.some(function(d) { return d.is_primary; }));
         items.push({
-            label: '✓ Resume',
-            complete: resumeComplete,
-            status: resumeComplete ? 'Done' : 'Pending'
+            label: '✓ Resume / Documents',
+            complete: hasPrimary,
+            status: hasPrimary ? 'Done' : 'Pending'
         });
 
         // Certifications - check both variable and DOM
@@ -583,7 +1074,7 @@
     // ========== Save Functions ==========
     async function savePersonalInfo(e) {
         e.preventDefault();
-        const submitButton = e.target.querySelector('button[type="submit"]');
+        const submitButton = document.getElementById('personal-info-save-btn') || e.target.querySelector('button[type="submit"]');
         const originalText = submitButton ? submitButton.innerHTML : '';
 
         // Helper to convert empty strings to null
@@ -619,13 +1110,13 @@
                 
                 // Only update the personal info form fields (instant, no extra API calls)
                 updatePersonalInfoForm();
-                
+                if (typeof window.setPersonalInfoEditable === 'function') {
+                    window.setPersonalInfoEditable(false);
+                }
                 // Also update header in case name changed
                 updateProfileHeader();
-                
                 // Update profile strength
                 updateProfileStrength();
-                
                 showSuccessToast('Profile updated successfully!');
             } else {
                 // Show validation errors if any
@@ -731,6 +1222,15 @@
                 // Update only job preferences in profileData and refresh display (instant)
                 profileData.job_preferences = preferences;
                 updateJobPreferences();
+                // Also refresh salary range if backend returns it
+                const updated = data.data || data.job_seeker || {};
+                if (updated.expected_salary_min !== undefined) {
+                    profileData.expected_salary_min = updated.expected_salary_min;
+                }
+                if (updated.expected_salary_max !== undefined) {
+                    profileData.expected_salary_max = updated.expected_salary_max;
+                }
+                updateSalaryRangeSection();
                 cancelJobPreferences();
             } else {
                 showErrorToast(data.message || 'Failed to update preferences');
@@ -744,9 +1244,12 @@
     }
 
     async function saveSocialLinks() {
-        const linkedin_url = document.getElementById('linkedin_url').value;
-        const website_url = document.getElementById('website_url').value;
-        const saveButton = document.querySelector('button[onclick="saveSocialLinks()"]');
+        const toNull = function(v) { return (v && v.trim()) ? v.trim() : null; };
+        const facebook_url = toNull(document.getElementById('facebook_url').value);
+        const instagram_url = toNull(document.getElementById('instagram_url').value);
+        const linkedin_url = toNull(document.getElementById('linkedin_url').value);
+        const website_url = toNull(document.getElementById('website_url').value);
+        const saveButton = document.getElementById('social-links-save-btn');
         const originalText = saveButton ? saveButton.innerHTML : '';
 
         try {
@@ -756,18 +1259,22 @@
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ linkedin_url, website_url })
+                body: JSON.stringify({ facebook_url, instagram_url, linkedin_url, website_url })
             });
 
             const data = await response.json();
             if (response.ok) {
-                // Update only social links in profileData and refresh (instant)
-                profileData.linkedin_url = linkedin_url;
-                profileData.website_url = website_url;
+                const updated = data.data || data.job_seeker || {};
+                profileData.facebook_url = updated.facebook_url !== undefined ? updated.facebook_url : facebook_url;
+                profileData.instagram_url = updated.instagram_url !== undefined ? updated.instagram_url : instagram_url;
+                profileData.linkedin_url = updated.linkedin_url !== undefined ? updated.linkedin_url : linkedin_url;
+                profileData.website_url = updated.website_url !== undefined ? updated.website_url : website_url;
                 updateSocialLinks();
+                if (typeof window.setSocialLinksEditable === 'function') window.setSocialLinksEditable(false);
                 showSuccessToast('Social links saved!');
             } else {
-                showErrorToast(data.message || 'Failed to save links');
+                const msg = data.errors ? Object.values(data.errors).flat().join(', ') : data.message;
+                showErrorToast(msg || 'Failed to save links');
             }
         } catch (error) {
             console.error('Error saving social links:', error);
@@ -816,6 +1323,38 @@
     }
 
     // ========== Work Experience Functions ==========
+    function onCurrentExperienceToggle() {
+        const checkbox = document.getElementById('exp-is-current');
+        const endInput = document.getElementById('exp-end-date');
+        if (!checkbox || !endInput) return;
+        if (checkbox.checked) {
+            endInput.value = '';
+            endInput.disabled = true;
+            endInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+            endInput.classList.remove('bg-white', 'cursor-pointer');
+        } else {
+            endInput.disabled = false;
+            endInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            endInput.classList.add('bg-white');
+        }
+    }
+
+    function onCurrentEducationToggle() {
+        const checkbox = document.getElementById('edu-is-current');
+        const endInput = document.getElementById('edu-end-date');
+        if (!checkbox || !endInput) return;
+        if (checkbox.checked) {
+            endInput.value = '';
+            endInput.disabled = true;
+            endInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+            endInput.classList.remove('bg-white', 'cursor-pointer');
+        } else {
+            endInput.disabled = false;
+            endInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            endInput.classList.add('bg-white');
+        }
+    }
+
     async function loadExperiences() {
         try {
             const response = await fetch(`${API_BASE}/job-seeker/experiences`, {
@@ -836,39 +1375,38 @@
         const container = document.getElementById('experiences-list');
         const skeleton = document.getElementById('experiences-skeleton');
         if (!container) return;
-        
-        // Hide skeleton
+
         if (skeleton) skeleton.classList.add('hidden');
-        
+
         if (experiences.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-sm">No work experience added yet.</p>';
             return;
         }
-        container.innerHTML = experiences.map(exp => {
-            const startDate = new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+        const itemsHtml = experiences.map(exp => {
+            const startDate = exp.start_date ? new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             const endDate = exp.is_current ? 'Present' : (exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
-            const currentBadge = exp.is_current ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium ml-2">Current</span>' : '';
+            const currentBadge = exp.is_current ? '<span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-md text-xs font-medium ml-1">Current</span>' : '';
+            const desc = (exp.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             return `
-                <div class="flex items-start space-x-3 border-l-4 border-blue-500 pl-4 py-2">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div class="flex-1">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h3 class="font-semibold text-gray-900">${exp.job_title}</h3>
-                                <p class="text-sm text-gray-600">${exp.company_name}${exp.location ? ' • ' + exp.location : ''}</p>
-                                <p class="text-xs text-gray-500 mt-1">${startDate} - ${endDate}${currentBadge}</p>
-                                ${exp.description ? `<p class="text-sm text-gray-700 mt-2">${exp.description}</p>` : ''}
-                            </div>
-                            <button onclick="deleteExperience(${exp.id}, this)" class="text-red-600 hover:text-red-700 ml-4">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex justify-center flex-shrink-0 w-4 mt-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white shadow-sm" style="margin-left: -9px;"></div>
+                    </div>
+                    <div class="flex-1 relative min-w-0 py-2">
+                        <button type="button" onclick="deleteExperience(${exp.id}, this)" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <h3 class="font-semibold text-gray-900 pr-8">${(exp.job_title || '').replace(/</g, '&lt;')}</h3>
+                        <p class="text-sm text-gray-600 mt-0.5">${(exp.company_name || '')}${exp.location ? ' • ' + (exp.location || '') : ''}</p>
+                        <p class="text-sm text-gray-600 mt-1">${startDate} - ${endDate}${currentBadge}</p>
+                        ${desc ? `<p class="text-sm text-gray-700 mt-2">${desc}</p>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
+
+        container.innerHTML = `<div class="border-l-2 border-gray-200 pl-1 space-y-4">${itemsHtml}</div>`;
     }
 
     function openExperienceModal(id = null) {
@@ -887,7 +1425,11 @@
             if (el) el.value = val;
         }
         const isCurrent = document.getElementById('exp-is-current');
-        if (isCurrent) isCurrent.checked = exp?.is_current || false;
+        if (isCurrent) {
+            isCurrent.checked = exp?.is_current || false;
+        }
+        // Apply end-date disabled state based on checkbox
+        onCurrentExperienceToggle();
         const modal = document.getElementById('experience-modal');
         if (modal) modal.classList.remove('hidden');
     }
@@ -994,30 +1536,26 @@
         const container = document.getElementById('educations-list');
         const skeleton = document.getElementById('educations-skeleton');
         if (!container) return;
-        
-        // Hide skeleton
+
         if (skeleton) skeleton.classList.add('hidden');
-        
+
         if (educations.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-sm">No education added yet.</p>';
             return;
         }
         container.innerHTML = educations.map(edu => {
-            const startDate = new Date(edu.start_date).getFullYear();
-            const endDate = edu.end_date ? new Date(edu.end_date).getFullYear() : 'Present';
-            const gpaText = edu.gpa ? ` GPA: ${edu.gpa}/${edu.gpa_scale || '4.0'}` : '';
+            const startYear = edu.start_date ? new Date(edu.start_date).getFullYear() : '';
+            const endYear = edu.end_date ? new Date(edu.end_date).getFullYear() : 'Present';
+            const gpaScale = edu.gpa_scale || '4.0';
+            const gpaText = edu.gpa != null && edu.gpa !== '' ? ` GPA: ${edu.gpa}/${gpaScale}` : '';
             return `
-                <div class="flex items-start justify-between border-b border-gray-200 pb-4">
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900">${edu.degree}</h3>
-                        <p class="text-sm text-gray-600">${edu.institution}${edu.location ? ' • ' + edu.location : ''}</p>
-                        <p class="text-xs text-gray-500 mt-1">${startDate} - ${endDate}${gpaText}</p>
-                    </div>
-                    <button onclick="deleteEducation(${edu.id}, this)" class="text-red-600 hover:text-red-700 ml-4">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+                <div class="rounded-md border border-gray-200 bg-white shadow-sm p-4 relative">
+                    <button type="button" onclick="deleteEducation(${edu.id}, this)" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
+                    <h3 class="font-semibold text-gray-900 pr-8">${(edu.degree || '').replace(/</g, '&lt;')}</h3>
+                    <p class="text-sm text-gray-600 mt-0.5">${(edu.institution || '')}${edu.location ? ' ' + (edu.location || '') : ''}</p>
+                    <p class="text-sm text-gray-600 mt-1">${startYear} - ${endYear}${gpaText}</p>
                 </div>
             `;
         }).join('');
@@ -1036,10 +1574,15 @@
             'edu-gpa-scale': edu?.gpa_scale || '4.0',
             'edu-description': edu?.description || ''
         };
-        for (const [id, val] of Object.entries(fields)) {
-            const el = document.getElementById(id);
+        for (const [fieldId, val] of Object.entries(fields)) {
+            const el = document.getElementById(fieldId);
             if (el) el.value = val;
         }
+        const isCurrentCheckbox = document.getElementById('edu-is-current');
+        if (isCurrentCheckbox) {
+            isCurrentCheckbox.checked = !!(edu && !edu.end_date);
+        }
+        onCurrentEducationToggle();
         const modal = document.getElementById('education-modal');
         if (modal) modal.classList.remove('hidden');
     }
@@ -1051,12 +1594,13 @@
     }
 
     async function saveEducation() {
+        const isCurrent = document.getElementById('edu-is-current')?.checked;
         const data = {
             degree: document.getElementById('edu-degree').value,
             institution: document.getElementById('edu-institution').value,
             location: document.getElementById('edu-location').value,
             start_date: document.getElementById('edu-start-date').value,
-            end_date: document.getElementById('edu-end-date').value || null,
+            end_date: isCurrent ? null : (document.getElementById('edu-end-date').value || null),
             gpa: document.getElementById('edu-gpa').value || null,
             gpa_scale: document.getElementById('edu-gpa-scale').value || null,
             description: document.getElementById('edu-description').value,
@@ -1155,19 +1699,14 @@
             container.innerHTML = '<p class="text-gray-500 text-sm">No skills added yet.</p>';
             return;
         }
-        const proficiencyColors = {
-            beginner: 'bg-gray-100 text-gray-700',
-            intermediate: 'bg-blue-100 text-blue-700',
-            advanced: 'bg-blue-100 text-blue-700',
-            expert: 'bg-gray-100 text-gray-700'
-        };
         container.innerHTML = skills.map(skill => {
-            const colorClass = proficiencyColors[skill.proficiency_level] || 'bg-gray-100 text-gray-700';
-            const levelText = skill.proficiency_level.charAt(0).toUpperCase() + skill.proficiency_level.slice(1);
+            const levelText = skill.proficiency_level ? (skill.proficiency_level.charAt(0).toUpperCase() + skill.proficiency_level.slice(1)) : '—';
+            const skillName = (skill.skill_name || '').replace(/</g, '&lt;');
             return `
-                <span class="px-4 py-2 ${colorClass} rounded-full text-sm flex items-center space-x-2">
-                    <span>${skill.skill_name} ${levelText}</span>
-                    <button onclick="deleteSkill(${skill.id}, this)" class="text-red-600 hover:text-red-700">
+                <span class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg border border-gray-100">
+                    <span class="text-gray-900 font-medium text-sm">${skillName}</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">${levelText}</span>
+                    <button type="button" onclick="deleteSkill(${skill.id}, this)" class="text-gray-500 hover:text-gray-700 p-0.5 rounded cursor-pointer ml-0.5" title="Remove">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -1282,23 +1821,26 @@
         if (skeleton) skeleton.classList.add('hidden');
         
         if (languages.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No languages added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 text-sm col-span-2">No languages added yet.</p>';
             return;
         }
+        const languageIconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>';
         container.innerHTML = languages.map(lang => {
-            const levelText = lang.proficiency_level.charAt(0).toUpperCase() + lang.proficiency_level.slice(1);
+            const levelText = lang.proficiency_level ? (lang.proficiency_level.charAt(0).toUpperCase() + lang.proficiency_level.slice(1)) : '—';
+            const langName = (lang.language || '').replace(/</g, '&lt;');
             return `
-                <span class="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.255-.244-.49-.5-.714-.756H7a1 1 0 110-2H5.834a18.747 18.747 0 01-.22-4H7a1 1 0 011-1V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 6.491a.869.869 0 01-.02.937 1 1 0 01-1.447.425L15 14.618V17a1 1 0 11-2 0v-2.382l-1.418.708a1 1 0 01-1.447-.425.869.869 0 01-.02-.937l2.99-6.491A1 1 0 0113 8z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span>${lang.language} ${levelText}</span>
-                    <button onclick="deleteLanguage(${lang.id}, this)" class="text-red-600 hover:text-red-700">
+                <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                    <span class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-600">${languageIconSvg}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900">${langName}</p>
+                        <p class="text-sm text-gray-500 mt-0.5">${levelText}</p>
+                    </div>
+                    <button type="button" onclick="deleteLanguage(${lang.id}, this)" class="flex-shrink-0 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
-                </span>
+                </div>
             `;
         }).join('');
     }
@@ -1399,45 +1941,49 @@
         const container = document.getElementById('certifications-list');
         const skeleton = document.getElementById('certifications-skeleton');
         if (!container) return;
-        
+
         // Hide skeleton
         if (skeleton) skeleton.classList.add('hidden');
-        
-        if (certifications.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No certifications added yet.</p>';
-            return;
-        }
-        container.innerHTML = certifications.map(cert => {
-            const issueDate = new Date(cert.issue_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const expiryDate = cert.expiry_date ? new Date(cert.expiry_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : null;
+
+        const cardsHtml = certifications.map(cert => {
+            const name = (cert.certification_name || '').replace(/</g, '&lt;');
+            const org = (cert.issuing_organization || '').replace(/</g, '&lt;');
+            const issue = cert.issue_date
+                ? new Date(cert.issue_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : null;
+            const expiry = cert.expiry_date
+                ? new Date(cert.expiry_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : null;
+            const datesLine = issue
+                ? `Issued: ${issue}${expiry ? ' &nbsp;&nbsp;·&nbsp;&nbsp; Expires: ' + expiry : ''}`
+                : (expiry ? `Expires: ${expiry}` : '');
+
+            const fileUrl = cert.certificate_file_path || '';
+            const safeFileUrl = fileUrl.replace(/"/g, '&quot;');
+
             return `
-                <div class="flex items-start space-x-3 border-b border-gray-200 pb-4">
-                    <svg class="w-5 h-5 text-orange-600 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900">${cert.certification_name}</h3>
-                        <p class="text-sm text-gray-600">${cert.issuing_organization}</p>
-                        <p class="text-xs text-gray-500 mt-1">Issued: ${issueDate}${expiryDate ? ' Expires: ' + expiryDate : ''}</p>
-                        ${cert.certificate_file_path ? `
-                            <div class="flex items-center space-x-3 mt-2">
-                                <button data-file-url="${cert.certificate_file_path.replace(/"/g, '&quot;')}" onclick="previewFile('cert', this.dataset.fileUrl)" class="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition inline-flex items-center">
+                <div class="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900">${name}</h3>
+                            <p class="text-sm text-gray-600">${org}</p>
+                            ${datesLine ? `<p class="text-xs text-gray-500 mt-1">${datesLine}</p>` : ''}
+                            ${fileUrl ? `
+                                <button type="button" data-file-url="${safeFileUrl}" onclick="previewFile('cert', this.dataset.fileUrl)" class="mt-2 inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
                                     </svg>
-                                    Preview
+                                    View Certificate
                                 </button>
-                                <a href="${cert.certificate_file_path}" target="_blank" download class="text-gray-600 hover:text-gray-700 text-sm font-medium px-3 py-1 rounded hover:bg-gray-100 transition inline-flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                    </svg>
-                                    Download
-                                </a>
-                            </div>
-                        ` : ''}
+                            ` : ''}
+                        </div>
                     </div>
-                    <button onclick="deleteCertification(${cert.id}, this)" class="text-red-600 hover:text-red-700 ml-4">
+                    <button type="button" onclick="deleteCertification(${cert.id}, this)" class="flex-shrink-0 text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -1445,6 +1991,21 @@
                 </div>
             `;
         }).join('');
+
+        const uploadBlock = `
+            <button type="button" onclick="openCertificationModal()" class="mt-3 w-full border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 flex items-center justify-center text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer bg-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
+                </svg>
+                <span class="font-medium">Upload Certificate Copy</span>
+            </button>
+        `;
+
+        if (certifications.length === 0) {
+            container.innerHTML = uploadBlock;
+        } else {
+            container.innerHTML = cardsHtml + uploadBlock;
+        }
     }
 
     function openCertificationModal(id = null) {
@@ -1466,6 +2027,8 @@
         if (fileEl) fileEl.value = '';
         const previewDiv = document.getElementById('cert-file-preview');
         if (previewDiv) previewDiv.classList.add('hidden');
+        const triggerText = document.getElementById('cert-file-trigger-text');
+        if (triggerText) triggerText.textContent = 'Choose file';
         const modal = document.getElementById('certification-modal');
         if (modal) modal.classList.remove('hidden');
     }
@@ -1574,44 +2137,44 @@
         const container = document.getElementById('references-list');
         const skeleton = document.getElementById('references-skeleton');
         if (!container) return;
-        
+
         // Hide skeleton
         if (skeleton) skeleton.classList.add('hidden');
-        
+
         if (references.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-sm">No references added yet.</p>';
             return;
         }
+
+        const peopleIconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #0194A5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
+        const envelopeIconSvg = '<svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>';
+        const phoneIconSvg = '<svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>';
+
         container.innerHTML = references.map(ref => {
+            const name = (ref.reference_name || '').replace(/</g, '&lt;');
+            const title = (ref.title || '').replace(/</g, '&lt;');
+            const company = (ref.company || '').replace(/</g, '&lt;');
+            const rel = (ref.relationship || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).replace(/</g, '&lt;');
+            const email = (ref.email || '').replace(/</g, '&lt;');
+            const phone = (ref.phone || '').replace(/</g, '&lt;');
+            const roleLine = [title, company].filter(Boolean).join(' at ') || '—';
             return `
-                <div class="flex items-start space-x-3 border-b border-gray-200 pb-4">
-                    <svg class="w-5 h-5 text-blue-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900">${ref.reference_name}</h3>
-                        <p class="text-sm text-gray-600">${ref.title} at ${ref.company}</p>
-                        <p class="text-xs text-gray-500 mt-1">${ref.relationship.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                        <div class="flex items-center space-x-4 mt-2 text-xs text-gray-600">
-                            <a href="mailto:${ref.email}" class="flex items-center space-x-1 hover:text-blue-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>${ref.email}</span>
-                            </a>
-                            ${ref.phone ? `<a href="tel:${ref.phone}" class="flex items-center space-x-1 hover:text-blue-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                </svg>
-                                <span>${ref.phone}</span>
-                            </a>` : ''}
-                        </div>
-                    </div>
-                    <button onclick="deleteReference(${ref.id}, this)" class="text-red-600 hover:text-red-700 ml-4">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-start gap-3 relative">
+                    <button type="button" onclick="deleteReference(${ref.id}, this)" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
+                    <span class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-lg" style="background-color: #E0F7FA;">${peopleIconSvg}</span>
+                    <div class="flex-1 min-w-0 pr-8">
+                        <h3 class="font-semibold text-gray-900 text-base">${name}</h3>
+                        <p class="text-sm text-gray-700 mt-0.5">${roleLine}</p>
+                        <p class="text-sm text-gray-600 mt-0.5">${rel}</p>
+                        <div class="mt-2 space-y-1">
+                            ${email ? `<div class="flex items-center gap-2 text-sm text-gray-600">${envelopeIconSvg}<a href="mailto:${email}" class="hover:text-blue-600 truncate">${email}</a></div>` : ''}
+                            ${phone ? `<div class="flex items-center gap-2 text-sm text-gray-600">${phoneIconSvg}<a href="tel:${phone}" class="hover:text-blue-600">${phone}</a></div>` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -1714,7 +2277,8 @@
         }
     }
 
-    // ========== Category Preferences Functions ==========
+    // ========== Category Preferences Functions (dropdown only; select/remove update endpoint immediately) ==========
+
     async function loadCategoryPreferences() {
         try {
             const [prefsResponse, catsResponse] = await Promise.all([
@@ -1749,7 +2313,7 @@
         const container = document.getElementById('category-preferences-display');
         if (!container) return;
         if (categoryPreferences.length === 0) {
-            container.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm">No categories selected</span>';
+            container.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm">No categories selected</span>';
             const countEl = document.getElementById('category-count');
             if (countEl) countEl.textContent = '0 of 6 categories selected';
             return;
@@ -1758,9 +2322,9 @@
         container.innerHTML = categoryPreferences.map(pref => {
             const category = pref.category || {};
             return `
-                <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center space-x-2">
+                <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md text-sm flex items-center space-x-2">
                     <span>${category.name || 'Unknown'}</span>
-                    <button onclick="removeCategoryPreference(${category.id}, this)" class="text-red-600 hover:text-red-700">
+                    <button type="button" onclick="removeCategoryPreference(${category.id}, this)" class="text-red-600 hover:text-red-700 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -1782,94 +2346,59 @@
                 .join('');
     }
 
-    function editJobDiscovery() {
-        const display = document.getElementById('category-preferences-display');
-        const edit = document.getElementById('category-preferences-edit');
-        if (display) display.classList.add('hidden');
-        if (edit) edit.classList.remove('hidden');
-        populateCategorySelect();
-    }
-
-    function cancelCategoryPreferences() {
-        const display = document.getElementById('category-preferences-display');
-        const edit = document.getElementById('category-preferences-edit');
-        if (display) display.classList.remove('hidden');
-        if (edit) edit.classList.add('hidden');
+    async function syncCategoryPreferencesToApi() {
+        try {
+            const categoryIds = categoryPreferences.map(pref => pref.category_id);
+            const response = await fetch(`${API_BASE}/job-seeker/category-preferences/sync`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ category_ids: categoryIds })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                categoryPreferences = data.data || [];
+                renderCategoryPreferences();
+                populateCategorySelect();
+            } else {
+                const msg = data.errors ? Object.values(data.errors).flat().join(', ') : data.message;
+                showErrorToast(msg || 'Failed to update categories');
+            }
+        } catch (error) {
+            console.error('Error syncing category preferences:', error);
+            showErrorToast('An error occurred');
+        }
     }
 
     async function addCategoryPreference() {
         const select = document.getElementById('category-select');
         if (!select) return;
         const categoryId = select.value;
-        if (!categoryId) {
-            showWarningToast('Please select a category');
+        if (!categoryId) return;
+        if (categoryPreferences.length >= 6) {
+            showWarningToast('You can select up to 6 categories only');
+            select.value = '';
             return;
         }
-
-        select.disabled = true;
-
-        try {
-            const response = await fetch(`${API_BASE}/job-seeker/category-preferences`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ category_id: parseInt(categoryId) })
-            });
-
-            if (response.ok) {
-                await loadCategoryPreferences();
-                select.value = '';
-                populateCategorySelect();
-            } else {
-                const error = await response.json();
-                showErrorToast(error.message || 'Failed to add category');
-            }
-        } catch (error) {
-            console.error('Error adding category preference:', error);
-            showErrorToast('An error occurred');
-        } finally {
-            select.disabled = false;
+        const idInt = parseInt(categoryId, 10);
+        if (categoryPreferences.some(pref => pref.category_id === idInt)) {
+            select.value = '';
+            return;
         }
+        const category = allCategories.find(cat => cat.id === idInt) || { id: idInt };
+        categoryPreferences.push({ category_id: idInt, category });
+        renderCategoryPreferences();
+        select.value = '';
+        populateCategorySelect();
+        await syncCategoryPreferencesToApi();
     }
 
     async function removeCategoryPreference(categoryId, buttonElement = null) {
-        if (!confirm('Remove this category preference?')) return;
-
-        const deleteButton = buttonElement || document.querySelector(`button[onclick*="removeCategoryPreference(${categoryId})"]`);
-        const originalText = deleteButton ? deleteButton.innerHTML : '';
-
-        try {
-            if (deleteButton) setButtonLoading(deleteButton, true, '', originalText);
-
-            const response = await fetch(`${API_BASE}/job-seeker/category-preferences/${categoryId}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
-                credentials: 'include'
-            });
-            if (response.ok) {
-                await loadCategoryPreferences();
-            } else {
-                showErrorToast('Failed to remove category');
-            }
-        } catch (error) {
-            console.error('Error removing category preference:', error);
-            showErrorToast('An error occurred');
-        } finally {
-            if (deleteButton) setButtonLoading(deleteButton, false, '', originalText);
-        }
-    }
-
-    async function saveCategoryPreferences() {
-        const saveButton = document.querySelector('button[onclick="saveCategoryPreferences()"]');
-        const originalText = saveButton ? saveButton.innerHTML : '';
-
-        try {
-            if (saveButton) setButtonLoading(saveButton, true, '', originalText);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            cancelCategoryPreferences();
-        } finally {
-            if (saveButton) setButtonLoading(saveButton, false, '', originalText);
-        }
+        const idInt = parseInt(categoryId, 10);
+        categoryPreferences = categoryPreferences.filter(pref => pref.category_id !== idInt);
+        renderCategoryPreferences();
+        populateCategorySelect();
+        await syncCategoryPreferencesToApi();
     }
 
     // ========== Hobbies Functions ==========
@@ -1929,10 +2458,10 @@
         const displayDiv = document.getElementById('hobbies-display');
         if (!displayDiv) return;
         if (hobbies.length === 0) {
-            displayDiv.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm">No hobbies added</span>';
+            displayDiv.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm">No hobbies added</span>';
         } else {
             displayDiv.innerHTML = hobbies.map(hobby =>
-                `<span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-full text-sm">${hobby}</span>`
+                `<span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-md text-sm">${hobby}</span>`
             ).join('');
         }
     }
@@ -1949,6 +2478,7 @@
     window.saveJobPreferences = saveJobPreferences;
     window.saveSocialLinks = saveSocialLinks;
     window.saveVisibility = saveVisibility;
+    window.saveSalaryRange = window.saveSalaryRange;
     window.savePersonalInfo = savePersonalInfo;
     window.openExperienceModal = openExperienceModal;
     window.closeExperienceModal = closeExperienceModal;
@@ -1974,11 +2504,8 @@
     window.closeReferenceModal = closeReferenceModal;
     window.saveReference = saveReference;
     window.deleteReference = deleteReference;
-    window.editJobDiscovery = editJobDiscovery;
-    window.cancelCategoryPreferences = cancelCategoryPreferences;
     window.addCategoryPreference = addCategoryPreference;
     window.removeCategoryPreference = removeCategoryPreference;
-    window.saveCategoryPreferences = saveCategoryPreferences;
     window.editHobbies = editHobbies;
     window.cancelHobbies = cancelHobbies;
     window.saveHobbies = saveHobbies;
@@ -2123,6 +2650,8 @@
         
         // Show preview
         previewDiv.classList.remove('hidden');
+        const triggerText = document.getElementById('cert-file-trigger-text');
+        if (triggerText) triggerText.textContent = file.name;
         
         // Set file name
         if (fileNameEl) fileNameEl.textContent = file.name;
@@ -2157,8 +2686,10 @@
     function clearCertFile() {
         const fileInput = document.getElementById('cert-file');
         const previewDiv = document.getElementById('cert-file-preview');
+        const triggerText = document.getElementById('cert-file-trigger-text');
         if (fileInput) fileInput.value = '';
         if (previewDiv) previewDiv.classList.add('hidden');
+        if (triggerText) triggerText.textContent = 'Choose file';
     }
     
     window.handleCertFileSelect = handleCertFileSelect;

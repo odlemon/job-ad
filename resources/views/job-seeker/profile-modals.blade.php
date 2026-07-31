@@ -53,7 +53,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeExperienceModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveExperience()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveExperience()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -99,6 +99,12 @@
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
+            <div>
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" id="edu-is-current" class="mr-2">
+                    <span class="text-sm text-gray-700">Current</span>
+                </label>
+            </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">GPA</label>
@@ -119,7 +125,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeEducationModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveEducation()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveEducation()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -156,7 +162,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeSkillModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveSkill()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveSkill()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -193,7 +199,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeLanguageModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveLanguage()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveLanguage()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -246,9 +252,16 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Certificate File</label>
-                <input type="file" id="cert-file" accept=".pdf,.jpg,.jpeg,.png"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <input type="file" id="cert-file" accept=".pdf,.jpg,.jpeg,.png" class="sr-only" aria-hidden="true"
                     onchange="handleCertFileSelect(event)">
+                <button type="button" id="cert-file-trigger" onclick="document.getElementById('cert-file').click()"
+                    class="w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-4 flex items-center justify-center gap-2 text-gray-600 hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-700 transition cursor-pointer">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
+                    </svg>
+                    <span id="cert-file-trigger-text">Choose file</span>
+                    <span class="text-gray-400 text-sm">— PDF, JPG or PNG (max 5MB)</span>
+                </button>
                 <div id="cert-file-preview" class="hidden mt-3 p-3 bg-gray-50 rounded-lg">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
@@ -273,7 +286,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeCertificationModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveCertification()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveCertification()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -336,7 +349,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeReferenceModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="saveReference()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save</button>
+            <button onclick="saveReference()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
 </div>
@@ -362,7 +375,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
             <button onclick="closeFilePreview()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Close</button>
-            <a id="preview-download-link" href="#" target="_blank" download class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-flex items-center">
+            <a id="preview-download-link" href="#" target="_blank" download class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition inline-flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>

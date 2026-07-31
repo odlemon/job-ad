@@ -26,9 +26,9 @@ class ApplicationService
     /**
      * Get paginated applications for a job seeker.
      */
-    public function getPaginatedBySeeker(JobSeeker $jobSeeker, int $perPage = 15): LengthAwarePaginator
+    public function getPaginatedBySeeker(JobSeeker $jobSeeker, int $perPage = 15, ?array $statuses = null): LengthAwarePaginator
     {
-        return $this->repository->paginateBySeekerId($jobSeeker->seeker_id, $perPage);
+        return $this->repository->paginateBySeekerId($jobSeeker->seeker_id, $perPage, $statuses);
     }
 
     /**
@@ -63,6 +63,7 @@ class ApplicationService
         $data['user_id'] = $jobSeeker->user_id;
 
         // Business logic: Use job seeker's info if not provided
+        $jobSeeker->loadMissing('user');
         if (!isset($data['first_name'])) {
             $data['first_name'] = $jobSeeker->first_name;
         }
@@ -70,7 +71,7 @@ class ApplicationService
             $data['last_name'] = $jobSeeker->last_name;
         }
         if (!isset($data['email'])) {
-            $data['email'] = $jobSeeker->user->email;
+            $data['email'] = $jobSeeker->user?->email;
         }
 
         $application = $this->repository->create($data);
@@ -104,11 +105,11 @@ class ApplicationService
     /**
      * Check if a job seeker has already applied to a job.
      */
-    public function hasApplied(string $seekerId, int $jobAdvertisementId): bool
+    public function hasApplied(int|string $seekerId, int $jobAdvertisementId): bool
     {
-        return $this->repository->getBySeekerId($seekerId)
+        return $this->repository->getBySeekerId((int) $seekerId)
             ->where('job_advertisement_id', $jobAdvertisementId)
-            ->exists();
+            ->isNotEmpty();
     }
 
     /**

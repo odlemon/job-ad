@@ -20,6 +20,7 @@ class Employer extends Model
         'company_size',
         'website',
         'address',
+        'business_certificate_path',
         'coin_balance',
         'verified_at',
     ];

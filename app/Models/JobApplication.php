@@ -22,6 +22,13 @@ class JobApplication extends Model
         'resume_path',
         'additional_info',
         'status',
+        'in_talent_pool',
+        'invite_sent_at',
+        'interview_scheduled_at',
+        'interview_location',
+        'interview_notes',
+        'interview_status',
+        'interview_response_reason',
         'notes',
         'employer_notes',
         'reviewed_at',
@@ -31,6 +38,10 @@ class JobApplication extends Model
     protected $casts = [
         'additional_info' => 'array',
         'reviewed_at' => 'datetime',
+        'in_talent_pool' => 'boolean',
+        'invite_sent_at' => 'datetime',
+        'interview_scheduled_at' => 'datetime',
+        'interview_status' => 'string',
     ];
 
     /**

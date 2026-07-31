@@ -28,7 +28,9 @@ class SkillController extends Controller
             return response()->json(['message' => 'Job seeker profile not found'], 404);
         }
 
-        $skills = $this->skillService->getBySeeker($jobSeeker);
+        $skills = $this->skillService->getBySeeker($jobSeeker)
+            ->map(fn ($s) => \App\Support\ScoopNestedPresenter::skill($s))
+            ->values();
 
         return response()->json(['data' => $skills]);
     }
@@ -43,8 +45,10 @@ class SkillController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'skill_name' => 'required|string|max:255',
-            'proficiency_level' => 'required|in:beginner,intermediate,advanced,expert',
+            'skill_name' => 'required_without:name|string|max:255',
+            'name' => 'required_without:skill_name|string|max:255',
+            'proficiency_level' => 'required_without:level|in:beginner,intermediate,advanced,expert',
+            'level' => 'required_without:proficiency_level|in:beginner,intermediate,advanced,expert',
         ]);
 
         if ($validator->fails()) {
@@ -54,9 +58,12 @@ class SkillController extends Controller
             ], 422);
         }
 
+        $skillName = $request->input('skill_name', $request->input('name'));
+        $level = $request->input('proficiency_level', $request->input('level'));
+
         // Check if skill already exists
         $existing = JobSeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
-            ->where('skill_name', $request->skill_name)
+            ->where('skill_name', $skillName)
             ->first();
 
         if ($existing) {
@@ -66,11 +73,14 @@ class SkillController extends Controller
             ], 422);
         }
 
-        $skill = $this->skillService->create($jobSeeker, $validator->validated());
+        $skill = $this->skillService->create($jobSeeker, [
+            'skill_name' => $skillName,
+            'proficiency_level' => $level,
+        ]);
 
         return response()->json([
             'message' => 'Skill added successfully',
-            'data' => $skill,
+            'data' => \App\Support\ScoopNestedPresenter::skill($skill),
         ], 201);
     }
 

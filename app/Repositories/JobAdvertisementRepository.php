@@ -86,30 +86,120 @@ class JobAdvertisementRepository implements JobAdvertisementRepositoryInterface
             });
         }
 
-        // Filter by category
-        if (isset($filters['category_id']) && !empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
+        // Filter by category (supports single id or list from Scoop CSV categories)
+        if (isset($filters['category_id']) && $filters['category_id'] !== '' && $filters['category_id'] !== []) {
+            $categoryIds = is_array($filters['category_id'])
+                ? $filters['category_id']
+                : [$filters['category_id']];
+            $categoryIds = array_values(array_filter($categoryIds, fn ($id) => $id !== null && $id !== ''));
+            if (count($categoryIds) === 1) {
+                $query->where('category_id', $categoryIds[0]);
+            } elseif (count($categoryIds) > 1) {
+                $query->whereIn('category_id', $categoryIds);
+            }
         }
 
         // Filter by location
         if (isset($filters['location']) && !empty($filters['location'])) {
-            $query->where('location', 'like', "%{$filters['location']}%");
+            $locations = is_array($filters['location'])
+                ? $filters['location']
+                : array_map('trim', explode(',', (string) $filters['location']));
+            $locations = array_values(array_filter($locations));
+
+            if (!empty($locations)) {
+                $query->where(function ($q) use ($locations) {
+                    foreach ($locations as $loc) {
+                        $q->orWhere('location', 'like', "%{$loc}%");
+                    }
+                });
+            }
         }
 
-        // Filter by contract type (using employment_type field)
+        // Filter by contract / job type (CSV from Scoop filters)
         if (isset($filters['contract_type']) && !empty($filters['contract_type'])) {
-            $query->where('employment_type', $filters['contract_type']);
+            $types = is_array($filters['contract_type'])
+                ? $filters['contract_type']
+                : array_map('trim', explode(',', (string) $filters['contract_type']));
+            $types = array_values(array_filter($types));
+
+            if (count($types) === 1) {
+                $query->where(function ($q) use ($types) {
+                    $q->where('employment_type', $types[0])
+                        ->orWhere('employment_type', 'like', '%'.$types[0].'%');
+                });
+            } elseif (count($types) > 1) {
+                $query->where(function ($q) use ($types) {
+                    foreach ($types as $type) {
+                        $q->orWhere('employment_type', $type)
+                            ->orWhere('employment_type', 'like', '%'.$type.'%');
+                    }
+                });
+            }
         }
 
         // Filter by employment type
         if (isset($filters['employment_type']) && !empty($filters['employment_type'])) {
-            $query->where('employment_type', $filters['employment_type']);
+            $employmentTypes = is_array($filters['employment_type'])
+                ? $filters['employment_type']
+                : array_map('trim', explode(',', (string) $filters['employment_type']));
+            $employmentTypes = array_values(array_filter($employmentTypes));
+
+            if (count($employmentTypes) === 1) {
+                $query->where('employment_type', $employmentTypes[0]);
+            } elseif (count($employmentTypes) > 1) {
+                $query->whereIn('employment_type', $employmentTypes);
+            }
+        }
+
+        // Filter by experience/job tags (comma separated)
+        if (isset($filters['experience_tags']) && !empty($filters['experience_tags'])) {
+            $tags = is_array($filters['experience_tags'])
+                ? $filters['experience_tags']
+                : array_map('trim', explode(',', (string) $filters['experience_tags']));
+            $tags = array_values(array_filter($tags));
+
+            if (!empty($tags)) {
+                $query->where(function ($q) use ($tags) {
+                    foreach ($tags as $tag) {
+                        $normalized = strtolower($tag);
+                        if ($normalized === 'open to everyone') {
+                            $q->orWhereNull('experience_level')
+                                ->orWhere('experience_level', '')
+                                ->orWhere('experience_level', 'like', '%open to everyone%');
+                        } elseif ($normalized === 'work experience') {
+                            $q->orWhere('experience_level', 'like', '%work experience%')
+                                ->orWhere('experience_level', 'like', '%mid%')
+                                ->orWhere('experience_level', 'like', '%senior%')
+                                ->orWhere('experience_level', 'like', '%entry%');
+                        } else {
+                            $q->orWhere('experience_level', 'like', '%' . $tag . '%');
+                        }
+                    }
+                });
+            }
         }
 
         // Filter by remote option
         if (isset($filters['is_remote']) && $filters['is_remote'] !== '') {
             $isRemote = filter_var($filters['is_remote'], FILTER_VALIDATE_BOOLEAN);
             $query->where('is_remote', $isRemote);
+        }
+
+        // Filter by education level (Scoop / job search — supports CSV)
+        if (isset($filters['education']) && $filters['education'] !== '' && $filters['education'] !== []) {
+            $levels = is_array($filters['education'])
+                ? $filters['education']
+                : array_map('trim', explode(',', (string) $filters['education']));
+            $levels = array_values(array_filter($levels));
+
+            if (! empty($levels)) {
+                $query->where(function ($q) use ($levels) {
+                    foreach ($levels as $education) {
+                        $q->orWhere('education_level', 'like', "%{$education}%")
+                            ->orWhere('education_level', $education);
+                    }
+                });
+            }
         }
 
         // Filter by salary range

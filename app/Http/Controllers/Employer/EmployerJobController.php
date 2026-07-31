@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\JobAdvertisementService;
 use App\Services\CompanyService;
 use App\Services\JobCategoryService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +15,8 @@ class EmployerJobController extends Controller
     public function __construct(
         private JobAdvertisementService $jobService,
         private CompanyService $companyService,
-        private JobCategoryService $categoryService
+        private JobCategoryService $categoryService,
+        private NotificationService $notificationService
     ) {
     }
 
@@ -31,31 +33,12 @@ class EmployerJobController extends Controller
                 ->with('error', 'Please set up your company profile first.');
         }
 
-        $status = $request->get('status', 'all');
-        $search = $request->get('search', '');
-        
-        // Get jobs with application counts
-        $jobs = \App\Models\JobAdvertisement::with(['company', 'category'])
+        // Load all jobs; filtering (search + status) is done client-side for real-time UX
+        $jobs = \App\Models\JobAdvertisement::with(['company', 'category', 'campaigns'])
             ->withCount('applications')
-            ->where('company_id', $employer->company_id);
-        
-        // Apply search filter
-        if ($search) {
-            $jobs->where(function($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%");
-            });
-        }
-        
-        // Filter by status - map 'active' to 'published'
-        if ($status !== 'all') {
-            $statusMap = ['active' => 'published', 'paused' => 'draft'];
-            $actualStatus = $statusMap[$status] ?? $status;
-            $jobs->where('status', $actualStatus);
-        }
-        
-        $jobs = $jobs->orderBy('created_at', 'desc')->get();
+            ->where('company_id', $employer->company_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         // Update application counts from actual count if needed
         foreach ($jobs as $job) {
@@ -80,8 +63,6 @@ class EmployerJobController extends Controller
         return view('employer.jobs.index', [
             'jobs' => $jobs,
             'stats' => $stats,
-            'currentStatus' => $status,
-            'search' => $search,
             'categories' => $categories,
         ]);
     }
@@ -132,13 +113,18 @@ class EmployerJobController extends Controller
             'salary_min' => 'nullable|string|max:255',
             'salary_max' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:3',
+            'hide_salary' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
+            'island' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
             'is_remote' => 'nullable|boolean',
-            'application_deadline' => 'nullable|date',
+            'work_environment' => 'nullable|string|max:255',
+            'education_level' => 'nullable|string|max:255',
             'status' => 'nullable|in:draft,published,closed,archived',
         ]);
 
         $validated['company_id'] = $employer->company_id;
+        $validated['hide_salary'] = $request->has('hide_salary') ? true : false;
         
         if (!isset($validated['status'])) {
             $validated['status'] = 'draft';
@@ -151,16 +137,24 @@ class EmployerJobController extends Controller
         $job->applications_count = 0;
         $job->views_count = $job->views_count ?? 0;
 
-        // If request expects JSON (AJAX), return JSON
+        $this->notificationService->notifyAdmins(
+            'new_job_post',
+            'New Job Post Created',
+            $job->title . ' at ' . ($job->company->name ?? 'Company') . ' was just posted.',
+            ['job_id' => $job->id, 'company_id' => $job->company_id]
+        );
+
+        // If request expects JSON (AJAX), return JSON and redirect to campaign page
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json([
                 'message' => 'Job posting created successfully',
                 'job' => $job,
+                'redirect' => route('employer.campaigns.create', ['job' => $job->id]),
             ], 201);
         }
 
-        return redirect()->route('employer.jobs.index')
-            ->with('success', 'Job posting created successfully.');
+        return redirect()->route('employer.campaigns.create', ['job' => $job->id])
+            ->with('success', 'Job posting created successfully. Create a campaign to boost visibility.');
     }
 
     /**
@@ -264,17 +258,23 @@ class EmployerJobController extends Controller
             'salary_min' => 'nullable|string|max:255',
             'salary_max' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:3',
+            'hide_salary' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
+            'island' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
             'is_remote' => 'nullable|boolean',
-            'application_deadline' => 'nullable|date',
+            'work_environment' => 'nullable|string|max:255',
+            'education_level' => 'nullable|string|max:255',
             'status' => 'nullable|in:draft,published,closed,archived',
         ]);
 
+        $validated['hide_salary'] = $request->has('hide_salary') ? true : false;
+
         $this->jobService->update($job, $validated);
         
-        // Reload job with relationships
+        // Reload job with relationships for JSON response (table real-time update)
         $job = $this->jobService->getById($id);
-        $job->load(['company', 'category']);
+        $job->load(['company', 'category', 'campaigns']);
         $job->applications_count = $job->applications()->count();
         $job->views_count = $job->views_count ?? 0;
 
@@ -351,5 +351,47 @@ class EmployerJobController extends Controller
             'message' => $message,
             'status' => $job->status,
         ], 200);
+    }
+
+    /**
+     * Job Statistics & Performance page for a single job.
+     */
+    public function statistics(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $employer = $user->employer;
+
+        if (!$employer || !$employer->company_id) {
+            return redirect()->route('employer.dashboard')
+                ->with('error', 'Please set up your company profile first.');
+        }
+
+        $job = \App\Models\JobAdvertisement::where('id', $id)
+            ->where('company_id', $employer->company_id)
+            ->with([
+                'company',
+                'campaigns' => fn ($q) => $q->orderByDesc('launched_at'),
+                'applications' => fn ($q) => $q->with(['jobSeeker.experiences', 'jobSeeker.educations'])->orderByDesc('created_at')->limit(10),
+            ])
+            ->firstOrFail();
+
+        $primaryCampaign = $job->campaigns->first();
+        $isPromoted = $primaryCampaign && $primaryCampaign->status === 'active';
+
+        $stats = [
+            'views' => $primaryCampaign ? ($primaryCampaign->views_count ?? 0) : ($job->views_count ?? 0),
+            'applications' => $job->applications()->count(),
+            'shares' => $primaryCampaign ? ($primaryCampaign->shares_count ?? 0) : 0,
+            'messages' => $primaryCampaign ? ($primaryCampaign->messages_count ?? 0) : 0,
+            'saved' => $primaryCampaign ? ($primaryCampaign->saved_count ?? 0) : 0,
+            'invitations_sent' => $primaryCampaign ? ($primaryCampaign->invitation_sent_count ?? 0) : 0,
+        ];
+
+        return view('employer.jobs.statistics', [
+            'job' => $job,
+            'stats' => $stats,
+            'isPromoted' => $isPromoted,
+            'applications' => $job->applications,
+        ]);
     }
 }

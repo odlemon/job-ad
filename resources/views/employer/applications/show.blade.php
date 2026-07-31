@@ -12,11 +12,17 @@
             <div class="max-w-4xl mx-auto">
                 <!-- Header -->
                 <div class="mb-8">
-                    <a href="{{ route('employer.applications.index') }}" wire:navigate class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+                    @php
+                        $backUrl = request('from') === 'job_applicants' && request('job_id')
+                            ? route('employer.jobs.applicants', request('job_id'))
+                            : route('employer.applications.index');
+                        $backLabel = request('from') === 'job_applicants' ? 'Back to Job Applicants' : 'Back to Applications';
+                    @endphp
+                    <a href="{{ $backUrl }}" wire:navigate class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
-                        Back to Applications
+                        {{ $backLabel }}
                     </a>
                     <div class="flex items-start justify-between">
                         <div>
@@ -91,7 +97,7 @@
                             $resumeUrl = env('MEDIA_BASE_URL', 'http://31.220.82.129/uploads') . '/' . $application->resume_path;
                         }
                     @endphp
-                    <a href="{{ $resumeUrl }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <a href="{{ $resumeUrl }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -131,7 +137,7 @@
                             <textarea id="employer_notes" name="employer_notes" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add notes about this applicant...">{{ old('employer_notes', $application->employer_notes) }}</textarea>
                         </div>
                         <div class="flex justify-end">
-                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                            <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">
                                 Update Status
                             </button>
                         </div>

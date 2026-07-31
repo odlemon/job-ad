@@ -28,9 +28,8 @@ class JobSeekerRepository implements JobSeekerRepositoryInterface
 
     public function findByUserId(int $userId): ?JobSeeker
     {
-        return JobSeeker::with(['user', 'applications', 'savedJobs'])
-            ->where('user_id', $userId)
-            ->first();
+        // Hot path for Scoop APIs — do not hydrate applications/savedJobs bags
+        return JobSeeker::where('user_id', $userId)->first();
     }
 
     public function create(array $data): JobSeeker

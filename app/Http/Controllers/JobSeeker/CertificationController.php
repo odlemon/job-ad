@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CertificationController extends Controller
 {
@@ -28,7 +29,9 @@ class CertificationController extends Controller
             return response()->json(['message' => 'Job seeker profile not found'], 404);
         }
 
-        $certifications = $this->certificationService->getBySeeker($jobSeeker);
+        $certifications = $this->certificationService->getBySeeker($jobSeeker)
+            ->map(fn ($c) => \App\Support\ScoopNestedPresenter::certification($c))
+            ->values();
 
         return response()->json(['data' => $certifications]);
     }
@@ -43,13 +46,17 @@ class CertificationController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'certification_name' => 'required|string|max:255',
-            'issuing_organization' => 'required|string|max:255',
-            'issue_date' => 'required|date',
-            'expiry_date' => 'nullable|date|after:issue_date',
+            'certification_name' => 'required_without:name|string|max:255',
+            'name' => 'required_without:certification_name|string|max:255',
+            'issuing_organization' => 'required_without:issuer|string|max:255',
+            'issuer' => 'required_without:issuing_organization|string|max:255',
+            'issue_date' => 'required_without:issued_at|date',
+            'issued_at' => 'required_without:issue_date|date',
+            'expiry_date' => 'nullable|date',
+            'expires_at' => 'nullable|date',
             'certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'credential_id' => 'nullable|string|max:255',
-            'credential_url' => 'nullable|url|max:500',
+            'credential_url' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -59,15 +66,30 @@ class CertificationController extends Controller
             ], 422);
         }
 
-        $data = $validator->validated();
+        $data = [
+            'certification_name' => $request->input('certification_name', $request->input('name')),
+            'issuing_organization' => $request->input('issuing_organization', $request->input('issuer')),
+            'issue_date' => $request->input('issue_date', $request->input('issued_at')),
+            'expiry_date' => $request->input('expiry_date', $request->input('expires_at')),
+            'credential_id' => $request->input('credential_id'),
+            'credential_url' => $request->input('credential_url'),
+        ];
+
+        // Normalize credential_url to allow URLs without scheme (e.g. example.com/cert)
+        if (!empty($data['credential_url'])) {
+            $url = trim($data['credential_url']);
+            if (!Str::startsWith($url, ['http://', 'https://'])) {
+                $url = 'https://' . $url;
+            }
+            $data['credential_url'] = $url;
+        }
         $certificateFile = $request->hasFile('certificate_file') ? $request->file('certificate_file') : null;
-        unset($data['certificate_file']);
 
         $certification = $this->certificationService->create($jobSeeker, $data, $certificateFile);
 
         return response()->json([
             'message' => 'Certification added successfully',
-            'data' => $certification,
+            'data' => \App\Support\ScoopNestedPresenter::certification($certification),
         ], 201);
     }
 
@@ -90,7 +112,7 @@ class CertificationController extends Controller
             'expiry_date' => 'nullable|date|after:issue_date',
             'certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'credential_id' => 'nullable|string|max:255',
-            'credential_url' => 'nullable|url|max:500',
+            'credential_url' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -101,6 +123,15 @@ class CertificationController extends Controller
         }
 
         $data = $validator->validated();
+
+        // Normalize credential_url to allow URLs without scheme
+        if (!empty($data['credential_url'])) {
+            $url = trim($data['credential_url']);
+            if (!Str::startsWith($url, ['http://', 'https://'])) {
+                $url = 'https://' . $url;
+            }
+            $data['credential_url'] = $url;
+        }
         $certificateFile = $request->hasFile('certificate_file') ? $request->file('certificate_file') : null;
         unset($data['certificate_file']);
 

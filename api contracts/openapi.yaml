@@ -1,0 +1,1396 @@
+openapi: 3.0.3
+info:
+  title: Scoop Job Seeker API
+  description: |
+    REST API contract for the Scoop Vue frontend.
+    Base URL used by the app: `http://localhost:8000/api`
+    See also `docs/API_CONTRACT.md` for human-readable handoff notes.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Profile
+  - name: ProfileNested
+  - name: Settings
+  - name: Notifications
+  - name: Jobs
+  - name: JobSeekerJobs
+  - name: Companies
+  - name: Tenders
+  - name: Courses
+  - name: Meta
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register job seeker
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registered (token) or OTP pending
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AuthSuccess'
+                  - type: object
+                    properties:
+                      message: { type: string }
+        '422':
+          $ref: '#/components/responses/Error'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      responses:
+        '200':
+          description: OK
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /auth/otp/send:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Send email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/otp/verify:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Verify OTP and issue session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email: { type: string, format: email }
+                code: { type: string, minLength: 6, maxLength: 6 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '422':
+          $ref: '#/components/responses/Error'
+
+  /auth/otp/resend:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Resend OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password, password_confirmation]
+              properties:
+                email: { type: string, format: email }
+                token: { type: string }
+                password: { type: string }
+                password_confirmation: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, password, password_confirmation]
+              properties:
+                current_password: { type: string }
+                password: { type: string }
+                password_confirmation: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/account:
+    delete:
+      tags: [Auth]
+      summary: Delete account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: { type: string }
+      responses:
+        '200':
+          description: Deleted
+
+  /auth/2fa/enable:
+    post:
+      tags: [Auth]
+      summary: Enable 2FA (stub OK)
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /auth/2fa/disable:
+    post:
+      tags: [Auth]
+      summary: Disable 2FA (stub OK)
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /job-seeker/profile:
+    get:
+      tags: [Profile]
+      summary: Get profile
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Profile'
+    put:
+      tags: [Profile]
+      summary: Update profile (partial OK)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Profile'
+
+  /job-seeker/profile/photo:
+    post:
+      tags: [Profile]
+      summary: Upload profile photo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      profile_photo: { type: string, format: uri }
+
+  /job-seeker/summary:
+    get:
+      tags: [Profile]
+      summary: Personal summary counts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProfileSummary'
+
+  /job-seeker/experiences:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Experience'
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/experiences/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/educations:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Education'
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EducationInput'
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/educations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EducationInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/skills:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                level:
+                  type: string
+                  nullable: true
+                  enum: [beginner, intermediate, advanced, expert, null]
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/skills/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/languages:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, level]
+              properties:
+                name: { type: string }
+                level:
+                  type: string
+                  enum: [native, fluent, advanced, intermediate, basic]
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/languages/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/hobbies:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/hobbies/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/social-links:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [platform, url]
+              properties:
+                platform:
+                  type: string
+                  enum: [linkedin, facebook, twitter, instagram, github, other]
+                url: { type: string, format: uri }
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/social-links/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/certifications:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationInput'
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/certifications/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/certifications/{id}/document:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: Uploaded
+
+  /job-seeker/references:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferenceInput'
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/references/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferenceInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/documents:
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [ProfileNested]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, file]
+              properties:
+                name: { type: string }
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Created
+
+  /job-seeker/documents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: Deleted
+
+  /job-seeker/documents/{id}/download:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [ProfileNested]
+      responses:
+        '200':
+          description: File stream
+
+  /job-seeker/settings:
+    get:
+      tags: [Settings]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Settings'
+    put:
+      tags: [Settings]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: OK
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [applications, alerts]
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags: [Notifications]
+      summary: Not used — prefer DELETE /notifications/read
+      responses:
+        '405':
+          description: Use specific delete routes
+
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count: { type: integer }
+
+  /notifications/{id}/read:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    patch:
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Marked read
+
+  /notifications/read-all:
+    patch:
+      tags: [Notifications]
+      responses:
+        '200':
+          description: All marked read
+
+  /notifications/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    delete:
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Deleted
+
+  /notifications/read:
+    delete:
+      tags: [Notifications]
+      summary: Clear all read notifications
+      responses:
+        '200':
+          description: Cleared
+
+  /jobs/published:
+    get:
+      tags: [Jobs]
+      security: []
+      summary: Home popular / published jobs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+
+  /jobs/search:
+    get:
+      tags: [Jobs]
+      security: []
+      parameters:
+        - name: query
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          description: Comma-separated
+          schema: { type: string }
+        - name: location
+          in: query
+          schema: { type: string }
+        - name: job_type
+          in: query
+          schema: { type: string }
+        - name: education
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+
+  /jobs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Jobs]
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Job'
+
+  /jobs/{id}/apply:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Jobs]
+      responses:
+        '200':
+          description: Applied
+        '422':
+          $ref: '#/components/responses/Error'
+
+  /jobs/{id}/save:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Jobs]
+      responses:
+        '200':
+          description: Saved
+    delete:
+      tags: [Jobs]
+      responses:
+        '200':
+          description: Unsaved
+
+  /jobs/{id}/report:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Jobs]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: Reported
+
+  /job-seeker/applications:
+    get:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: OK
+
+  /job-seeker/saved-jobs:
+    get:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: OK
+
+  /job-seeker/recommended-jobs:
+    get:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: OK
+
+  /job-seeker/invitations:
+    get:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: OK
+
+  /job-seeker/invitations/{id}/accept:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: Accepted
+
+  /job-seeker/invitations/{id}/decline:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [JobSeekerJobs]
+      responses:
+        '200':
+          description: Declined
+
+  /job-seeker/followed-companies:
+    get:
+      tags: [Companies]
+      responses:
+        '200':
+          description: OK
+
+  /companies/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Companies]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /companies/{id}/jobs:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Companies]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /companies/{id}/reviews:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Companies]
+      security: []
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [Companies]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating: { type: number }
+                title: { type: string }
+                body: { type: string }
+      responses:
+        '201':
+          description: Created
+
+  /companies/{id}/follow:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Companies]
+      responses:
+        '200':
+          description: Followed
+    delete:
+      tags: [Companies]
+      responses:
+        '200':
+          description: Unfollowed
+
+  /tenders:
+    get:
+      tags: [Tenders]
+      security: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /tenders/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Tenders]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /tenders/{id}/attachments/{attachmentId}/download:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+      - name: attachmentId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Tenders]
+      responses:
+        '200':
+          description: File
+
+  /tenders/{id}/documents/zip:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Tenders]
+      responses:
+        '200':
+          description: Zip archive
+
+  /tenders/{id}/clarifications:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Tenders]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+      responses:
+        '200':
+          description: Sent
+
+  /tenders/{id}/report:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Tenders]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: Reported
+
+  /courses:
+    get:
+      tags: [Courses]
+      security: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /courses/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      tags: [Courses]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /courses/{id}/enroll:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    post:
+      tags: [Courses]
+      summary: Enroll (UI not present yet — stub OK)
+      responses:
+        '200':
+          description: Enrolled
+        '501':
+          description: Not implemented
+
+  /training-providers/featured:
+    get:
+      tags: [Courses]
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name: { type: string }
+                      subtitle: { type: string }
+                      courses_available: { type: integer }
+                      tagline: { type: string }
+
+  /meta/job-categories:
+    get:
+      tags: [Meta]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /meta/locations:
+    get:
+      tags: [Meta]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /meta/job-types:
+    get:
+      tags: [Meta]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /meta/education-levels:
+    get:
+      tags: [Meta]
+      security: []
+      responses:
+        '200':
+          description: OK
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        oneOf:
+          - type: integer
+          - type: string
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    Message:
+      description: Message
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+
+  schemas:
+    ErrorMessage:
+      type: object
+      properties:
+        message: { type: string }
+
+    AuthSuccess:
+      type: object
+      required: [token, user]
+      properties:
+        token: { type: string }
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        first_name: { type: string }
+        last_name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true }
+        user_type: { type: string, enum: [job_seeker] }
+        email_verified_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        job_seeker:
+          $ref: '#/components/schemas/Profile'
+
+    RegisterRequest:
+      type: object
+      required: [email, password, password_confirmation, user_type]
+      properties:
+        first_name: { type: string }
+        last_name: { type: string }
+        date_of_birth: { type: string, format: date }
+        gender: { type: string }
+        employment_status: { type: string }
+        highest_education: { type: string }
+        job_preferences:
+          type: array
+          items: { type: string }
+        email: { type: string, format: email }
+        password: { type: string }
+        password_confirmation: { type: string }
+        user_type: { type: string, enum: [job_seeker] }
+
+    Profile:
+      type: object
+      properties:
+        first_name: { type: string }
+        last_name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        location: { type: string }
+        gender: { type: string }
+        date_of_birth: { type: string, format: date }
+        employment_status: { type: string }
+        highest_education: { type: string }
+        driving_license: { type: boolean }
+        profile_photo: { type: string, nullable: true }
+        bio: { type: string }
+        job_preferences:
+          type: array
+          items: { type: string }
+        job_discovery_categories:
+          type: array
+          items: { type: string }
+        expected_salary_min: { type: number }
+        expected_salary_max: { type: number }
+        joined_label: { type: string }
+        profile_strength_percent: { type: integer }
+        profile_sections_completed: { type: integer }
+        profile_sections_total: { type: integer }
+
+    ProfileSummary:
+      type: object
+      properties:
+        applied: { type: integer }
+        saved: { type: integer }
+        invited: { type: integer }
+        discovery: { type: integer }
+        companies: { type: integer }
+
+    Experience:
+      allOf:
+        - $ref: '#/components/schemas/ExperienceInput'
+        - type: object
+          properties:
+            id: { type: integer }
+
+    ExperienceInput:
+      type: object
+      required: [job_title, company_name]
+      properties:
+        job_title: { type: string }
+        company_name: { type: string }
+        start_date: { type: string }
+        end_date: { type: string, nullable: true }
+        is_current: { type: boolean }
+        description: { type: string }
+
+    Education:
+      allOf:
+        - $ref: '#/components/schemas/EducationInput'
+        - type: object
+          properties:
+            id: { type: integer }
+
+    EducationInput:
+      type: object
+      required: [institution, degree]
+      properties:
+        institution: { type: string }
+        degree: { type: string }
+        field_of_study: { type: string }
+        start_date: { type: string }
+        end_date: { type: string, nullable: true }
+        is_current: { type: boolean }
+        details: { type: string, nullable: true }
+
+    CertificationInput:
+      type: object
+      required: [name, issuer, issued_at]
+      properties:
+        name: { type: string }
+        issuer: { type: string }
+        issued_at: { type: string, format: date }
+        expires: { type: boolean }
+        expires_at: { type: string, format: date, nullable: true }
+
+    ReferenceInput:
+      type: object
+      required: [name, title, location, email, phone]
+      properties:
+        name: { type: string }
+        title: { type: string }
+        location: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+
+    Settings:
+      type: object
+      properties:
+        app_notifications: { type: boolean }
+        email_notifications: { type: boolean }
+        job_alerts: { type: boolean }
+        application_updates: { type: boolean }
+        marketing_emails: { type: boolean }
+
+    Job:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        employer_name: { type: string }
+        employer_id: { type: integer }
+        verified: { type: boolean }
+        location: { type: string }
+        salary_min: { type: number }
+        salary_max: { type: number }
+        salary_currency: { type: string }
+        category:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        job_type:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        positions_available: { type: integer }
+        created_at: { type: string, format: date-time }
+        expiry_date: { type: string, format: date-time }
+        description: { type: string }
+        is_saved: { type: boolean }
+        application_status: { type: string, nullable: true }
+        employer:
+          $ref: '#/components/schemas/Employer'
+
+    Employer:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        size: { type: string }
+        industry: { type: string }
+        rating: { type: number }
+        reviews_count: { type: integer }
+        jobs_count: { type: integer }
+        location: { type: string }
+        website: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        working_hours: { type: string }
+        about_us: { type: string }
+        logo_url: { type: string, nullable: true }
+        cover_url: { type: string, nullable: true }

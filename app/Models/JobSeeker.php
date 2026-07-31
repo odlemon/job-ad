@@ -29,7 +29,11 @@ class JobSeeker extends Model
         'driving_license',
         'license_issued_date',
         'job_preferences',
+        'expected_salary_min',
+        'expected_salary_max',
         'linkedin_url',
+        'facebook_url',
+        'instagram_url',
         'website_url',
         'public_profile',
         'open_to_opportunities',
@@ -135,6 +139,22 @@ class JobSeeker extends Model
     public function categoryPreferences(): HasMany
     {
         return $this->hasMany(JobSeekerCategoryPreference::class, 'seeker_id', 'seeker_id');
+    }
+
+    /**
+     * Get the documents (resume, certificates, etc.) for the job seeker.
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(JobSeekerDocument::class, 'seeker_id', 'seeker_id');
+    }
+
+    /**
+     * Get social profile links for the job seeker.
+     */
+    public function socialLinks(): HasMany
+    {
+        return $this->hasMany(JobSeekerSocialLink::class, 'seeker_id', 'seeker_id');
     }
 
     /**

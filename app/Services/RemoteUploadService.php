@@ -27,6 +27,7 @@ class RemoteUploadService
         'company-covers' => 'company-gallery', // Use company-gallery directory for covers
         'job-documents' => 'job-documents',
         'certifications' => 'certifications',
+        'tender-documents' => 'tender-documents',
         'temp' => 'temp',
     ];
 

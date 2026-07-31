@@ -14,8 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'ensure.job.seeker' => \App\Http\Middleware\EnsureJobSeeker::class,
+            'ensure.admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->withCommands([
+        \App\Console\Commands\DevServe::class,
+    ])->create();

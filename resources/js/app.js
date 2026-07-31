@@ -219,6 +219,67 @@ window.showInfoToast = function(message, duration) {
     return window.showToast(message, 'info', duration);
 };
 
+// Custom confirm dialog (replaces native confirm for our flows)
+window.showConfirmDialog = function(message, options = {}) {
+    const {
+        title = 'Are you sure?',
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+    } = options || {};
+
+    return new Promise((resolve) => {
+        // Remove any existing dialog
+        const existing = document.getElementById('confirm-dialog-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'confirm-dialog-overlay';
+        overlay.className = 'fixed inset-0 z-50 flex items-center justify-center';
+        overlay.style.cssText = 'background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);';
+
+        overlay.innerHTML = `
+            <div class="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-2">${title}</h3>
+                <p class="text-sm text-gray-700 mb-5">${message}</p>
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="confirm-cancel px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        ${cancelText}
+                    </button>
+                    <button type="button" class="confirm-ok px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        ${confirmText}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        function cleanup(result) {
+            overlay.remove();
+            document.removeEventListener('keydown', handleKeydown);
+            resolve(result);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'Escape') {
+                cleanup(false);
+            }
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                cleanup(false);
+            }
+        });
+
+        const okBtn = overlay.querySelector('.confirm-ok');
+        const cancelBtn = overlay.querySelector('.confirm-cancel');
+        if (okBtn) okBtn.addEventListener('click', () => cleanup(true));
+        if (cancelBtn) cancelBtn.addEventListener('click', () => cleanup(false));
+
+        document.body.appendChild(overlay);
+        document.addEventListener('keydown', handleKeydown);
+    });
+};
+
 // Loading overlay
 window.showLoadingOverlay = function() {
     const overlay = document.createElement('div');

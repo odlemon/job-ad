@@ -157,7 +157,7 @@
                         <a href="{{ route('employer.jobs.index') }}" wire:navigate class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
                             Cancel
                         </a>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                        <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">
                             Update Job Posting
                         </button>
                     </div>

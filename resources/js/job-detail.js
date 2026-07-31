@@ -53,17 +53,19 @@ window.loadJobDetail = async function() {
             
             // Format dates
             const postedDate = job.published_at ? new Date(job.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-            const deadlineDate = job.application_deadline ? new Date(job.application_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-            const isExpiringSoon = job.application_deadline && new Date(job.application_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            const deadlineDate = '';
+            const isExpiringSoon = false;
             
             // Format salary
-            const salaryRange = job.salary_min && job.salary_max 
-                ? `${job.currency || 'SCR'} ${parseInt(job.salary_min).toLocaleString()} - ${parseInt(job.salary_max).toLocaleString()} per month`
-                : job.salary_min 
-                    ? `${job.currency || 'SCR'} ${parseInt(job.salary_min).toLocaleString()} per month`
-                    : job.salary_max
-                        ? `${job.currency || 'SCR'} ${parseInt(job.salary_max).toLocaleString()} per month`
-                        : 'Not specified';
+            const salaryRange = job.hide_salary
+                ? 'Negotiable'
+                : job.salary_min && job.salary_max
+                    ? `${job.currency || 'SCR'} ${parseInt(job.salary_min).toLocaleString()} - ${parseInt(job.salary_max).toLocaleString()} per month`
+                    : job.salary_min
+                        ? `${job.currency || 'SCR'} ${parseInt(job.salary_min).toLocaleString()} per month`
+                        : job.salary_max
+                            ? `${job.currency || 'SCR'} ${parseInt(job.salary_max).toLocaleString()} per month`
+                            : 'Not specified';
             
             // Work environment
             const workEnv = job.is_remote ? 'Remote' : 'Office';
@@ -107,7 +109,7 @@ window.loadJobDetail = async function() {
                                     ${job.location}
                                 </div>
                                 ` : ''}
-                                ${job.salary_min || job.salary_max ? `
+                                ${job.hide_salary || job.salary_min || job.salary_max ? `
                                 <div class="flex items-center text-gray-600">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -443,10 +445,20 @@ async function checkApplicationStatus(jobId) {
 }
 
 window.handleApply = function(jobId) {
-    if (typeof window.navigateTo === 'function') {
-        window.navigateTo(`/jobs/${jobId}/apply`);
+    if (typeof window.handleJobApply === 'function') {
+        window.handleJobApply(jobId);
+    } else if (!window.IS_AUTHENTICATED) {
+        if (typeof window.openAuthModal === 'function') {
+            window.openAuthModal('login');
+        } else {
+            window.location.href = '/';
+        }
     } else {
-        window.location.href = `/jobs/${jobId}/apply`;
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(`/jobs/${jobId}/apply`);
+        } else {
+            window.location.href = `/jobs/${jobId}/apply`;
+        }
     }
 };
 
@@ -492,12 +504,7 @@ window.saveJob = async function(jobId) {
         });
         
         if (response.status === 401) {
-            const currentJobId = getJobIdFromUrl();
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo(`/login?redirect=/jobs/${currentJobId}`);
-            } else {
-                window.location.href = `/login?redirect=/jobs/${currentJobId}`;
-            }
+            if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
             return;
         }
         
@@ -514,12 +521,7 @@ window.saveJob = async function(jobId) {
         }
     } catch (error) {
         console.error('Error saving job:', error);
-        const currentJobId = getJobIdFromUrl();
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo(`/login?redirect=/jobs/${currentJobId}`);
-        } else {
-            window.location.href = `/login?redirect=/jobs/${currentJobId}`;
-        }
+        if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
     }
 };
 
@@ -528,11 +530,7 @@ window.toggleFollowCompany = async function(companyId) {
         const currentJobId = getJobIdFromUrl();
         const checkResponse = await fetch(`${API_BASE}/job-seeker/followed-companies/check/${companyId}`);
         if (checkResponse.status === 401) {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo(`/login?redirect=/jobs/${currentJobId}`);
-            } else {
-                window.location.href = `/login?redirect=/jobs/${currentJobId}`;
-            }
+            if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
             return;
         }
         
@@ -577,11 +575,6 @@ window.toggleFollowCompany = async function(companyId) {
         }
     } catch (error) {
         console.error('Error toggling follow:', error);
-        const currentJobId = getJobIdFromUrl();
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo(`/login?redirect=/jobs/${currentJobId}`);
-        } else {
-            window.location.href = `/login?redirect=/jobs/${currentJobId}`;
-        }
+        if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
     }
 };

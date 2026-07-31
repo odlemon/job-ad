@@ -66,12 +66,17 @@ class JobApplicationRepository implements JobApplicationRepositoryInterface
             ->get();
     }
 
-    public function paginateBySeekerId(int $seekerId, int $perPage = 15): LengthAwarePaginator
+    public function paginateBySeekerId(int $seekerId, int $perPage = 15, ?array $statuses = null): LengthAwarePaginator
     {
-        return JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])
+        $query = JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])
             ->where('seeker_id', $seekerId)
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->orderBy('created_at', 'desc');
+
+        if ($statuses) {
+            $query->whereIn('status', $statuses);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function getByCompanyId(int $companyId): Collection

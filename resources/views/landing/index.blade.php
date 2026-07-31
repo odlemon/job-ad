@@ -17,53 +17,92 @@
             </div>
 
             <!-- Search Bar -->
+            <style>
+                .landing-rainbow-text {
+                    background: linear-gradient(90deg, #f472b6, #a78bfa, #60a5fa, #34d399, #fbbf24, #f472b6);
+                    background-size: 200% auto;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    animation: landing-rainbow 3s linear infinite;
+                }
+                @keyframes landing-rainbow {
+                    0% { background-position: 0% center; }
+                    100% { background-position: 200% center; }
+                }
+            </style>
             <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-lg p-6">
                 <form id="heroSearchForm" onsubmit="handleHeroSearch(event)">
-                    <!-- Preferred Work Location -->
+                    <!-- Preferred Work Location Label -->
                     <div class="mb-4">
-                        <label class="text-sm text-white mb-2 block">Preferred work location</label>
-                        <select id="preferred_location" name="preferred_location" class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select location</option>
-                            <option value="Victoria, Mahe">Victoria, Mahe</option>
-                            <option value="Beau Vallon, Mahe">Beau Vallon, Mahe</option>
-                            <option value="Anse Royale, Mahe">Anse Royale, Mahe</option>
-                        </select>
+                        <span class="text-sm font-medium text-white">Preferred work location</span>
                     </div>
 
-                    <!-- Search Input Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <!-- Single Filter Row -->
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: stretch;">
                         <!-- Keyword Search -->
-                        <div class="md:col-span-2">
-                            <div class="relative">
+                        <div style="flex: 1 1 0%; min-width: 0;">
+                            <div class="relative" style="height: 100%;">
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
                                 <input 
                                     type="text" 
                                     id="keyword"
                                     name="keyword"
                                     placeholder="Search keyword" 
-                                    class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 pl-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                    style="height: 100%;"
                                 >
-                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
                             </div>
                         </div>
 
                         <!-- Category Dropdown -->
-                        <div>
-                            <select id="category_id" name="category_id" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div style="flex: 1 1 0%; min-width: 0;">
+                            <select id="category_id" name="category_id" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500" style="height: 100%;">
                                 <option value="">All job categories</option>
                             </select>
                         </div>
 
-                        <!-- Location Dropdown -->
-                        <div>
-                            <select id="location" name="location" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">All Seychelles locations</option>
-                                <option value="Victoria, Mahe">Victoria, Mahe</option>
-                                <option value="Beau Vallon, Mahe">Beau Vallon, Mahe</option>
-                                <option value="Anse Royale, Mahe">Anse Royale, Mahe</option>
-                            </select>
+                        <!-- Location Dropdown (searchable multi-select) -->
+                        <div style="flex: 1 1 0%; min-width: 0; position: relative;">
+                            <input type="hidden" id="location" name="location" value="">
+                            <button
+                                type="button"
+                                id="heroLocationBtn"
+                                class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                style="height: 100%;"
+                            >
+                                <span id="heroLocationLabel" class="truncate">All Seychelles locations</span>
+                                <svg class="w-4 h-4 text-gray-400 flex-shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div id="heroLocationPanel" class="hidden absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg" style="min-width: 220px;">
+                                <div class="p-2 border-b border-gray-100">
+                                    <div class="relative">
+                                        <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <input type="text" id="heroLocationSearch" placeholder="Search" class="w-full border border-gray-300 rounded-md pl-8 pr-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                                    </div>
+                                </div>
+                                <div id="heroLocationOptions" class="max-h-56 overflow-y-auto py-1"></div>
+                            </div>
                         </div>
+
+                        <!-- Find Jobs Button -->
+                        <div style="flex: 0 0 auto;">
+                            <button type="submit" class="bg-pink-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-pink-600 transition" style="white-space: nowrap; height: 100%;">
+                                Find jobs
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Show More Options Toggle -->
+                    <div class="mb-3">
+                        <button type="button" id="toggleAdvancedOptions" class="flex items-center text-xs text-gray-300 cursor-pointer hover:text-white transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                            <span id="toggleText">Show more options</span>
+                        </button>
                     </div>
 
                     <!-- Advanced Options (Hidden by default) -->
@@ -100,28 +139,15 @@
                         </div>
                     </div>
 
-                    <!-- More Options and Find Jobs Button -->
-                    <div class="flex items-center justify-between mb-4">
-                        <button type="button" id="toggleAdvancedOptions" class="flex items-center text-sm text-white cursor-pointer hover:text-blue-300 transition">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                            </svg>
-                            <span id="toggleText">Show more options</span>
-                        </button>
-                        <button type="submit" class="bg-pink-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-pink-600 transition whitespace-nowrap">
-                            Find jobs
-                        </button>
-                    </div>
-
                     <!-- Popular Searches -->
-                    <div class="pt-4 border-t border-gray-700">
-                        <p class="text-sm text-white mb-3">Popular searches:</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" onclick="setPopularSearch('Admin')" class="px-4 py-1.5 bg-transparent border border-white text-white rounded-full text-sm hover:bg-white hover:text-gray-800 transition">Admin</button>
-                            <button type="button" onclick="setPopularSearch('Operator')" class="px-4 py-1.5 bg-transparent border border-white text-white rounded-full text-sm hover:bg-white hover:text-gray-800 transition">Operator</button>
-                            <button type="button" onclick="setPopularSearch('Hotel Operations Manager')" class="px-4 py-1.5 bg-transparent border border-white text-white rounded-full text-sm hover:bg-white hover:text-gray-800 transition">Hotel Operations Manager</button>
-                            <button type="button" onclick="setPopularSearch('Cleaner')" class="px-4 py-1.5 bg-transparent border border-white text-white rounded-full text-sm hover:bg-white hover:text-gray-800 transition">Cleaner</button>
-                            <button type="button" onclick="setPopularSearch('Technician')" class="px-4 py-1.5 bg-transparent border border-white text-white rounded-full text-sm hover:bg-white hover:text-gray-800 transition">Technician</button>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-medium text-white mr-1">Popular searches</span>
+                            <button type="button" onclick="setPopularSearch('Admin')" class="px-4 py-1.5 bg-transparent border border-white/30 text-white rounded-full text-xs hover:bg-white/20 transition">Admin</button>
+                            <button type="button" onclick="setPopularSearch('Operator')" class="px-4 py-1.5 bg-transparent border border-white/30 text-white rounded-full text-xs hover:bg-white/20 transition">Operator</button>
+                            <button type="button" onclick="setPopularSearch('Hotel Operations Manager')" class="px-4 py-1.5 bg-transparent border border-white/30 text-white rounded-full text-xs hover:bg-white/20 transition">Hotel Operations Manager</button>
+                            <button type="button" onclick="setPopularSearch('Cleaner')" class="px-4 py-1.5 bg-transparent border border-white/30 text-white rounded-full text-xs hover:bg-white/20 transition">Cleaner</button>
+                            <button type="button" onclick="setPopularSearch('Technician')" class="px-4 py-1.5 bg-transparent border border-white/30 text-white rounded-full text-xs hover:bg-white/20 transition">Technician</button>
                         </div>
                     </div>
                 </form>
@@ -505,6 +531,95 @@
         // Make function globally available
         window.handleHeroSearch = handleHeroSearch;
         window.setPopularSearch = setPopularSearch;
+
+        // ======= Location Searchable Multi-Select Dropdown =======
+        const HERO_LOCATIONS = [
+            'All Seychelles locations',
+            'Central Region', 'East Region', 'West Region', 'North Region', 'South Region',
+            'Anse Boileau', 'Anse Royale', 'Anse-aux-Pins', 'Au Cap', 'Baie Lazare',
+            'Beau Vallon', 'Bel Air', 'English River', 'Grand Anse Mahe', 'Plaisance',
+            'Port Glaud', 'Takamaka', 'Victoria', 'Mahe', 'Praslin', 'La Digue'
+        ];
+
+        function getHeroSelectedLocations() {
+            const h = document.getElementById('location');
+            if (!h || !h.value) return [];
+            return h.value.split(',').map(v => v.trim()).filter(Boolean);
+        }
+
+        function setHeroLocationValue(arr) {
+            const h = document.getElementById('location');
+            const label = document.getElementById('heroLocationLabel');
+            const normalized = Array.isArray(arr) ? arr : [];
+            if (h) h.value = normalized.join(',');
+            if (label) {
+                if (normalized.length === 0) label.textContent = 'All Seychelles locations';
+                else if (normalized.length === 1) label.textContent = normalized[0];
+                else label.textContent = normalized.length + ' locations selected';
+            }
+        }
+
+        function renderHeroLocationOptions(query) {
+            const container = document.getElementById('heroLocationOptions');
+            if (!container) return;
+            const q = (query || '').trim().toLowerCase();
+            const selected = getHeroSelectedLocations();
+            const filtered = HERO_LOCATIONS.filter(opt => opt.toLowerCase().includes(q));
+            container.innerHTML = filtered.map(opt => {
+                const checked = opt === 'All Seychelles locations' ? selected.length === 0 : selected.includes(opt);
+                return '<button type="button" class="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm text-gray-700" data-hero-loc="' + opt + '">'
+                    + '<span class="inline-flex w-4 h-4 rounded border ' + (checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300') + ' items-center justify-center flex-shrink-0">'
+                    + (checked ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : '')
+                    + '</span><span>' + opt + '</span></button>';
+            }).join('');
+        }
+
+        function initHeroLocationDropdown() {
+            const btn = document.getElementById('heroLocationBtn');
+            const panel = document.getElementById('heroLocationPanel');
+            const searchInput = document.getElementById('heroLocationSearch');
+            const optsCont = document.getElementById('heroLocationOptions');
+            if (!btn || !panel || !searchInput || !optsCont) return;
+
+            panel.onclick = function(e) { e.stopPropagation(); };
+            panel.style.display = 'none';
+
+            var isOpen = function() { return panel.style.display !== 'none'; };
+            var closePanel = function() { panel.classList.add('hidden'); panel.style.display = 'none'; };
+            var openPanel = function() {
+                panel.classList.remove('hidden');
+                panel.style.display = 'block';
+                renderHeroLocationOptions(searchInput.value);
+                setTimeout(function() { searchInput.focus(); }, 0);
+            };
+
+            btn.onclick = function() { isOpen() ? closePanel() : openPanel(); };
+            searchInput.onclick = function(e) { e.stopPropagation(); };
+            searchInput.oninput = function() { renderHeroLocationOptions(searchInput.value); };
+
+            optsCont.onclick = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                var optBtn = e.target.closest('[data-hero-loc]');
+                if (!optBtn) return;
+                var val = optBtn.getAttribute('data-hero-loc') || '';
+                var selected = getHeroSelectedLocations();
+                var next;
+                if (val === 'All Seychelles locations') { next = []; }
+                else if (selected.includes(val)) { next = selected.filter(function(s) { return s !== val; }); }
+                else { next = selected.concat([val]); }
+                setHeroLocationValue(next);
+                renderHeroLocationOptions(searchInput.value);
+            };
+
+            document.addEventListener('click', function(e) {
+                if (!panel.contains(e.target) && !btn.contains(e.target)) closePanel();
+            });
+
+            renderHeroLocationOptions('');
+        }
+
+        initHeroLocationDropdown();
         
         // Parallel fetch wrapper for faster loading
         async function fetchFast(url) {
@@ -851,12 +966,12 @@
             
             const keyword = document.querySelector('input[placeholder="Search keyword"]')?.value || '';
             const categoryId = document.querySelector('select:has(option[value="All job categories"])')?.value || '';
-            const location = document.querySelector('select:has(option[value="All Seychelles locations"])')?.value || '';
+            const locationVal = document.getElementById('location')?.value || '';
             
             const params = new URLSearchParams();
             if (keyword) params.append('keyword', keyword);
             if (categoryId) params.append('category_id', categoryId);
-            if (location && location !== 'All Seychelles locations') params.append('location', location);
+            if (locationVal) params.append('location', locationVal);
             
             const searchBtn = event?.target?.closest('button') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Find jobs'));
             if (searchBtn) {

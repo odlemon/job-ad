@@ -13,8 +13,7 @@
             return;
         }
 
-        // Prevent multiple initializations
-        if (isInitialized && notificationButton.dataset.initialized === 'true') {
+        if (notificationButton.dataset.initialized === 'true') {
             return;
         }
 

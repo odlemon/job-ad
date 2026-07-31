@@ -123,4 +123,64 @@ class JobApplicationController extends Controller
         
         return response()->json(['message' => 'Application deleted successfully'], 200);
     }
+
+    /**
+     * Handle job seeker's response to an interview request.
+     */
+    public function interviewResponse(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $application = $this->service->getById($id);
+
+        if (!$application) {
+            return response()->json(['message' => 'Application not found'], 404);
+        }
+
+        if ($application->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'response' => 'required|in:accepted,declined',
+            'reason' => 'nullable|string|max:2000',
+        ]);
+
+        $application->interview_status = $validated['response'];
+        $application->interview_response_reason = $validated['response'] === 'declined'
+            ? ($validated['reason'] ?? null)
+            : null;
+        $application->save();
+
+        // Notify employer about the response
+        $application->load('jobAdvertisement.company.employer');
+        $job = $application->jobAdvertisement;
+        $employer = $job?->company?->employer;
+        if ($employer && $employer->user_id) {
+            app(\App\Services\NotificationService::class)->create([
+                'user_id' => $employer->user_id,
+                'type' => 'interview_response',
+                'title' => 'Interview response from candidate',
+                'message' => sprintf(
+                    '%s %s has %s the interview for %s.',
+                    $application->first_name,
+                    $application->last_name,
+                    $validated['response'] === 'accepted' ? 'accepted' : 'declined',
+                    $job->title
+                ),
+                'data' => [
+                    'application_id' => $application->id,
+                    'job_title' => $job->title,
+                    'company_name' => $job->company->name,
+                    'response' => $validated['response'],
+                    'reason' => $application->interview_response_reason,
+                    'type' => 'interview_response',
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Interview response saved successfully',
+            'application' => $application,
+        ], 200);
+    }
 }

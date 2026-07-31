@@ -28,7 +28,9 @@ class LanguageController extends Controller
             return response()->json(['message' => 'Job seeker profile not found'], 404);
         }
 
-        $languages = $this->languageService->getBySeeker($jobSeeker);
+        $languages = $this->languageService->getBySeeker($jobSeeker)
+            ->map(fn ($l) => \App\Support\ScoopNestedPresenter::language($l))
+            ->values();
 
         return response()->json(['data' => $languages]);
     }
@@ -43,8 +45,10 @@ class LanguageController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'language' => 'required|string|max:255',
-            'proficiency_level' => 'required|in:basic,conversational,fluent,native',
+            'language' => 'required_without:name|string|max:255',
+            'name' => 'required_without:language|string|max:255',
+            'proficiency_level' => 'required_without:level|in:basic,conversational,fluent,native,beginner,intermediate,advanced',
+            'level' => 'required_without:proficiency_level|in:basic,conversational,fluent,native,beginner,intermediate,advanced',
         ]);
 
         if ($validator->fails()) {
@@ -54,9 +58,18 @@ class LanguageController extends Controller
             ], 422);
         }
 
-        // Check if language already exists
+        $languageName = $request->input('language', $request->input('name'));
+        $level = $request->input('proficiency_level', $request->input('level'));
+        // Map Scoop levels to DB enum where needed
+        $levelMap = [
+            'beginner' => 'basic',
+            'intermediate' => 'conversational',
+            'advanced' => 'fluent',
+        ];
+        $level = $levelMap[$level] ?? $level;
+
         $existing = JobSeekerLanguage::where('seeker_id', $jobSeeker->seeker_id)
-            ->where('language', $request->language)
+            ->where('language', $languageName)
             ->first();
 
         if ($existing) {
@@ -66,11 +79,14 @@ class LanguageController extends Controller
             ], 422);
         }
 
-        $language = $this->languageService->create($jobSeeker, $validator->validated());
+        $language = $this->languageService->create($jobSeeker, [
+            'language' => $languageName,
+            'proficiency_level' => $level,
+        ]);
 
         return response()->json([
             'message' => 'Language added successfully',
-            'data' => $language,
+            'data' => \App\Support\ScoopNestedPresenter::language($language),
         ], 201);
     }
 

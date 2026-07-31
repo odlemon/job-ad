@@ -77,6 +77,7 @@ class EmployerCompanyProfileController extends Controller
                     'name' => $company->name,
                     'description' => $company->description,
                     'website' => $company->website,
+                    'facebook' => $company->facebook,
                     'industry' => $company->industry,
                     'size' => $company->size,
                     'location' => $company->location,
@@ -87,6 +88,8 @@ class EmployerCompanyProfileController extends Controller
                     'linkedin' => $company->linkedin,
                     'twitter' => $company->twitter,
                     'culture_benefits' => $company->culture_benefits,
+                    'working_hours' => $company->working_hours,
+                    'workplace_description' => $company->workplace_description,
                     'verified_at' => $company->verified_at,
                 ],
                 'employer' => [
@@ -132,6 +135,7 @@ class EmployerCompanyProfileController extends Controller
                 'name' => $isFileOnlyUpload ? 'nullable' : 'required|string|max:255',
                 'description' => 'nullable|string',
                 'website' => 'nullable|url|max:255',
+                'facebook' => 'nullable|url|max:255',
                 'industry' => 'nullable|string|max:255',
                 'size' => 'nullable|string|max:255',
                 'location' => 'nullable|string|max:255',
@@ -139,6 +143,8 @@ class EmployerCompanyProfileController extends Controller
                 'linkedin' => 'nullable|url|max:255',
                 'twitter' => 'nullable|url|max:255',
                 'culture_benefits' => 'nullable|string',
+                'working_hours' => 'nullable|string|max:255',
+                'workplace_description' => 'nullable|string',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
                 'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             ]);
@@ -213,6 +219,7 @@ class EmployerCompanyProfileController extends Controller
         if (isset($validated['name'])) $updateData['name'] = $validated['name'];
         if (isset($validated['description'])) $updateData['description'] = $validated['description'];
         if (isset($validated['website'])) $updateData['website'] = $validated['website'];
+        if (isset($validated['facebook'])) $updateData['facebook'] = $validated['facebook'];
         if (isset($validated['industry'])) $updateData['industry'] = $validated['industry'];
         if (isset($validated['size'])) $updateData['size'] = $validated['size'];
         if (isset($validated['location'])) $updateData['location'] = $validated['location'];
@@ -220,6 +227,8 @@ class EmployerCompanyProfileController extends Controller
         if (isset($validated['linkedin'])) $updateData['linkedin'] = $validated['linkedin'];
         if (isset($validated['twitter'])) $updateData['twitter'] = $validated['twitter'];
         if (isset($validated['culture_benefits'])) $updateData['culture_benefits'] = $validated['culture_benefits'];
+        if (isset($validated['working_hours'])) $updateData['working_hours'] = $validated['working_hours'];
+        if (isset($validated['workplace_description'])) $updateData['workplace_description'] = $validated['workplace_description'];
 
         $company = $this->companyService->update($company, $updateData);
 

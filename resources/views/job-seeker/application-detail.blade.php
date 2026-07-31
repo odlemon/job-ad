@@ -20,13 +20,13 @@
                 $job = $application->jobAdvertisement;
                 $company = $job->company ?? null;
                 $statusConfig = [
-                    'applied' => ['label' => 'Applied', 'color' => 'blue'],
-                    'in_review' => ['label' => 'In Review', 'color' => 'yellow'],
-                    'interview' => ['label' => 'Interview', 'color' => 'purple'],
-                    'offered' => ['label' => 'Offered', 'color' => 'green'],
+                    'pending' => ['label' => 'Pending', 'color' => 'blue'],
+                    'reviewing' => ['label' => 'In Review', 'color' => 'yellow'],
+                    'shortlisted' => ['label' => 'Shortlisted', 'color' => 'purple'],
+                    'hired' => ['label' => 'Hired', 'color' => 'green'],
                     'rejected' => ['label' => 'Rejected', 'color' => 'red'],
                 ];
-                $statusInfo = $statusConfig[$application->status] ?? $statusConfig['applied'];
+                $statusInfo = $statusConfig[$application->status] ?? $statusConfig['pending'];
                 $statusColors = [
                     'blue' => 'bg-blue-100 text-blue-800',
                     'yellow' => 'bg-yellow-100 text-yellow-800',
@@ -78,25 +78,60 @@
                 </div>
             </div>
 
-            <!-- Status-specific Information -->
-            @if($application->status === 'interview' && isset($application->additional_info['interview_date']))
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
-                <h2 class="text-lg font-semibold text-purple-900 mb-3">Interview Details</h2>
-                <div class="space-y-2">
-                    <p class="text-sm text-purple-800">
-                        <span class="font-medium">Date & Time:</span> 
-                        {{ \Carbon\Carbon::parse($application->additional_info['interview_date'])->format('M d, Y') }} at {{ \Carbon\Carbon::parse($application->additional_info['interview_date'])->format('g:i A') }}
-                    </p>
-                    @if(isset($application->additional_info['interview_location']))
-                    <p class="text-sm text-purple-800">
-                        <span class="font-medium">Location:</span> {{ $application->additional_info['interview_location'] }}
-                    </p>
-                    @endif
-                    @if(isset($application->additional_info['interview_notes']))
-                    <p class="text-sm text-purple-800 mt-3">
-                        <span class="font-medium">Notes:</span> {{ $application->additional_info['interview_notes'] }}
-                    </p>
-                    @endif
+            <!-- Interview Details (from employer request) -->
+            @if($application->interview_scheduled_at)
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-6">
+                <h2 class="text-lg font-semibold text-indigo-900 mb-3">Interview Details</h2>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                    <div class="space-y-1 text-sm text-indigo-900">
+                        <p>
+                            <span class="font-medium">Date &amp; Time:</span>
+                            {{ $application->interview_scheduled_at->format('M d, Y \\a\\t g:i A') }}
+                        </p>
+                        @if($application->interview_location)
+                        <p>
+                            <span class="font-medium">Location:</span> {{ $application->interview_location }}
+                        </p>
+                        @endif
+                        @if($application->interview_notes)
+                        <p class="mt-1">
+                            <span class="font-medium">Notes:</span> {{ $application->interview_notes }}
+                        </p>
+                        @endif
+                        @if($application->interview_status === 'declined' && $application->interview_response_reason)
+                        <p class="mt-1 text-xs text-red-700">
+                            <span class="font-medium">Your reason:</span> {{ $application->interview_response_reason }}
+                        </p>
+                        @endif
+                    </div>
+                    <div class="flex flex-col items-start md:items-end gap-2">
+                        @php
+                            $interviewStatus = $application->interview_status ?? 'pending';
+                            $badgeClasses = [
+                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                'accepted' => 'bg-emerald-100 text-emerald-800',
+                                'declined' => 'bg-red-100 text-red-800',
+                            ];
+                            $badgeText = [
+                                'pending' => 'Waiting for your response',
+                                'accepted' => 'You accepted this interview',
+                                'declined' => 'You declined this interview',
+                            ];
+                        @endphp
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $badgeClasses[$interviewStatus] ?? 'bg-indigo-100 text-indigo-800' }}">
+                            {{ $badgeText[$interviewStatus] ?? 'Interview scheduled' }}
+                        </span>
+                        @if(!$application->interview_status || $application->interview_status === 'pending')
+                        <div class="flex items-center gap-2 mt-1">
+                            <button onclick="respondToInterview({{ $application->id }}, 'accepted')" class="px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-full hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
+                                Accept
+                            </button>
+                            <button onclick="openDeclineInterviewModal({{ $application->id }})" class="px-4 py-1.5 text-xs font-semibold border border-red-300 text-red-700 rounded-full hover:bg-red-50 transition">
+                                Decline
+                            </button>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
             @elseif($application->status === 'offered' && isset($application->additional_info['salary']))
@@ -119,6 +154,24 @@
                 </div>
             </div>
             @endif
+
+            <!-- Decline Interview Modal -->
+            <div id="decline-interview-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
+                <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-2">Decline interview</h2>
+                    <p class="text-sm text-gray-600 mb-4">You can optionally share a short reason with the employer.</p>
+                    <form id="decline-interview-form" onsubmit="submitDeclineInterview(event)">
+                        <input type="hidden" id="decline-interview-application-id" value="{{ $application->id }}">
+                        <textarea id="decline-interview-reason" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reason for declining (optional)"></textarea>
+                        <div class="mt-4 flex items-center justify-end gap-3">
+                            <button type="button" onclick="closeDeclineInterviewModal()" class="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button type="submit" id="decline-interview-submit-btn" class="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md flex items-center gap-2">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             <!-- Application Information -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -226,7 +279,7 @@
                     <button onclick="openNoteModal()" class="px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 transition font-medium">
                         {{ $application->notes ? 'Edit Note' : 'Add Note' }}
                     </button>
-                    <a href="{{ route('jobs.show', $job->id) }}" wire:navigate class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                    <a href="{{ route('jobs.show', $job->id) }}" wire:navigate class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">
                         View Job Posting
                     </a>
                 </div>
@@ -245,7 +298,7 @@
                 <button onclick="closeNoteModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
                     Cancel
                 </button>
-                <button onclick="saveNote({{ $application->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <button onclick="saveNote({{ $application->id }})" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
                     Save Note
                 </button>
             </div>
@@ -313,3 +366,84 @@ async function deleteApplication(applicationId) {
 </script>
 
 @endsection
+
+@push('scripts')
+<script>
+    function respondToInterview(applicationId, response) {
+        if (response === 'accepted') {
+            sendInterviewResponse(applicationId, 'accepted', '');
+        }
+    }
+
+    function openDeclineInterviewModal(applicationId) {
+        document.getElementById('decline-interview-application-id').value = applicationId;
+        document.getElementById('decline-interview-modal').classList.remove('hidden');
+    }
+
+    function closeDeclineInterviewModal() {
+        document.getElementById('decline-interview-modal').classList.add('hidden');
+    }
+
+    function submitDeclineInterview(e) {
+        e.preventDefault();
+        const applicationId = document.getElementById('decline-interview-application-id').value;
+        const reason = document.getElementById('decline-interview-reason').value;
+        sendInterviewResponse(applicationId, 'declined', reason);
+    }
+
+    function sendInterviewResponse(applicationId, response, reason) {
+        const btn = response === 'declined'
+            ? document.getElementById('decline-interview-submit-btn')
+            : null;
+        const original = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-sm inline-block mr-2 align-middle"></span><span>Sending...</span>';
+        }
+
+        fetch(`/job-seeker/applications/${applicationId}/interview-response`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                response: response,
+                reason: reason || ''
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+            if (data.application) {
+                if (response === 'declined') {
+                    closeDeclineInterviewModal();
+                }
+                if (typeof window.showSuccessToast === 'function') {
+                    window.showSuccessToast('Interview response sent.');
+                }
+                // Reload page to reflect updated status
+                window.location.reload();
+            } else {
+                if (typeof window.showErrorToast === 'function') {
+                    window.showErrorToast(data.message || 'Failed to send response');
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+            if (typeof window.showErrorToast === 'function') {
+                window.showErrorToast('An error occurred. Please try again.');
+            }
+        });
+    }
+</script>
+@endpush

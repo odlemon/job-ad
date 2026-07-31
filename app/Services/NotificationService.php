@@ -13,7 +13,28 @@ class NotificationService
      */
     public function create(array $data): Notification
     {
-        return Notification::create($data);
+        $notification = Notification::create($data);
+
+        $type = (string) ($notification->type ?? '');
+        $category = str_contains($type, 'application') || str_contains($type, 'interview') || str_contains($type, 'status')
+            ? 'applications'
+            : 'alerts';
+
+        app(RealtimeBroadcaster::class)->emitToUser((int) $notification->user_id, 'notification:new', [
+            'id' => $notification->id,
+            'title' => $notification->title,
+            'body' => $notification->message,
+            'message' => $notification->message,
+            'type' => $notification->type,
+            'category' => $category,
+            'is_read' => (bool) $notification->is_read,
+            'read' => (bool) $notification->is_read,
+            'data' => $notification->data,
+            'created_at' => optional($notification->created_at)?->toIso8601String(),
+            'date' => optional($notification->created_at)?->diffForHumans(),
+        ]);
+
+        return $notification;
     }
 
     /**
@@ -29,6 +50,47 @@ class NotificationService
             'data' => [
                 'application_id' => $applicationId,
                 'type' => 'application_received',
+            ],
+        ]);
+    }
+
+    /**
+     * Notify job seeker that they have been requested for an interview.
+     */
+    public function notifyInterviewRequested(
+        int $jobSeekerUserId,
+        int $applicationId,
+        string $jobTitle,
+        string $companyName,
+        ?\DateTimeInterface $scheduledAt = null,
+        ?string $location = null,
+        ?string $notes = null
+    ): Notification {
+        $parts = ["{$companyName} has requested an interview for the position: {$jobTitle}."];
+        if ($scheduledAt) {
+            $parts[] = 'Scheduled: ' . $scheduledAt->format('l, F j, Y \a\t g:i A');
+        }
+        if ($location) {
+            $parts[] = 'Location: ' . $location;
+        }
+        if ($notes) {
+            $parts[] = 'Notes: ' . $notes;
+        }
+        $message = implode(' ', $parts);
+
+        return $this->create([
+            'user_id' => $jobSeekerUserId,
+            'type' => 'interview_requested',
+            'title' => 'Interview Request',
+            'message' => $message,
+            'data' => [
+                'application_id' => $applicationId,
+                'job_title' => $jobTitle,
+                'company_name' => $companyName,
+                'scheduled_at' => $scheduledAt?->format('c'),
+                'location' => $location,
+                'notes' => $notes,
+                'type' => 'interview_requested',
             ],
         ]);
     }
@@ -97,6 +159,36 @@ class NotificationService
     }
 
     /**
+     * Paginate notifications with optional filters in SQL.
+     *
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function paginateForUser(int $userId, int $perPage = 20, ?bool $isRead = null, ?string $category = null)
+    {
+        $query = Notification::where('user_id', $userId)->orderByDesc('created_at');
+
+        if ($isRead !== null) {
+            $query->where('is_read', $isRead);
+        }
+
+        if ($category === 'applications') {
+            $query->where(function ($q) {
+                $q->where('type', 'like', '%application%')
+                    ->orWhere('type', 'like', '%interview%')
+                    ->orWhere('type', 'like', '%status%');
+            });
+        } elseif ($category === 'alerts') {
+            $query->where(function ($q) {
+                $q->where('type', 'not like', '%application%')
+                    ->where('type', 'not like', '%interview%')
+                    ->where('type', 'not like', '%status%');
+            });
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
      * Get unread count for a user.
      */
     public function getUnreadCount(int $userId): int
@@ -138,6 +230,23 @@ class NotificationService
                 'is_read' => true,
                 'read_at' => now(),
             ]);
+    }
+
+    /**
+     * Notify all admin users (for navbar / inbox). Used when: new employer, new job seeker, new job post, someone hired.
+     */
+    public function notifyAdmins(string $type, string $title, string $message, array $data = []): void
+    {
+        $adminIds = User::where('user_type', 'admin')->pluck('id');
+        foreach ($adminIds as $adminId) {
+            $this->create([
+                'user_id' => $adminId,
+                'type' => $type,
+                'title' => $title,
+                'message' => $message,
+                'data' => array_merge($data, ['type' => $type]),
+            ]);
+        }
     }
 
     /**
