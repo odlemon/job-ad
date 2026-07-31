@@ -8,6 +8,7 @@ use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
 use App\Services\NotificationService;
 use App\Services\RemoteUploadService;
+use App\Support\RegisterInputNormalizer;
 use App\Support\ScoopUserPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,10 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        // Accept Scoop UI labels (e.g. "Male", "Employed full-time", "DD/MM/YYYY")
+        // as well as canonical API enums before validation.
+        $request->merge(RegisterInputNormalizer::normalize($request->all()));
+
         // Base validation (shared fields for both user types)
         $validator = Validator::make($request->all(), [
             'user_type' => 'required|in:job_seeker,employer',
@@ -78,9 +83,11 @@ class AuthController extends Controller
         }
 
         if ($validator->fails()) {
+            $errors = $validator->errors();
+
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
+                'message' => $errors->first() ?: 'Validation failed',
+                'errors' => $errors,
             ], 422);
         }
 
