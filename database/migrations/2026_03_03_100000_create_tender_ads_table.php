@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2)->nullable();
             $table->string('currency', 3)->default('USD');
             $table->string('status', 32)->default('draft'); // draft, pending_approval, active, expired
-            $table->text('edit_request_message')->nullable()->after('status');
+            $table->text('edit_request_message')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
