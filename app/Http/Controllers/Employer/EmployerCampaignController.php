@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employer;
 use App\Http\Controllers\Controller;
 use App\Models\CampaignType;
 use App\Models\JobAdvertisement;
+use App\Models\JobApplication;
 use App\Models\JobCampaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,53 +27,61 @@ class EmployerCampaignController extends Controller
 
         $companyId = $employer->company_id;
 
-        // Load all jobs with campaigns (filtering done client-side for real-time tab/search)
+        // Load jobs with campaigns; use withCount instead of hydrating all applications
         $jobsQuery = JobAdvertisement::query()
             ->where('company_id', $companyId)
             ->whereHas('campaigns')
             ->with([
-                'campaigns' => fn($q) => $q->with('campaignType')->orderByDesc('launched_at'),
+                'campaigns' => fn ($q) => $q->with('campaignType')->orderByDesc('launched_at'),
                 'company',
-                'applications',
             ])
+            ->withCount('applications')
             ->orderByDesc('created_at');
 
         $jobs = $jobsQuery->get();
         $statusTab = $request->get('status', 'active');
 
-        // Status counts for tabs (all company campaigns)
-        $campaignsBase = JobCampaign::query()
-            ->whereHas('jobAdvertisement', fn($q) => $q->where('company_id', $companyId));
-        $statusCounts = [
-            'scheduled' => (clone $campaignsBase)->where('status', 'pending')->count(),
-            'active' => (clone $campaignsBase)->where('status', 'active')->count(),
-            'paused' => (clone $campaignsBase)->where('status', 'paused')->count(),
-            'expired' => (clone $campaignsBase)->where('status', 'expired')->count(),
-            'draft' => (clone $campaignsBase)->where('status', 'draft')->count(),
-        ];
-
-        // Auto-expire: mark campaigns as expired if ends_at passed
+        // Auto-expire first so counts are accurate
         JobCampaign::query()
-            ->whereHas('jobAdvertisement', fn($q) => $q->where('company_id', $companyId))
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
             ->where('status', 'active')
             ->where('ends_at', '<', now())
             ->update(['status' => 'expired']);
-        $statusCounts['expired'] = (clone $campaignsBase)->where('status', 'expired')->count();
-        $statusCounts['active'] = (clone $campaignsBase)->where('status', 'active')->count();
 
-        // KPI aggregates (all company jobs with campaigns)
-        $allCampaigns = JobCampaign::with('jobAdvertisement')
-            ->whereHas('jobAdvertisement', fn($q) => $q->where('company_id', $companyId))
-            ->get();
-        $activeJobListingCount = $allCampaigns->where('status', 'active')->unique('job_advertisement_id')->count();
-        $totalViews = $allCampaigns->sum('views_count');
-        $totalClicks = $allCampaigns->sum('clicks_count');
-        $totalApplications = \App\Models\JobApplication::whereIn('job_advertisement_id', $allCampaigns->pluck('job_advertisement_id'))->count();
-        $totalShares = $allCampaigns->sum('shares_count');
-        $totalSaved = $allCampaigns->sum('saved_count');
+        $statusRows = JobCampaign::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+
+        $statusCounts = [
+            'scheduled' => (int) ($statusRows['pending'] ?? 0),
+            'active' => (int) ($statusRows['active'] ?? 0),
+            'paused' => (int) ($statusRows['paused'] ?? 0),
+            'expired' => (int) ($statusRows['expired'] ?? 0),
+            'draft' => (int) ($statusRows['draft'] ?? 0),
+        ];
+
+        $kpi = JobCampaign::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->selectRaw('SUM(views_count) as total_views')
+            ->selectRaw('SUM(clicks_count) as total_clicks')
+            ->selectRaw('SUM(shares_count) as total_shares')
+            ->selectRaw('SUM(saved_count) as total_saved')
+            ->selectRaw("COUNT(DISTINCT CASE WHEN status = 'active' THEN job_advertisement_id END) as active_job_listing")
+            ->first();
+
+        $jobIdsWithCampaigns = JobCampaign::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->distinct()
+            ->pluck('job_advertisement_id');
+
+        $totalApplications = $jobIdsWithCampaigns->isEmpty()
+            ? 0
+            : JobApplication::whereIn('job_advertisement_id', $jobIdsWithCampaigns)->count();
 
         $coinBalance = $employer->coin_balance ?? 0;
-        $hasAnyCampaigns = JobCampaign::whereHas('jobAdvertisement', fn($q) => $q->where('company_id', $companyId))->exists();
+        $hasAnyCampaigns = $jobIdsWithCampaigns->isNotEmpty();
         $sort = $request->get('sort', 'most_recent');
 
         $campaignTypes = CampaignType::orderBy('sort_order')->get();
@@ -84,12 +93,12 @@ class EmployerCampaignController extends Controller
             'statusCounts' => $statusCounts,
             'statusTab' => $statusTab,
             'stats' => [
-                'active_job_listing' => $activeJobListingCount,
-                'total_views' => $totalViews,
-                'total_clicks' => $totalClicks,
+                'active_job_listing' => (int) ($kpi->active_job_listing ?? 0),
+                'total_views' => (int) ($kpi->total_views ?? 0),
+                'total_clicks' => (int) ($kpi->total_clicks ?? 0),
                 'total_applications' => $totalApplications,
-                'total_shares' => $totalShares,
-                'total_saved' => $totalSaved,
+                'total_shares' => (int) ($kpi->total_shares ?? 0),
+                'total_saved' => (int) ($kpi->total_saved ?? 0),
             ],
             'coinBalance' => $coinBalance,
             'filters' => [
@@ -113,7 +122,11 @@ class EmployerCampaignController extends Controller
                 ->with('error', 'Please set up your company profile first.');
         }
 
-        $jobs = JobAdvertisement::with(['company', 'category'])
+        $jobs = JobAdvertisement::with([
+            'company',
+            'category',
+            'campaigns' => fn ($q) => $q->where('status', 'active')->with('campaignType'),
+        ])
             ->where('company_id', $employer->company_id)
             ->orderBy('created_at', 'desc')
             ->get();

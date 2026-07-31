@@ -44,22 +44,32 @@ class CompanyController extends Controller
             $query->having('job_advertisements_count', '>', 0);
         }
 
-        $companies = $query->orderByDesc('job_advertisements_count')->get();
+        $companies = $query
+            ->orderByDesc('job_advertisements_count')
+            ->paginate(24)
+            ->withQueryString();
 
-        $industries = Company::query()
-            ->where('is_active', true)
-            ->whereNotNull('industry')
-            ->where('industry', '!=', '')
-            ->distinct()
-            ->pluck('industry')
-            ->sort()
-            ->values();
+        $industries = Cache::remember('public_company_industries', 3600, function () {
+            return Company::query()
+                ->where('is_active', true)
+                ->whereNotNull('industry')
+                ->where('industry', '!=', '')
+                ->distinct()
+                ->orderBy('industry')
+                ->pluck('industry')
+                ->values();
+        });
 
         if ($request->wantsJson()) {
             return response()->json([
-                'data' => $companies,
+                'data' => $companies->items(),
                 'industries' => $industries,
-                'total' => $companies->count(),
+                'total' => $companies->total(),
+                'meta' => [
+                    'current_page' => $companies->currentPage(),
+                    'last_page' => $companies->lastPage(),
+                    'per_page' => $companies->perPage(),
+                ],
             ]);
         }
 
@@ -93,21 +103,41 @@ class CompanyController extends Controller
         $openJobs = JobAdvertisement::query()
             ->where('company_id', $company->id)
             ->where('status', 'published')
+            ->with(['category:id,name'])
             ->latest('published_at')
             ->take(5)
             ->get();
 
-        $reviews = CompanyReview::query()
+        $stats = CompanyReview::query()
             ->where('company_id', $company->id)
-            ->latest('created_at')
-            ->get();
+            ->selectRaw('COUNT(*) as reviews_count')
+            ->selectRaw('AVG(rating) as avg_rating')
+            ->selectRaw('AVG(work_life_balance) as work_life_balance')
+            ->selectRaw('AVG(benefits_perks) as benefits_perks')
+            ->selectRaw('AVG(work_environment_culture) as work_environment_culture')
+            ->selectRaw('AVG(career_growth_development) as career_growth_development')
+            ->selectRaw('AVG(management_leadership) as management_leadership')
+            ->selectRaw('AVG(employee_support_wellbeing) as employee_support_wellbeing')
+            ->first();
 
-        $reviewsCount = $reviews->count();
-        $avgRating = $reviewsCount > 0 ? round($reviews->avg('rating'), 1) : 0;
+        $reviewsCount = (int) ($stats->reviews_count ?? 0);
+        $avgRating = $reviewsCount > 0 ? round((float) ($stats->avg_rating ?? 0), 1) : 0;
+
         $starDistribution = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-        foreach ($reviews as $r) {
-            $starDistribution[$r->rating] = ($starDistribution[$r->rating] ?? 0) + 1;
+        if ($reviewsCount > 0) {
+            $rows = CompanyReview::query()
+                ->where('company_id', $company->id)
+                ->selectRaw('rating, COUNT(*) as total')
+                ->groupBy('rating')
+                ->pluck('total', 'rating');
+            foreach ($rows as $rating => $total) {
+                $key = (int) $rating;
+                if (isset($starDistribution[$key])) {
+                    $starDistribution[$key] = (int) $total;
+                }
+            }
         }
+
         $categoryLabels = [
             'work_life_balance' => 'Work-Life Balance',
             'career_growth_development' => 'Career Growth & Development',
@@ -119,10 +149,17 @@ class CompanyController extends Controller
         $categoryAverages = [];
         $categoryCounts = [];
         foreach (array_keys($categoryLabels) as $key) {
-            $vals = $reviews->pluck($key)->filter();
-            $categoryCounts[$key] = $vals->count();
-            $categoryAverages[$key] = $vals->isEmpty() ? null : round($vals->avg(), 1);
+            $avg = $stats->{$key} ?? null;
+            $categoryAverages[$key] = $avg !== null ? round((float) $avg, 1) : null;
+            $categoryCounts[$key] = $avg !== null ? $reviewsCount : 0;
         }
+
+        // Only hydrate recent reviews for the list UI (not all rows)
+        $reviews = CompanyReview::query()
+            ->where('company_id', $company->id)
+            ->latest('created_at')
+            ->limit(50)
+            ->get();
 
         $mediaBaseUrl = app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl();
         $user = Auth::user();

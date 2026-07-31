@@ -33,29 +33,26 @@ class EmployerJobController extends Controller
                 ->with('error', 'Please set up your company profile first.');
         }
 
-        // Load all jobs; filtering (search + status) is done client-side for real-time UX
+        // Load jobs with application counts (client-side filter for real-time UX)
         $jobs = \App\Models\JobAdvertisement::with(['company', 'category', 'campaigns'])
             ->withCount('applications')
             ->where('company_id', $employer->company_id)
             ->orderBy('created_at', 'desc')
             ->get();
-        
-        // Update application counts from actual count if needed
-        foreach ($jobs as $job) {
-            if ($job->applications_count === null) {
-                $job->applications_count = $job->applications()->count();
-            }
-        }
-        
-        // Get stats
-        $allJobs = \App\Models\JobAdvertisement::where('company_id', $employer->company_id)->get();
+
+        $rawCounts = \App\Models\JobAdvertisement::query()
+            ->where('company_id', $employer->company_id)
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+
         $stats = [
-            'all' => $allJobs->count(),
-            'active' => $allJobs->where('status', 'published')->count(),
-            'paused' => $allJobs->where('status', 'draft')->count(),
-            'draft' => $allJobs->where('status', 'draft')->count(),
-            'closed' => $allJobs->where('status', 'closed')->count(),
-            'archived' => $allJobs->where('status', 'archived')->count(),
+            'all' => (int) $rawCounts->sum(),
+            'active' => (int) ($rawCounts['published'] ?? 0),
+            'paused' => (int) ($rawCounts['draft'] ?? 0),
+            'draft' => (int) ($rawCounts['draft'] ?? 0),
+            'closed' => (int) ($rawCounts['closed'] ?? 0),
+            'archived' => (int) ($rawCounts['archived'] ?? 0),
         ];
         
         $categories = $this->categoryService->getAll();

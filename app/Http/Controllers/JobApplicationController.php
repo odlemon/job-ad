@@ -22,15 +22,20 @@ class JobApplicationController extends Controller
         
         // Get paginated applications for the user
         $applications = $this->service->getByUserIdPaginated($user->id, 15);
-        
-        // Count by status
-        $allApplications = $this->service->getByUserId($user->id);
+
+        // Status counts via SQL — not a second full collection load
+        $rawCounts = \App\Models\JobApplication::query()
+            ->where('user_id', $user->id)
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+
         $stats = [
-            'pending' => $allApplications->where('status', 'pending')->count(),
-            'reviewing' => $allApplications->where('status', 'reviewing')->count(),
-            'shortlisted' => $allApplications->where('status', 'shortlisted')->count(),
-            'hired' => $allApplications->where('status', 'hired')->count(),
-            'rejected' => $allApplications->where('status', 'rejected')->count(),
+            'pending' => (int) (($rawCounts['pending'] ?? 0) + ($rawCounts['applied'] ?? 0)),
+            'reviewing' => (int) (($rawCounts['reviewing'] ?? 0) + ($rawCounts['in_review'] ?? 0)),
+            'shortlisted' => (int) (($rawCounts['shortlisted'] ?? 0) + ($rawCounts['interview'] ?? 0)),
+            'hired' => (int) (($rawCounts['hired'] ?? 0) + ($rawCounts['offered'] ?? 0)),
+            'rejected' => (int) ($rawCounts['rejected'] ?? 0),
         ];
         
         return view('job-seeker.applications', [

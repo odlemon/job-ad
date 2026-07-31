@@ -47,7 +47,7 @@
                     <div class="space-y-5">
                         @forelse($jobs as $job)
                             @php
-                                $activeCampaign = $job->campaigns()->where('status', 'active')->first();
+                                $activeCampaign = $job->campaigns->first();
                             @endphp
                             <div class="campaign-job-card p-4 transition-all" style="border: 1px solid #e5e7eb; border-radius: 8px; background-color: #ffffff;" data-job-id="{{ $job->id }}" data-job-title="{{ e($job->title) }}" data-job-location="{{ e($job->location ?? ($job->is_remote ? 'Remote' : '')) }}">
                                 <label class="flex items-start gap-3 cursor-pointer">

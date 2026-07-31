@@ -60,7 +60,7 @@
 
 <!-- Companies Grid -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <p id="company-count" class="text-sm text-gray-600 mb-6">Showing <span class="font-semibold">{{ $companies->count() }}</span> companies</p>
+    <p id="company-count" class="text-sm text-gray-600 mb-6">Showing <span class="font-semibold">{{ method_exists($companies, 'total') ? $companies->total() : $companies->count() }}</span> companies</p>
 
     <div id="companies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
         @forelse($companies as $company)
@@ -95,6 +95,9 @@
             </div>
         @endforelse
     </div>
+    @if(method_exists($companies, 'links'))
+        <div class="mt-8">{{ $companies->links() }}</div>
+    @endif
 </section>
 
 @push('scripts')

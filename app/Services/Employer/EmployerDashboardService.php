@@ -3,6 +3,8 @@
 namespace App\Services\Employer;
 
 use App\Models\Employer;
+use App\Models\JobAdvertisement;
+use App\Models\JobApplication;
 use App\Repositories\Contracts\JobAdvertisementRepositoryInterface;
 use App\Repositories\Contracts\JobApplicationRepositoryInterface;
 use Carbon\Carbon;
@@ -21,86 +23,89 @@ class EmployerDashboardService
     public function getDashboardData(Employer $employer): array
     {
         $companyId = $employer->company_id;
-        
-        if (!$companyId) {
+
+        if (! $companyId) {
             return $this->getEmptyDashboardData($employer);
         }
 
-        // Get all jobs for this company
-        $allJobs = $this->jobAdvertisementRepository->getByCompanyId($companyId);
-        $activeJobs = $this->jobAdvertisementRepository->getActiveByCompanyId($companyId);
-        
-        // Get all applications for this company's jobs
-        $allApplications = $this->jobApplicationRepository->getByCompanyId($companyId);
-        
-        // Calculate metrics
-        $activeJobsCount = $activeJobs->count();
-        $totalApplications = $allApplications->count();
-        $totalViews = (int) $allJobs->sum('views_count');
-        
-        // Calculate conversion rate (applications / views * 100)
-        $conversionRate = $totalViews > 0 
-            ? round(($totalApplications / $totalViews) * 100, 1) 
+        $activeJobsCount = JobAdvertisement::query()
+            ->where('company_id', $companyId)
+            ->where('status', 'published')
+            ->count();
+
+        $totalApplications = $this->jobApplicationRepository->countByCompanyId($companyId);
+
+        $totalViews = (int) JobAdvertisement::query()
+            ->where('company_id', $companyId)
+            ->sum('views_count');
+
+        $conversionRate = $totalViews > 0
+            ? round(($totalApplications / $totalViews) * 100, 1)
             : 0;
-        
-        // Get recent job postings (last 4)
+
+        $appCountsByJob = JobApplication::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->selectRaw('job_advertisement_id, COUNT(*) as c')
+            ->groupBy('job_advertisement_id')
+            ->pluck('c', 'job_advertisement_id');
+
+        $today = Carbon::today();
+        $todayCountsByJob = JobApplication::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->where('created_at', '>=', $today)
+            ->selectRaw('job_advertisement_id, COUNT(*) as c')
+            ->groupBy('job_advertisement_id')
+            ->pluck('c', 'job_advertisement_id');
+
         $recentJobs = $this->jobAdvertisementRepository->getRecentByCompanyId($companyId, 4)
-            ->map(function ($job) use ($allApplications) {
-                $jobApplications = $allApplications->where('job_advertisement_id', $job->id);
-                $today = Carbon::today();
-                $todayApplications = $jobApplications->filter(function ($app) use ($today) {
-                    return Carbon::parse($app->created_at)->isSameDay($today);
-                })->count();
-                
+            ->map(function ($job) use ($appCountsByJob, $todayCountsByJob) {
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
                     'posted_at' => $job->created_at,
                     'posted_days_ago' => Carbon::parse($job->created_at)->diffInDays(now()),
-                    'applications_count' => $jobApplications->count(),
+                    'applications_count' => (int) ($appCountsByJob[$job->id] ?? 0),
                     'views_count' => $job->views_count ?? 0,
-                    'today_activity' => $todayApplications,
+                    'today_activity' => (int) ($todayCountsByJob[$job->id] ?? 0),
                     'status' => $job->status,
                 ];
             });
-        
-        // Get recent applicants (last 4)
+
         $recentApplicants = $this->jobApplicationRepository->getRecentByCompanyId($companyId, 4)
             ->map(function ($application) {
                 $jobSeeker = $application->jobSeeker;
-                $name = $jobSeeker 
-                    ? trim(($jobSeeker->first_name ?? '') . ' ' . ($jobSeeker->last_name ?? ''))
-                    : ($application->first_name . ' ' . $application->last_name);
-                
-                $initials = $this->getInitials($name);
-                $timeAgo = Carbon::parse($application->created_at)->diffForHumans();
-                
+                $name = $jobSeeker
+                    ? trim(($jobSeeker->first_name ?? '').' '.($jobSeeker->last_name ?? ''))
+                    : ($application->first_name.' '.$application->last_name);
+
                 return [
                     'id' => $application->id,
                     'name' => $name,
-                    'initials' => $initials,
+                    'initials' => $this->getInitials($name),
                     'job_title' => $application->jobAdvertisement->title ?? 'N/A',
-                    'time_ago' => $timeAgo,
+                    'time_ago' => Carbon::parse($application->created_at)->diffForHumans(),
                     'status' => $application->status ?? 'new',
                 ];
             });
-        
-        // Get status counts
-        $pendingReviews = $this->jobApplicationRepository->getByStatusAndCompanyId('pending', $companyId)->count();
-        $shortlisted = $this->jobApplicationRepository->getByStatusAndCompanyId('shortlisted', $companyId)->count();
-        
-        // Calculate weekly impressions (views from last 7 days)
-        $weekStart = Carbon::now()->startOfWeek();
-        $weeklyImpressions = $allJobs->sum(function ($job) {
-            // For now, we'll use total views. In a real system, you'd track daily views
-            return $job->views_count ?? 0;
-        });
-        
-        // Calculate trends (simplified - comparing last 30 days to previous 30 days)
-        $activeJobsTrend = $this->calculateTrend($activeJobsCount, $activeJobsCount); // Simplified
-        $applicationsTrend = $this->calculateTrend($totalApplications, $totalApplications); // Simplified
-        $viewsTrend = $this->calculateTrend($totalViews, $totalViews); // Simplified
-        $conversionTrend = $this->calculateTrend($conversionRate, $conversionRate); // Simplified
+
+        $statusCounts = JobApplication::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+
+        $pendingReviews = (int) (
+            ($statusCounts['pending'] ?? 0)
+            + ($statusCounts['applied'] ?? 0)
+            + ($statusCounts['reviewing'] ?? 0)
+            + ($statusCounts['in_review'] ?? 0)
+        );
+        $shortlisted = (int) (
+            ($statusCounts['shortlisted'] ?? 0)
+            + ($statusCounts['interview'] ?? 0)
+        );
+
+        $weeklyImpressions = $totalViews;
 
         return [
             'employer' => [
@@ -111,19 +116,19 @@ class EmployerDashboardService
             'metrics' => [
                 'active_jobs' => [
                     'value' => $activeJobsCount,
-                    'trend' => $activeJobsTrend,
+                    'trend' => $this->calculateTrend($activeJobsCount, $activeJobsCount),
                 ],
                 'total_applications' => [
                     'value' => $totalApplications,
-                    'trend' => $applicationsTrend,
+                    'trend' => $this->calculateTrend($totalApplications, $totalApplications),
                 ],
                 'total_views' => [
                     'value' => $this->formatNumber($totalViews),
-                    'trend' => $viewsTrend,
+                    'trend' => $this->calculateTrend($totalViews, $totalViews),
                 ],
                 'conversion_rate' => [
                     'value' => $conversionRate,
-                    'trend' => $conversionTrend,
+                    'trend' => $this->calculateTrend($conversionRate, $conversionRate),
                 ],
             ],
             'recent_jobs' => $recentJobs,
@@ -136,9 +141,6 @@ class EmployerDashboardService
         ];
     }
 
-    /**
-     * Get empty dashboard data when employer has no company.
-     */
     private function getEmptyDashboardData(Employer $employer): array
     {
         return [
@@ -163,16 +165,13 @@ class EmployerDashboardService
         ];
     }
 
-    /**
-     * Get initials from a name.
-     */
     private function getInitials(string $name): string
     {
         $parts = array_filter(explode(' ', trim($name)));
         if (empty($parts)) {
             return '??';
         }
-        
+
         $initials = '';
         foreach ($parts as $part) {
             $initials .= strtoupper(substr($part, 0, 1));
@@ -180,29 +179,25 @@ class EmployerDashboardService
                 break;
             }
         }
-        
+
         return $initials;
     }
 
-    /**
-     * Format number with K notation.
-     */
     private function formatNumber(int $number): string
     {
         if ($number >= 1000) {
-            return number_format($number / 1000, 1) . 'K';
+            return number_format($number / 1000, 1).'K';
         }
+
         return (string) $number;
     }
 
-    /**
-     * Calculate trend percentage (simplified - would compare periods in real implementation).
-     */
     private function calculateTrend(int|float $current, int|float $previous): float
     {
         if ($previous == 0) {
             return $current > 0 ? 100 : 0;
         }
+
         return round((($current - $previous) / $previous) * 100, 1);
     }
 }

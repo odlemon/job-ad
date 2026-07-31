@@ -43,13 +43,15 @@ window.loadJobDetail = async function() {
             const otherCompanyJobs = data.other_company_jobs || [];
             
             // Check if job is saved and company is followed (if logged in)
-            checkJobSaved(job.id);
-            if (job.company?.id) {
-                checkCompanyFollowed(job.company.id);
+            // Prefer flags already on the job payload — avoid extra round-trips
+            applySavedStateFromJob(job);
+            applyApplicationStateFromJob(job);
+            const companyId = job.company?.id || job.employer_id || job.employer?.id;
+            if (job.is_following || job.employer?.is_following) {
+                applyFollowedState(true);
+            } else if (companyId) {
+                checkCompanyFollowed(companyId);
             }
-            
-            // Check if user has already applied
-            checkApplicationStatus(job.id);
             
             // Format dates
             const postedDate = job.published_at ? new Date(job.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
@@ -377,16 +379,46 @@ window.loadJobDetail = async function() {
 };
 
 // Helper functions
+function applySavedStateFromJob(job) {
+    if (!job?.is_saved) return;
+    const btn = document.getElementById('save-job-btn');
+    if (btn) {
+        btn.classList.remove('text-gray-400');
+        btn.classList.add('text-pink-500');
+    }
+}
+
+function applyApplicationStateFromJob(job) {
+    const hasApplied = !!(job?.application_status || job?.has_applied);
+    if (!hasApplied) return;
+    const applyBtn = document.getElementById(`apply-btn-${job.id}`);
+    if (!applyBtn) return;
+    applyBtn.disabled = true;
+    applyBtn.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-pink-600', 'hover:from-pink-600', 'hover:to-pink-700');
+    applyBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+    applyBtn.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Already Applied
+    `;
+    applyBtn.onclick = null;
+}
+
+function applyFollowedState(isFollowed) {
+    const btn = document.getElementById('follow-company-btn');
+    if (!btn || !isFollowed) return;
+    btn.textContent = 'Following';
+    btn.classList.remove('border-blue-300', 'text-blue-700');
+    btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+}
+
 async function checkJobSaved(jobId) {
     try {
         const response = await fetch(`${API_BASE}/job-seeker/saved-jobs/check/${jobId}`);
         if (response.ok) {
             const data = await response.json();
-            const btn = document.getElementById('save-job-btn');
-            if (btn && data.is_saved) {
-                btn.classList.remove('text-gray-400');
-                btn.classList.add('text-pink-500');
-            }
+            if (data.is_saved) applySavedStateFromJob({ is_saved: true });
         }
     } catch (error) {
         // Not logged in or error - ignore
@@ -398,14 +430,7 @@ async function checkCompanyFollowed(companyId) {
         const response = await fetch(`${API_BASE}/job-seeker/followed-companies/check/${companyId}`);
         if (response.ok) {
             const data = await response.json();
-            const btn = document.getElementById('follow-company-btn');
-            if (btn) {
-                if (data.is_followed) {
-                    btn.textContent = 'Following';
-                    btn.classList.remove('border-blue-300', 'text-blue-700');
-                    btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
-                }
-            }
+            applyFollowedState(!!data.is_followed);
         }
     } catch (error) {
         // Not logged in or error - ignore
@@ -423,21 +448,7 @@ async function checkApplicationStatus(jobId) {
         
         if (response.ok) {
             const data = await response.json();
-            const container = document.getElementById('apply-button-container');
-            const applyBtn = document.getElementById(`apply-btn-${jobId}`);
-            
-            if (data.has_applied && container && applyBtn) {
-                applyBtn.disabled = true;
-                applyBtn.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-pink-600', 'hover:from-pink-600', 'hover:to-pink-700');
-                applyBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-                applyBtn.innerHTML = `
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Already Applied
-                `;
-                applyBtn.onclick = null;
-            }
+            if (data.has_applied) applyApplicationStateFromJob({ id: jobId, has_applied: true });
         }
     } catch (error) {
         // Not logged in or error - ignore, button will work normally

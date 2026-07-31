@@ -45,11 +45,10 @@ class ApplicationService
     public function apply(JobSeeker $jobSeeker, array $data): JobApplication
     {
         // Business logic: Check if already applied to this job
-        $existing = $this->repository->getBySeekerId($jobSeeker->seeker_id)
-            ->where('job_advertisement_id', $data['job_advertisement_id'])
-            ->first();
-
-        if ($existing) {
+        if ($this->repository->existsForSeekerAndJob(
+            (int) $jobSeeker->seeker_id,
+            (int) $data['job_advertisement_id']
+        )) {
             throw new \Exception('You have already applied to this job.');
         }
 
@@ -108,9 +107,7 @@ class ApplicationService
      */
     public function hasApplied(int|string $seekerId, int $jobAdvertisementId): bool
     {
-        return $this->repository->getBySeekerId((int) $seekerId)
-            ->where('job_advertisement_id', $jobAdvertisementId)
-            ->isNotEmpty();
+        return $this->repository->existsForSeekerAndJob((int) $seekerId, $jobAdvertisementId);
     }
 
     /**

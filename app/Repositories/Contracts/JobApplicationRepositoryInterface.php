@@ -17,6 +17,7 @@ interface JobApplicationRepositoryInterface
     public function getByJobAdvertisement(int $jobId): Collection;
     public function getByStatus(string $status): Collection;
     public function getBySeekerId(int $seekerId): Collection;
+    public function existsForSeekerAndJob(int $seekerId, int $jobAdvertisementId): bool;
     public function paginateBySeekerId(int $seekerId, int $perPage = 15, ?array $statuses = null): LengthAwarePaginator;
     public function getByUserId(int $userId): Collection;
     public function paginateByUserId(int $userId, int $perPage = 15): LengthAwarePaginator;

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\CompanyReview;
+use App\Models\FollowedCompany;
 use App\Models\JobAdvertisement;
 use App\Models\JobApplication;
 use App\Models\SavedJob;
@@ -62,6 +63,7 @@ class ScoopJobPresenter
 
         $savedJobIds = [];
         $applicationStatusByJob = [];
+        $followedCompanyIds = [];
         if ($seekerId && $jobIds !== []) {
             $savedJobIds = SavedJob::where('seeker_id', $seekerId)
                 ->whereIn('job_id', $jobIds)
@@ -76,12 +78,21 @@ class ScoopJobPresenter
                 ->all();
         }
 
+        if ($seekerId && $companyIds !== []) {
+            $followedCompanyIds = FollowedCompany::where('seeker_id', $seekerId)
+                ->whereIn('company_id', $companyIds)
+                ->pluck('company_id')
+                ->mapWithKeys(fn ($id) => [(int) $id => true])
+                ->all();
+        }
+
         return $collection->map(function (JobAdvertisement $job) use (
             $seekerId,
             $reviewStats,
             $jobsCountByCompany,
             $savedJobIds,
-            $applicationStatusByJob
+            $applicationStatusByJob,
+            $followedCompanyIds
         ) {
             return self::presentFromMaps(
                 $job,
@@ -89,7 +100,8 @@ class ScoopJobPresenter
                 $reviewStats,
                 $jobsCountByCompany,
                 $savedJobIds,
-                $applicationStatusByJob
+                $applicationStatusByJob,
+                $followedCompanyIds
             );
         })->values()->all();
     }
@@ -100,7 +112,7 @@ class ScoopJobPresenter
     public static function job(JobAdvertisement $job, ?int $seekerId = null, ?array $savedJobIds = null): array
     {
         return self::jobs([$job], $seekerId)[0]
-            ?? self::presentFromMaps($job, $seekerId, [], [], $savedJobIds ?? [], []);
+            ?? self::presentFromMaps($job, $seekerId, [], [], $savedJobIds ?? [], [], []);
     }
 
     private static function resolveSeekerId(): ?int
@@ -118,6 +130,7 @@ class ScoopJobPresenter
      * @param  array<int|string, int|string>  $jobsCountByCompany
      * @param  array<int, true>  $savedJobIds
      * @param  array<int, string|null>  $applicationStatusByJob
+     * @param  array<int, true>  $followedCompanyIds
      */
     private static function presentFromMaps(
         JobAdvertisement $job,
@@ -125,7 +138,8 @@ class ScoopJobPresenter
         array $reviewStats,
         array $jobsCountByCompany,
         array $savedJobIds,
-        array $applicationStatusByJob
+        array $applicationStatusByJob,
+        array $followedCompanyIds = []
     ): array {
         $job->loadMissing(['company', 'category']);
         $company = $job->company;
@@ -140,6 +154,7 @@ class ScoopJobPresenter
         $jobsCount = $companyId ? (int) ($jobsCountByCompany[$companyId] ?? 0) : 0;
         $isSaved = isset($savedJobIds[(int) $job->id]);
         $applicationStatus = $applicationStatusByJob[(int) $job->id] ?? null;
+        $isFollowing = $companyId ? isset($followedCompanyIds[(int) $companyId]) : false;
 
         return [
             'id' => $job->id,
@@ -164,7 +179,13 @@ class ScoopJobPresenter
             'expiry_date' => optional($job->application_deadline ?? $job->expires_at)?->toIso8601String(),
             'description' => $job->description,
             'is_saved' => $isSaved,
+            'has_applied' => $applicationStatus !== null,
             'application_status' => $applicationStatus,
+            'is_following' => $isFollowing,
+            'company' => $company ? [
+                'id' => $company->id,
+                'name' => $company->name,
+            ] : null,
             'employer' => $company ? [
                 'id' => $company->id,
                 'name' => $company->name,
@@ -181,6 +202,7 @@ class ScoopJobPresenter
                 'about_us' => $company->description ?? $company->about,
                 'logo_url' => $company->logo ?? $company->logo_url,
                 'cover_url' => $company->cover_image ?? $company->cover_url,
+                'is_following' => $isFollowing,
             ] : null,
         ];
     }

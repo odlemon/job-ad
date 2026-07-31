@@ -251,47 +251,42 @@ class NotificationService
 
     /**
      * Notify job seekers about new job in their industry/category.
+     * Runs after the HTTP response so publishing stays fast; only notifies
+     * seekers who match the job category (avoids loading every open seeker).
      */
     public function notifyNewJob(int $jobId, string $jobTitle, string $companyName, ?int $categoryId = null): void
     {
-        $jobSeekers = collect();
-
-        // Get job seekers who have category preferences matching this job's category
-        if ($categoryId) {
-            $matchingSeekers = \App\Models\JobSeeker::whereHas('categoryPreferences', function ($query) use ($categoryId) {
-                $query->where('category_id', $categoryId);
-            })
-            ->where('open_to_opportunities', true)
-            ->with('user')
-            ->get();
-            
-            $jobSeekers = $jobSeekers->merge($matchingSeekers);
-        }
-
-        // Also get job seekers with open_to_opportunities = true (general notification)
-        $generalSeekers = \App\Models\JobSeeker::where('open_to_opportunities', true)
-            ->with('user')
-            ->get();
-        
-        // Merge and remove duplicates
-        $jobSeekers = $jobSeekers->merge($generalSeekers)->unique('seeker_id');
-
-        // Create notifications for each job seeker
-        foreach ($jobSeekers as $seeker) {
-            if ($seeker->user && $seeker->user->id) {
-                $this->create([
-                    'user_id' => $seeker->user->id,
-                    'type' => 'new_job_alert',
-                    'title' => 'New Job Alert',
-                    'message' => "3 new jobs matching your preferences: {$jobTitle}",
-                    'data' => [
-                        'job_id' => $jobId,
-                        'job_title' => $jobTitle,
-                        'company_name' => $companyName,
-                        'type' => 'new_job_alert',
-                    ],
-                ]);
+        dispatch(function () use ($jobId, $jobTitle, $companyName, $categoryId) {
+            if (! $categoryId) {
+                return;
             }
-        }
+
+            \App\Models\JobSeeker::query()
+                ->where('open_to_opportunities', true)
+                ->whereHas('categoryPreferences', function ($query) use ($categoryId) {
+                    $query->where('category_id', $categoryId);
+                })
+                ->with('user:id')
+                ->orderBy('seeker_id')
+                ->chunk(100, function ($seekers) use ($jobId, $jobTitle, $companyName) {
+                    foreach ($seekers as $seeker) {
+                        if (! $seeker->user?->id) {
+                            continue;
+                        }
+                        $this->create([
+                            'user_id' => $seeker->user->id,
+                            'type' => 'new_job_alert',
+                            'title' => 'New Job Alert',
+                            'message' => "New job matching your preferences: {$jobTitle}",
+                            'data' => [
+                                'job_id' => $jobId,
+                                'job_title' => $jobTitle,
+                                'company_name' => $companyName,
+                                'type' => 'new_job_alert',
+                            ],
+                        ]);
+                    }
+                });
+        })->afterResponse();
     }
 }

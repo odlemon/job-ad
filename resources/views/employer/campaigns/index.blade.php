@@ -119,7 +119,7 @@
                                 $campaignStatus = $primaryCampaign ? $primaryCampaign->status : 'active';
                                 $campaignStats = [
                                     'views' => $primaryCampaign ? ($primaryCampaign->views_count ?? 0) : 0,
-                                    'applications' => $job->applications->count(),
+                                    'applications' => $job->applications_count ?? 0,
                                     'shares' => $primaryCampaign ? ($primaryCampaign->shares_count ?? 0) : 0,
                                     'messages' => $primaryCampaign ? ($primaryCampaign->messages_count ?? 0) : 0,
                                     'saved' => $primaryCampaign ? ($primaryCampaign->saved_count ?? 0) : 0,

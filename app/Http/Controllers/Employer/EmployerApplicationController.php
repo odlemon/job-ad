@@ -47,49 +47,60 @@ class EmployerApplicationController extends Controller
 
         $status = $request->get('status', 'all');
         $jobId = $request->get('job_id');
-        
-        // Get all applications for company's jobs with relationships
-        $applications = $this->applicationService->getByCompanyId($employer->company_id);
-        $applications->load(['jobSeeker.experiences', 'jobAdvertisement.company']);
-        
-        // Filter by job if specified
-        if ($jobId) {
-            $applications = $applications->filter(function ($application) use ($jobId) {
-                return $application->job_advertisement_id == $jobId;
-            });
-        }
-        
-        // Filter by status
-        if ($status !== 'all' && $status !== 'talent_pool') {
-            $applications = $applications->filter(function ($application) use ($status) {
-                return $application->status === $status;
-            });
-        } elseif ($status === 'talent_pool') {
-            $applications = $applications->filter(fn($a) => $a->in_talent_pool);
-        }
-        
-        // Get stats
-        $allApplications = $this->applicationService->getByCompanyId($employer->company_id);
+        $companyId = $employer->company_id;
+
+        $baseQuery = JobApplication::query()
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId));
+
+        $rawCounts = (clone $baseQuery)
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+
         $today = now()->startOfDay();
         $stats = [
-            'all' => $allApplications->count(),
-            'pending' => $allApplications->where('status', 'pending')->count(),
-            'reviewing' => $allApplications->where('status', 'reviewing')->count(),
-            'shortlisted' => $allApplications->where('status', 'shortlisted')->count(),
-            'interview_requested' => $allApplications->where('status', 'interview_requested')->count(),
-            'rejected' => $allApplications->where('status', 'rejected')->count(),
-            'hired' => $allApplications->where('status', 'hired')->count(),
-            'new_today' => $allApplications->filter(function($app) use ($today) {
-                return $app->created_at >= $today;
-            })->count(),
-            'talent_pool' => $allApplications->where('in_talent_pool', true)->count(),
+            'all' => (int) $rawCounts->sum(),
+            'pending' => (int) (($rawCounts['pending'] ?? 0) + ($rawCounts['applied'] ?? 0)),
+            'reviewing' => (int) (($rawCounts['reviewing'] ?? 0) + ($rawCounts['in_review'] ?? 0)),
+            'shortlisted' => (int) (($rawCounts['shortlisted'] ?? 0) + ($rawCounts['interview'] ?? 0)),
+            'interview_requested' => (int) ($rawCounts['interview_requested'] ?? 0),
+            'rejected' => (int) ($rawCounts['rejected'] ?? 0),
+            'hired' => (int) (($rawCounts['hired'] ?? 0) + ($rawCounts['offered'] ?? 0)),
+            'new_today' => (int) (clone $baseQuery)->where('created_at', '>=', $today)->count(),
+            'talent_pool' => (int) (clone $baseQuery)->where('in_talent_pool', true)->count(),
         ];
-        
-        // Get jobs for filter dropdown
-        $jobs = $this->jobService->getByCompanyId($employer->company_id);
-        
+
+        $listQuery = JobApplication::query()
+            ->with(['jobSeeker.experiences', 'jobAdvertisement.company'])
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->orderByDesc('created_at');
+
+        if ($jobId) {
+            $listQuery->where('job_advertisement_id', $jobId);
+        }
+
+        if ($status === 'talent_pool') {
+            $listQuery->where('in_talent_pool', true);
+        } elseif ($status !== 'all') {
+            $statusMap = [
+                'pending' => ['pending', 'applied'],
+                'reviewing' => ['reviewing', 'in_review'],
+                'shortlisted' => ['shortlisted', 'interview'],
+                'hired' => ['hired', 'offered'],
+            ];
+            $listQuery->whereIn('status', $statusMap[$status] ?? [$status]);
+        }
+
+        $applications = $listQuery->paginate(25)->withQueryString();
+
+        // Slim jobs list for filter dropdown
+        $jobs = \App\Models\JobAdvertisement::query()
+            ->where('company_id', $companyId)
+            ->orderByDesc('created_at')
+            ->get(['id', 'title', 'status', 'company_id']);
+
         return view('employer.applications.index', [
-            'applications' => $applications->values(),
+            'applications' => $applications,
             'stats' => $stats,
             'currentStatus' => $status,
             'currentJobId' => $jobId,
@@ -116,7 +127,11 @@ class EmployerApplicationController extends Controller
             ->with([
                 'company',
                 'campaigns' => fn ($q) => $q->orderByDesc('launched_at'),
-                'applications' => fn ($q) => $q->with(['jobSeeker.experiences', 'jobSeeker.educations']),
+                'applications' => fn ($q) => $q->with([
+                    'jobSeeker.experiences',
+                    'jobSeeker.educations',
+                    'jobSeeker.skills',
+                ])->orderByDesc('created_at'),
             ])
             ->firstOrFail();
 
@@ -570,42 +585,50 @@ class EmployerApplicationController extends Controller
         $status = $request->get('status', 'all');
         $jobId = $request->get('job_id');
         $search = $request->get('search', '');
-        
-        // Get all applications for company's jobs with relationships
-        $applications = $this->applicationService->getByCompanyId($employer->company_id);
-        $applications->load(['jobSeeker.experiences', 'jobAdvertisement.company']);
-        
-        // Filter by job if specified
+        $companyId = $employer->company_id;
+
+        $listQuery = JobApplication::query()
+            ->with([
+                'jobSeeker.experiences',
+                'jobSeeker.educations',
+                'jobSeeker.skills',
+                'jobSeeker.languages',
+                'jobSeeker.certifications',
+                'jobAdvertisement.company',
+            ])
+            ->whereHas('jobAdvertisement', fn ($q) => $q->where('company_id', $companyId))
+            ->orderByDesc('created_at');
+
         if ($jobId) {
-            $applications = $applications->filter(function ($application) use ($jobId) {
-                return $application->job_advertisement_id == $jobId;
+            $listQuery->where('job_advertisement_id', $jobId);
+        }
+
+        if ($status === 'talent_pool') {
+            $listQuery->where('in_talent_pool', true);
+        } elseif ($status !== 'all') {
+            $statusMap = [
+                'pending' => ['pending', 'applied'],
+                'reviewing' => ['reviewing', 'in_review'],
+                'shortlisted' => ['shortlisted', 'interview'],
+                'hired' => ['hired', 'offered'],
+            ];
+            $listQuery->whereIn('status', $statusMap[$status] ?? [$status]);
+        }
+
+        if ($search !== '') {
+            $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $listQuery->where(function ($q) use ($term) {
+                $q->where('first_name', 'like', $term)
+                    ->orWhere('last_name', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhereHas('jobAdvertisement', function ($jq) use ($term) {
+                        $jq->where('title', 'like', $term)
+                            ->orWhereHas('company', fn ($cq) => $cq->where('name', 'like', $term));
+                    });
             });
         }
-        
-        // Filter by status
-        if ($status !== 'all' && $status !== 'talent_pool') {
-            $applications = $applications->filter(function ($application) use ($status) {
-                return $application->status === $status;
-            });
-        } elseif ($status === 'talent_pool') {
-            $applications = $applications->filter(fn($a) => $a->in_talent_pool);
-        }
-        
-        // Filter by search term
-        if ($search) {
-            $searchLower = strtolower($search);
-            $applications = $applications->filter(function ($application) use ($searchLower) {
-                $fullName = strtolower($application->first_name . ' ' . $application->last_name);
-                $jobTitle = strtolower($application->jobAdvertisement->title ?? '');
-                $companyName = strtolower($application->jobAdvertisement->company->name ?? '');
-                $email = strtolower($application->email ?? '');
-                
-                return str_contains($fullName, $searchLower) ||
-                       str_contains($jobTitle, $searchLower) ||
-                       str_contains($companyName, $searchLower) ||
-                       str_contains($email, $searchLower);
-            });
-        }
+
+        $applications = $listQuery->limit(100)->get();
         
         return response()->json([
             'applications' => $applications->values()->map(function ($application) {

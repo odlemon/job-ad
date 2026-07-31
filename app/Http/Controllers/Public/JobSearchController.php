@@ -62,9 +62,26 @@ class JobSearchController extends Controller
         }
 
         $perPage = min((int) $request->get('per_page', $request->get('limit', 15)), 50);
-        $jobs = $this->service->search($filters, $perPage);
-        $seekerId = $this->optionalSeekerId($request);
+        $page = max(1, (int) $request->get('page', 1));
 
+        // Empty filters → same as published list (reuse long-lived cache)
+        if ($filters === [] || (count($filters) === 1 && ($filters['sort'] ?? null) === 'latest')) {
+            $request->merge(['per_page' => $perPage, 'page' => $page]);
+
+            return $this->published($request);
+        }
+
+        $cacheKey = 'jobs_search_'.md5(json_encode([
+            'filters' => $filters,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]));
+
+        $jobs = Cache::remember($cacheKey, 120, function () use ($filters, $perPage) {
+            return $this->service->search($filters, $perPage);
+        });
+
+        $seekerId = $this->optionalSeekerId($request);
         $data = ScoopJobPresenter::jobs($jobs->items(), $seekerId);
 
         return response()->json([
@@ -111,21 +128,43 @@ class JobSearchController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $job = $this->service->getById($id);
+        $bundle = Cache::remember("job_detail_bundle_{$id}", 180, function () use ($id) {
+            $job = $this->service->getById($id);
 
-        if (! $job || $job->status !== 'published') {
+            if (! $job || $job->status !== 'published') {
+                return null;
+            }
+
+            $job->load(['company', 'category']);
+
+            $similarJobs = $this->service->getSimilarJobs($job, 4);
+            $otherCompanyJobs = $job->company_id
+                ? $this->service->getOtherCompanyJobs($job->company_id, $job->id, 3)
+                : collect();
+
+            return [
+                'job' => $job,
+                'similar' => $similarJobs,
+                'other' => $otherCompanyJobs,
+            ];
+        });
+
+        if (! $bundle) {
             return response()->json(['message' => 'Job not found'], 404);
         }
 
-        $job->load(['company', 'category']);
-        $this->service->incrementViews($job);
+        $job = $bundle['job'];
+
+        // Defer view increment so it does not block the JSON response
+        $service = $this->service;
+        dispatch(function () use ($service, $job) {
+            $service->incrementViews($job);
+        })->afterResponse();
 
         $seekerId = $this->optionalSeekerId($request);
 
-        $similarJobs = $this->service->getSimilarJobs($job, 4);
-        $otherCompanyJobs = $job->company_id
-            ? $this->service->getOtherCompanyJobs($job->company_id, $job->id, 3)
-            : collect();
+        $similarJobs = $bundle['similar'];
+        $otherCompanyJobs = $bundle['other'];
 
         $allJobs = collect([$job])
             ->merge($similarJobs)

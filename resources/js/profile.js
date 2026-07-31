@@ -209,10 +209,10 @@
         }
     }
 
-    // Full load: profile + all sections
+    // Full load: profile + all sections in parallel
     async function loadProfile() {
-        await loadProfileData();
         await Promise.all([
+            loadProfileData(),
             loadExperiences(),
             loadEducations(),
             loadSkills(),

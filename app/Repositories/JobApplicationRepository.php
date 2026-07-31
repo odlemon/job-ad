@@ -66,6 +66,14 @@ class JobApplicationRepository implements JobApplicationRepositoryInterface
             ->get();
     }
 
+    public function existsForSeekerAndJob(int $seekerId, int $jobAdvertisementId): bool
+    {
+        return JobApplication::query()
+            ->where('seeker_id', $seekerId)
+            ->where('job_advertisement_id', $jobAdvertisementId)
+            ->exists();
+    }
+
     public function paginateBySeekerId(int $seekerId, int $perPage = 15, ?array $statuses = null): LengthAwarePaginator
     {
         $query = JobApplication::with(['jobAdvertisement', 'jobAdvertisement.company', 'jobAdvertisement.category'])

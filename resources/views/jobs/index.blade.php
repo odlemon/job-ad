@@ -989,19 +989,25 @@
         const sortBy = params.get('sort') || document.getElementById('sortBy')?.value || 'latest';
         const page = params.get('page') || 1;
         
-        // Build jobs URL with all parameters
-        let jobsUrl = `${API_BASE}/jobs/search?per_page=16&page=${page}`;
-        if (keyword) jobsUrl += `&keyword=${encodeURIComponent(keyword)}`;
-        if (categoryId) jobsUrl += `&category_id=${categoryId}`;
-        if (location) jobsUrl += `&location=${encodeURIComponent(location)}`;
-        if (employmentType) jobsUrl += `&employment_type=${encodeURIComponent(employmentType)}`;
-        if (salaryMin) jobsUrl += `&salary_min=${encodeURIComponent(salaryMin)}`;
-        if (jobTags) jobsUrl += `&experience_tags=${encodeURIComponent(jobTags)}`;
-        if (sortBy) jobsUrl += `&sort=${sortBy}`;
-        if (remoteOption) {
-            if (remoteOption === 'remote') jobsUrl += `&is_remote=1`;
-            else if (remoteOption === 'hybrid') jobsUrl += `&employment_type=Hybrid`;
-            else if (remoteOption === 'office') jobsUrl += `&is_remote=0`;
+        // Unfiltered list → cached published endpoint; otherwise search
+        const hasFilters = !!(keyword || categoryId || location || employmentType || salaryMin || jobTags || remoteOption
+            || (sortBy && sortBy !== 'latest' && sortBy !== 'newest'));
+        let jobsUrl = hasFilters
+            ? `${API_BASE}/jobs/search?per_page=16&page=${page}`
+            : `${API_BASE}/jobs/published?per_page=16&page=${page}`;
+        if (hasFilters) {
+            if (keyword) jobsUrl += `&keyword=${encodeURIComponent(keyword)}`;
+            if (categoryId) jobsUrl += `&category_id=${categoryId}`;
+            if (location) jobsUrl += `&location=${encodeURIComponent(location)}`;
+            if (employmentType) jobsUrl += `&employment_type=${encodeURIComponent(employmentType)}`;
+            if (salaryMin) jobsUrl += `&salary_min=${encodeURIComponent(salaryMin)}`;
+            if (jobTags) jobsUrl += `&experience_tags=${encodeURIComponent(jobTags)}`;
+            if (sortBy) jobsUrl += `&sort=${sortBy}`;
+            if (remoteOption) {
+                if (remoteOption === 'remote') jobsUrl += `&is_remote=1`;
+                else if (remoteOption === 'hybrid') jobsUrl += `&employment_type=Hybrid`;
+                else if (remoteOption === 'office') jobsUrl += `&is_remote=0`;
+            }
         }
 
         try {
