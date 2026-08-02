@@ -348,7 +348,7 @@
                     resumeUrl = application.resume_path;
                 } else {
                     // Relative path, prepend base URL
-                    resumeUrl = `{{ env('MEDIA_BASE_URL', 'http://31.220.82.129/uploads') }}/${application.resume_path}`;
+                    resumeUrl = `{{ rtrim(env('MEDIA_BASE_URL', rtrim(env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'), '/') }}/${application.resume_path}`;
                 }
             }
 
@@ -658,7 +658,7 @@
                     }
                     if (jobSeeker.cv_file_path) {
                         const cvPath = jobSeeker.cv_file_path;
-                        const cvUrl = cvPath.startsWith('http') ? cvPath : '{{ env("MEDIA_BASE_URL", "http://31.220.82.129/uploads") }}/' + cvPath;
+                        const cvUrl = cvPath.startsWith('http') ? cvPath : '{{ rtrim(env("MEDIA_BASE_URL", rtrim(env("APP_URL", "http://127.0.0.1"), "/") . "/uploads"), "/") }}/' + cvPath;
                         const cvName = cvPath.split('/').pop();
                         if (!resumeUrl || cvName !== (application.resume_path || '').split('/').pop()) {
                             docs.push({ name: cvName, type: 'CV', url: cvUrl });
@@ -1215,7 +1215,7 @@
                 if (application.resume_path.startsWith('http://') || application.resume_path.startsWith('https://')) {
                     resumeUrl = application.resume_path;
                 } else {
-                    resumeUrl = `{{ env('MEDIA_BASE_URL', 'http://31.220.82.129/uploads') }}/${application.resume_path}`;
+                    resumeUrl = `{{ rtrim(env('MEDIA_BASE_URL', rtrim(env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'), '/') }}/${application.resume_path}`;
                 }
             }
 

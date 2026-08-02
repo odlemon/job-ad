@@ -94,7 +94,7 @@
                         if (str_starts_with($application->resume_path, 'http://') || str_starts_with($application->resume_path, 'https://')) {
                             $resumeUrl = $application->resume_path;
                         } else {
-                            $resumeUrl = env('MEDIA_BASE_URL', 'http://31.220.82.129/uploads') . '/' . $application->resume_path;
+                            $resumeUrl = rtrim(env('MEDIA_BASE_URL', rtrim(env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'), '/') . '/' . $application->resume_path;
                         }
                     @endphp
                     <a href="{{ $resumeUrl }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">

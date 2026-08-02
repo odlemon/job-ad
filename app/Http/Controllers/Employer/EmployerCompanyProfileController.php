@@ -327,8 +327,8 @@ class EmployerCompanyProfileController extends Controller
         $mediaBaseUrl = $this->uploadService->getMediaBaseUrl();
         if (!empty($uploadedImages) && str_starts_with($uploadedImages[0], 'http')) {
             // Extract base URL from the full URL (everything before /uploads/)
-            // Example: http://31.220.82.129:3050/uploads/profile-photos/file.jpg
-            // Should extract: http://31.220.82.129:3050/uploads
+            // Example: http://127.0.0.1:3050/uploads/profile-photos/file.jpg
+            // Should extract: http://127.0.0.1:3050/uploads
             $urlParts = explode('/uploads/', $uploadedImages[0]);
             if (count($urlParts) > 1) {
                 $mediaBaseUrl = $urlParts[0] . '/uploads';

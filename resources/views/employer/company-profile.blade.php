@@ -294,7 +294,7 @@
                                 @endphp
                                 @foreach($gallery as $index => $image)
                                     @php
-                                        $mediaBaseUrl = $mediaBaseUrl ?? env('MEDIA_BASE_URL', 'http://31.220.82.129/uploads');
+                                        $mediaBaseUrl = $mediaBaseUrl ?? rtrim(env('MEDIA_BASE_URL', rtrim(env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'), '/');
                                         // Handle both old local storage paths and new remote paths
                                         if (str_starts_with($image, 'http')) {
                                             $imageUrl = $image;
@@ -489,7 +489,7 @@ async function loadGallery() {
                 }
                 
                 // Get media base URL from response or use default
-                const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? env("MEDIA_BASE_URL", "http://31.220.82.129/uploads") }}';
+                const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? rtrim(env("MEDIA_BASE_URL", rtrim(env("APP_URL", "http://127.0.0.1"), "/") . "/uploads"), "/") }}';
                 
                 // Update gallery grid with fetched data
                 updateGalleryGrid(galleryImages, mediaBaseUrl);
@@ -770,7 +770,7 @@ document.getElementById('gallery_images_file').addEventListener('change', functi
                 console.log('Gallery images count:', galleryImages.length);
                 
                 // Get media base URL from response or use default
-                const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? env("MEDIA_BASE_URL", "http://31.220.82.129/uploads") }}';
+                const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? rtrim(env("MEDIA_BASE_URL", rtrim(env("APP_URL", "http://127.0.0.1"), "/") . "/uploads"), "/") }}';
                 console.log('Media base URL:', mediaBaseUrl);
                 
                 // Update gallery grid
@@ -818,7 +818,7 @@ function updateGalleryGrid(galleryImages, mediaBaseUrl = null) {
     
     // Use provided mediaBaseUrl or fallback to default
     if (!mediaBaseUrl) {
-        mediaBaseUrl = '{{ $mediaBaseUrl ?? env("MEDIA_BASE_URL", "http://31.220.82.129/uploads") }}';
+        mediaBaseUrl = '{{ $mediaBaseUrl ?? rtrim(env("MEDIA_BASE_URL", rtrim(env("APP_URL", "http://127.0.0.1"), "/") . "/uploads"), "/") }}';
     }
     
     console.log('Using mediaBaseUrl:', mediaBaseUrl);
@@ -1127,7 +1127,7 @@ async function deleteGalleryImage(index) {
             }
             
             // Get media base URL from response or use default
-            const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? env("MEDIA_BASE_URL", "http://31.220.82.129/uploads") }}';
+            const mediaBaseUrl = data.mediaBaseUrl || '{{ $mediaBaseUrl ?? rtrim(env("MEDIA_BASE_URL", rtrim(env("APP_URL", "http://127.0.0.1"), "/") . "/uploads"), "/") }}';
             
             // Update gallery grid
             updateGalleryGrid(galleryImages, mediaBaseUrl);

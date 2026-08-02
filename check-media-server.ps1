@@ -4,7 +4,7 @@
 Write-Host "=== Media Server Diagnostic ===" -ForegroundColor Cyan
 Write-Host ""
 
-$baseUrl = "31.220.82.129"
+$baseUrl = "207.180.234.151"
 $ports = @(80, 443, 8080, 3000, 3050, 8000)
 
 Write-Host "1. Checking server connectivity..." -ForegroundColor Yellow

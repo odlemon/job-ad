@@ -24,6 +24,9 @@ Homestead.yaml
 Thumbs.db
 
 /realtime/node_modules
+/media-server/node_modules
+/media-server/uploads
+/uploads
 /database/*.sqlite
 /storage/framework/cache/data
 /storage/framework/sessions
