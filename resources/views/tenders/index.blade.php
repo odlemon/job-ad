@@ -156,10 +156,7 @@
                     $firstUrl = null;
                     if ($firstAtt && is_array($firstAtt)) {
                         $firstUrl = $firstAtt['url'] ?? null;
-                        if ($firstUrl && ! str_starts_with($firstUrl, 'http')) {
-                            $mbu = app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl();
-                            $firstUrl = rtrim($mbu, '/') . '/' . ltrim($firstUrl, '/');
-                        }
+                        $firstUrl = app(\App\Services\RemoteUploadService::class)->resolveUrl($firstUrl);
                     }
                 @endphp
                 <article

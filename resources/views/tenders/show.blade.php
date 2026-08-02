@@ -10,7 +10,7 @@
     $eligibility = is_array($tender->eligibility_criteria) ? $tender->eligibility_criteria : [];
     $overviewReqs = count($requirements) > 0 ? $requirements : array_slice($eligibility, 0, 3);
     $attachments = is_array($tender->attachments) ? $tender->attachments : [];
-    $mediaBaseUrl = rtrim(app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl(), '/');
+    $uploads = app(\App\Services\RemoteUploadService::class);
 
     $formatMoney = function ($value) {
         $n = (float) $value;
@@ -50,9 +50,7 @@
     $attachmentUrls = [];
     foreach ($attachments as $att) {
         $url = is_array($att) ? ($att['url'] ?? null) : null;
-        if ($url && ! str_starts_with($url, 'http')) {
-            $url = $mediaBaseUrl . '/' . ltrim($url, '/');
-        }
+        $url = $uploads->resolveUrl($url);
         if ($url) {
             $attachmentUrls[] = $url;
         }
@@ -195,10 +193,7 @@
                                     $attName = is_array($att) ? ($att['name'] ?? 'Document') : (string) $att;
                                     $attType = is_array($att) ? ($att['type'] ?? 'File') : 'File';
                                     $attSize = is_array($att) ? ($att['size'] ?? '') : '';
-                                    $attUrl = is_array($att) ? ($att['url'] ?? null) : null;
-                                    if ($attUrl && ! str_starts_with($attUrl, 'http')) {
-                                        $attUrl = $mediaBaseUrl . '/' . ltrim($attUrl, '/');
-                                    }
+                                    $attUrl = $uploads->resolveUrl(is_array($att) ? ($att['url'] ?? null) : null);
                                     $isPdf = strtoupper((string) $attType) === 'PDF' || str_ends_with(strtolower($attName), '.pdf');
                                 @endphp
                                 <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-cyan-400 transition-colors">

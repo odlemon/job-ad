@@ -182,6 +182,38 @@ class RemoteUploadService
     }
 
     /**
+     * Resolve a stored path/URL to a browser-accessible absolute URL.
+     * Site-public paths (e.g. /documents/tenders/...) stay on the app host;
+     * upload-service paths are joined to MEDIA_BASE_URL.
+     */
+    public function resolveUrl(?string $path): ?string
+    {
+        if ($path === null) {
+            return null;
+        }
+
+        $path = trim($path);
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // Tender seed docs and other files under public/
+        if (str_starts_with($path, '/documents/') || str_starts_with($path, 'documents/')) {
+            return url('/' . ltrim($path, '/'));
+        }
+
+        if (preg_match('#^/?uploads/(.+)$#i', $path, $m)) {
+            return rtrim($this->mediaBaseUrl, '/') . '/' . $m[1];
+        }
+
+        return rtrim($this->mediaBaseUrl, '/') . '/' . ltrim($path, '/');
+    }
+
+    /**
      * Download file from server
      */
     public function downloadFile(string $filePath): string
