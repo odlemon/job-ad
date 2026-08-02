@@ -186,9 +186,17 @@ class JobSearchController extends Controller
     private function optionalSeekerId(Request $request): ?int
     {
         /** @var User|null $user */
-        $user = $request->user('sanctum')
-            ?? Auth::guard('sanctum')->user()
-            ?? Auth::user();
+        $user = null;
+
+        // Prefer Sanctum when the guard is registered (API Bearer tokens).
+        // Local/dev auth.php may omit the sanctum guard — never hard-fail public reads.
+        try {
+            $user = $request->user('sanctum') ?? Auth::guard('sanctum')->user();
+        } catch (\Throwable) {
+            $user = null;
+        }
+
+        $user = $user ?? Auth::user() ?? $request->user();
 
         if (! $user || $user->user_type !== 'job_seeker') {
             return null;

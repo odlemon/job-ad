@@ -12,9 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Allow session-cookie auth on /api/* from this SPA (employer/job-seeker dashboards)
+        $middleware->statefulApi();
+
         $middleware->alias([
             'ensure.job.seeker' => \App\Http\Middleware\EnsureJobSeeker::class,
             'ensure.admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'employer.permission' => \App\Http\Middleware\EnsureEmployerPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

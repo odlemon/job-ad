@@ -128,6 +128,12 @@ class EmployerJobController extends Controller
         }
 
         $job = $this->jobService->create($validated);
+
+        try {
+            app(\App\Services\EmployerTeamService::class)->incrementJobsPosted($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
         
         // Load relationships and counts for JSON response
         $job->load(['company', 'category']);

@@ -132,12 +132,12 @@
                 renderPagination(result);
             } else {
                 container.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-12 text-center">
                         <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No applications found</h3>
-                        <p class="text-gray-600 mb-6">${statusFilter ? 'Try adjusting your filters or' : ''} Start applying to jobs to see them here.</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No applications found</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">${statusFilter ? 'Try adjusting your filters or' : ''} Start applying to jobs to see them here.</p>
                         <a href="/jobs" wire:navigate class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -152,12 +152,12 @@
             console.error('Error loading applications:', error);
             if (skeleton) skeleton.classList.add('hidden');
             container.innerHTML = `
-                <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-12 text-center">
                     <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Error loading applications</h3>
-                    <p class="text-gray-600 mb-6">Please try again later.</p>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Error loading applications</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Please try again later.</p>
                     <button onclick="loadApplications()" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
                         Retry
                     </button>
@@ -173,9 +173,9 @@
 
         if (apps.length === 0) {
             container.innerHTML = `
-                <div class="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No applications found</h3>
-                    <p class="text-gray-600">Try adjusting your filters.</p>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-12 text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No applications found</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Try adjusting your filters.</p>
                 </div>
             `;
             return;
@@ -196,27 +196,27 @@
             }) : null;
 
             return `
-                <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 border border-gray-100">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none hover:shadow-md transition p-6 border border-gray-100 dark:border-gray-700">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start gap-4 mb-4">
                                 <div class="flex-shrink-0">
                                     ${company.logo ? `
-                                        <img src="${company.logo}" alt="${company.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-200">
+                                        <img src="${company.logo}" alt="${company.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-gray-700">
                                     ` : `
-                                        <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                                             <span class="text-2xl font-bold text-gray-400">${(company.name || 'C')[0].toUpperCase()}</span>
                                         </div>
                                     `}
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="text-xl font-bold text-gray-900 mb-1 truncate">
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate">
                                         <a href="/jobs/${job.id}" wire:navigate class="hover:text-blue-600 transition">
                                             ${job.title || 'Job Title'}
                                         </a>
                                     </h3>
-                                    <p class="text-lg text-gray-700 mb-2">${company.name || 'Company'}</p>
-                                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                    <p class="text-lg text-gray-700 dark:text-gray-300 mb-2">${company.name || 'Company'}</p>
+                                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                                         ${job.location ? `
                                             <span class="flex items-center">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,8 +246,8 @@
                                 </div>
                             </div>
                             
-                            <div class="border-t border-gray-200 pt-4 mt-4">
-                                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
                                     <span class="flex items-center">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -264,14 +264,14 @@
                                     ` : ''}
                                 </div>
                                 ${app.cover_letter ? `
-                                    <p class="text-sm text-gray-600 line-clamp-2">${app.cover_letter.substring(0, 150)}${app.cover_letter.length > 150 ? '...' : ''}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${app.cover_letter.substring(0, 150)}${app.cover_letter.length > 150 ? '...' : ''}</p>
                                 ` : ''}
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-3 flex-shrink-0">
                             ${getStatusBadge(app.status)}
                             ${app.status === 'pending' ? `
-                                <button onclick="withdrawApplication(${app.id})" class="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition">
+                                <button onclick="withdrawApplication(${app.id})" class="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                                     Withdraw
                                 </button>
                             ` : ''}
@@ -319,7 +319,7 @@
         // Previous button
         if (current_page > 1) {
             paginationHTML += `
-                <button onclick="loadApplications(${current_page - 1})" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                <button onclick="loadApplications(${current_page - 1})" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                     Previous
                 </button>
             `;
@@ -333,20 +333,20 @@
                         class="px-4 py-2 border rounded-lg transition ${
                             i === current_page 
                                 ? 'bg-blue-600 text-white border-blue-600' 
-                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                : 'border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50'
                         }">
                         ${i}
                     </button>
                 `;
             } else if (i === current_page - 3 || i === current_page + 3) {
-                paginationHTML += `<span class="px-2 text-gray-500">...</span>`;
+                paginationHTML += `<span class="px-2 text-gray-500 dark:text-gray-400">...</span>`;
             }
         }
 
         // Next button
         if (current_page < last_page) {
             paginationHTML += `
-                <button onclick="loadApplications(${current_page + 1})" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                <button onclick="loadApplications(${current_page + 1})" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                     Next
                 </button>
             `;
@@ -358,7 +358,7 @@
 
     // ========== Withdraw Application ==========
     async function withdrawApplication(id) {
-        if (!confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) {
+        if (!(await window.showConfirmDialog('This action cannot be undone. Your application will be withdrawn.', { title: 'Withdraw application?', confirmText: 'Withdraw', cancelText: 'Cancel' }))) {
             return;
         }
 

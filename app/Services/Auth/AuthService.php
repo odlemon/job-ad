@@ -107,7 +107,11 @@ class AuthService
             return false;
         }
 
-        $user->update(['password' => Hash::make($newPassword)]);
+        $user->password = $newPassword;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'password_changed_at')) {
+            $user->password_changed_at = now();
+        }
+        $user->save();
 
         return true;
     }

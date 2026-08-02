@@ -26,12 +26,14 @@ class Company extends Model
         'size',
         'location',
         'founded_year',
+        'registration_number',
         'linkedin',
         'twitter',
         'instagram',
         'culture_benefits',
         'benefits',
         'company_values',
+        'faqs',
         'working_hours',
         'workplace_description',
         'is_active',
@@ -44,6 +46,7 @@ class Company extends Model
         'gallery_images' => 'array',
         'benefits' => 'array',
         'company_values' => 'array',
+        'faqs' => 'array',
         'verified_at' => 'datetime',
     ];
 

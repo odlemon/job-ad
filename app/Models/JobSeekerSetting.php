@@ -15,6 +15,8 @@ class JobSeekerSetting extends Model
         'application_updates',
         'marketing_emails',
         'two_factor_enabled',
+        'show_activity_status',
+        'allow_contact_by_recruiters',
     ];
 
     protected $casts = [
@@ -24,6 +26,8 @@ class JobSeekerSetting extends Model
         'application_updates' => 'boolean',
         'marketing_emails' => 'boolean',
         'two_factor_enabled' => 'boolean',
+        'show_activity_status' => 'boolean',
+        'allow_contact_by_recruiters' => 'boolean',
     ];
 
     public function jobSeeker(): BelongsTo

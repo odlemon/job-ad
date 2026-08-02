@@ -16,7 +16,8 @@ class FollowedCompanyRepository implements FollowedCompanyRepositoryInterface
                 'jobAdvertisements as jobs_count' => function ($jobs) {
                     $jobs->where('status', 'published');
                 },
-            ]);
+                'reviews as reviews_count',
+            ])->withAvg('reviews', 'rating');
         }])
             ->where('seeker_id', $seekerId)
             ->orderBy('followed_at', 'desc')
@@ -30,7 +31,8 @@ class FollowedCompanyRepository implements FollowedCompanyRepositoryInterface
                 'jobAdvertisements as jobs_count' => function ($jobs) {
                     $jobs->where('status', 'published');
                 },
-            ]);
+                'reviews as reviews_count',
+            ])->withAvg('reviews', 'rating');
         }])
             ->where('seeker_id', $seekerId)
             ->orderBy('followed_at', 'desc')

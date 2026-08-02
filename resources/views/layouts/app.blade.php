@@ -7,9 +7,7 @@
 
     <title>{{ $title ?? 'JobHub - Find Your Next Career Opportunity' }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    @include('partials.theme-head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -38,7 +36,7 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased bg-white">
+<body class="font-sans antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
     <!-- Loading Indicator for SPA Navigation -->
     <div id="page-loading" class="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-blue-500 to-pink-500 z-[9999] hidden" style="animation: loading-bar 1s ease-in-out infinite;">
     </div>
@@ -50,37 +48,33 @@
     </style>
 
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
+    <header class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-none sticky top-0 z-50 transition-colors duration-200">
         <!-- Top Navigation -->
-        <nav class="border-b border-gray-200">
+        <nav class="border-b border-gray-200 dark:border-gray-700">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo -->
                     <div class="flex items-center">
                         <a href="{{ route('landing') }}" wire:navigate class="flex items-center space-x-2">
-                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8 text-blue-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                            <span class="text-2xl font-bold text-gray-900">JobHub</span>
+                            <span class="text-2xl font-bold text-gray-900 dark:text-white">JobHub</span>
                         </a>
                     </div>
 
                     <!-- Main Navigation -->
                     <div class="hidden md:flex items-center space-x-6">
-                        <a href="{{ route('jobs.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Search Jobs</a>
-                        <a href="{{ route('tenders.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Tenders</a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600 transition">Job Categories</a>
-                        <a href="{{ route('companies.index') }}" wire:navigate class="text-gray-700 hover:text-blue-600 transition">Companies</a>
+                        <a href="{{ route('jobs.index') }}" wire:navigate class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 transition">Search Jobs</a>
+                        <a href="{{ route('tenders.index') }}" wire:navigate class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 transition">Tenders</a>
+                        <a href="{{ route('categories.index') }}" wire:navigate.hover class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 transition">Job Categories</a>
+                        <a href="{{ route('companies.index') }}" wire:navigate class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 transition">Companies</a>
+                        <a href="{{ route('pricing.index') }}" wire:navigate class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 transition">Pricing</a>
                     </div>
 
                     <!-- Right Side Actions -->
                     <div class="flex items-center space-x-4">
-                        <!-- Dark Mode Toggle -->
-                        <button type="button" class="p-2 text-gray-600 hover:text-gray-900 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                            </svg>
-                        </button>
+                        @include('partials.theme-toggle')
                         <!-- Login/Register Button -->
                         @if(auth()->check())
                             <a href="{{ route('dashboard') }}" wire:navigate class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">
@@ -204,7 +198,7 @@
                     <ul class="space-y-2 text-sm text-gray-400">
                         <li><a href="#" class="hover:text-white transition">Post a Job</a></li>
                         <li><a href="#" class="hover:text-white transition">Browse Candidates</a></li>
-                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                        <li><a href="{{ route('pricing.index') }}" wire:navigate class="hover:text-white transition">Pricing</a></li>
                     </ul>
                 </div>
                 <div>

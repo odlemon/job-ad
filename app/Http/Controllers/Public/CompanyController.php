@@ -7,62 +7,39 @@ use App\Models\Company;
 use App\Models\CompanyReview;
 use App\Models\JobApplication;
 use App\Models\JobAdvertisement;
+use App\Services\CompanyPublicService;
+use App\Services\JobSeeker\FollowedCompanyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
+    public function __construct(
+        protected CompanyPublicService $companies,
+        protected FollowedCompanyService $followedCompanyService
+    ) {}
+
     /**
      * Public companies listing page.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $industry = $request->input('industry');
+        $filters = [
+            'search' => $request->input('search'),
+            'industry' => $request->input('industry'),
+            'jobs' => $request->input('jobs'),
+            'sort' => $request->input('sort', 'jobs'),
+        ];
 
-        $query = Company::query()
-            ->where('is_active', true)
-            ->withCount([
-                'jobAdvertisements' => function ($q) {
-                    $q->where('status', 'published');
-                },
-                'followers',
-            ]);
-
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        }
-
-        if ($industry) {
-            $query->where('industry', $industry);
-        }
-
-        if ($request->input('jobs') === 'available') {
-            $query->having('job_advertisements_count', '>', 0);
-        }
-
-        $companies = $query
-            ->orderByDesc('job_advertisements_count')
-            ->paginate(24)
-            ->withQueryString();
-
-        $industries = Cache::remember('public_company_industries', 3600, function () {
-            return Company::query()
-                ->where('is_active', true)
-                ->whereNotNull('industry')
-                ->where('industry', '!=', '')
-                ->distinct()
-                ->orderBy('industry')
-                ->pluck('industry')
-                ->values();
-        });
+        $companies = $this->companies->paginateList($filters, (int) $request->input('per_page', 24));
+        $industries = $this->companies->industries();
+        $mediaBaseUrl = app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl();
 
         if ($request->wantsJson()) {
             return response()->json([
-                'data' => $companies->items(),
+                'data' => collect($companies->items())->map(fn (Company $c) => $this->companies->mapListItem($c))->values(),
                 'industries' => $industries,
                 'total' => $companies->total(),
                 'meta' => [
@@ -73,16 +50,111 @@ class CompanyController extends Controller
             ]);
         }
 
-        $mediaBaseUrl = app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl();
-
         return view('companies.index', [
             'companies' => $companies,
             'industries' => $industries,
             'mediaBaseUrl' => $mediaBaseUrl,
-            'filters' => [
-                'search' => $search,
-                'industry' => $industry,
-                'jobs' => $request->input('jobs'),
+            'filters' => $filters,
+        ]);
+    }
+
+    /**
+     * Lean public list API.
+     */
+    public function apiIndex(Request $request): JsonResponse
+    {
+        $filters = [
+            'search' => $request->input('search'),
+            'industry' => $request->input('industry'),
+            'jobs' => $request->input('jobs'),
+            'sort' => $request->input('sort', 'jobs'),
+        ];
+        $companies = $this->companies->paginateList($filters, (int) $request->input('per_page', 24));
+
+        return response()->json([
+            'data' => collect($companies->items())->map(fn (Company $c) => $this->companies->mapListItem($c))->values(),
+            'industries' => $this->companies->industries(),
+            'meta' => [
+                'current_page' => $companies->currentPage(),
+                'last_page' => $companies->lastPage(),
+                'per_page' => $companies->perPage(),
+                'total' => $companies->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Lean public company detail by id or slug.
+     */
+    public function apiShow(string $idOrSlug): JsonResponse
+    {
+        $company = $this->companies->resolve($idOrSlug);
+        if (! $company) {
+            return response()->json(['message' => 'Company not found'], 404);
+        }
+
+        return response()->json([
+            'data' => $this->companies->mapDetail($company, Auth::user()),
+        ]);
+    }
+
+    /**
+     * Paginated published jobs for a company (id or slug).
+     */
+    public function apiJobs(Request $request, string $idOrSlug): JsonResponse
+    {
+        $company = $this->companies->resolve($idOrSlug);
+        if (! $company) {
+            return response()->json(['message' => 'Company not found'], 404);
+        }
+
+        $paginator = $this->companies->jobsFor(
+            $company,
+            max(1, (int) $request->input('page', 1)),
+            (int) $request->input('per_page', 10)
+        );
+
+        return response()->json([
+            'data' => collect($paginator->items())->map(fn ($j) => $this->companies->mapJob($j))->values(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Paginated reviews for a company (id or slug).
+     */
+    public function apiReviews(Request $request, string $idOrSlug): JsonResponse
+    {
+        $company = $this->companies->resolve($idOrSlug);
+        if (! $company) {
+            return response()->json(['message' => 'Company not found'], 404);
+        }
+
+        $paginator = $this->companies->reviewsFor(
+            $company,
+            max(1, (int) $request->input('page', 1)),
+            (int) $request->input('per_page', 10),
+            (string) $request->input('sort', 'newest')
+        );
+        $stats = $this->companies->reviewStats($company->id);
+
+        return response()->json([
+            'data' => collect($paginator->items())->map(fn ($r) => $this->companies->mapReview($r))->values(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'avg_rating' => $stats['avgRating'],
+                'reviews_count' => $stats['reviewsCount'],
+                'star_distribution' => $stats['starDistribution'],
+                'category_averages' => $stats['categoryAverages'],
+                'category_labels' => $stats['categoryLabels'],
             ],
         ]);
     }
@@ -92,93 +164,36 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        if (!$company->is_active) {
+        if (! $company->is_active) {
             abort(404);
         }
 
-        $company->loadCount(['jobAdvertisements' => function ($q) {
-            $q->where('status', 'published');
-        }, 'followers']);
+        $company->loadCount([
+            'jobAdvertisements as job_advertisements_count' => fn ($q) => $q->where('status', 'published'),
+            'followers',
+        ]);
 
-        $openJobs = JobAdvertisement::query()
-            ->where('company_id', $company->id)
-            ->where('status', 'published')
-            ->with(['category:id,name'])
-            ->latest('published_at')
-            ->take(5)
-            ->get();
-
-        $stats = CompanyReview::query()
-            ->where('company_id', $company->id)
-            ->selectRaw('COUNT(*) as reviews_count')
-            ->selectRaw('AVG(rating) as avg_rating')
-            ->selectRaw('AVG(work_life_balance) as work_life_balance')
-            ->selectRaw('AVG(benefits_perks) as benefits_perks')
-            ->selectRaw('AVG(work_environment_culture) as work_environment_culture')
-            ->selectRaw('AVG(career_growth_development) as career_growth_development')
-            ->selectRaw('AVG(management_leadership) as management_leadership')
-            ->selectRaw('AVG(employee_support_wellbeing) as employee_support_wellbeing')
-            ->first();
-
-        $reviewsCount = (int) ($stats->reviews_count ?? 0);
-        $avgRating = $reviewsCount > 0 ? round((float) ($stats->avg_rating ?? 0), 1) : 0;
-
-        $starDistribution = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-        if ($reviewsCount > 0) {
-            $rows = CompanyReview::query()
-                ->where('company_id', $company->id)
-                ->selectRaw('rating, COUNT(*) as total')
-                ->groupBy('rating')
-                ->pluck('total', 'rating');
-            foreach ($rows as $rating => $total) {
-                $key = (int) $rating;
-                if (isset($starDistribution[$key])) {
-                    $starDistribution[$key] = (int) $total;
-                }
-            }
-        }
-
-        $categoryLabels = [
-            'work_life_balance' => 'Work-Life Balance',
-            'career_growth_development' => 'Career Growth & Development',
-            'benefits_perks' => 'Benefits & Perks',
-            'management_leadership' => 'Management & Leadership',
-            'work_environment_culture' => 'Work Environment & Culture',
-            'employee_support_wellbeing' => 'Employee Support & Well-Being',
-        ];
-        $categoryAverages = [];
-        $categoryCounts = [];
-        foreach (array_keys($categoryLabels) as $key) {
-            $avg = $stats->{$key} ?? null;
-            $categoryAverages[$key] = $avg !== null ? round((float) $avg, 1) : null;
-            $categoryCounts[$key] = $avg !== null ? $reviewsCount : 0;
-        }
-
-        // Only hydrate recent reviews for the list UI (not all rows)
-        $reviews = CompanyReview::query()
-            ->where('company_id', $company->id)
-            ->latest('created_at')
-            ->limit(50)
-            ->get();
+        $openJobs = $this->companies->jobsFor($company, 1, 10);
+        $stats = $this->companies->reviewStats($company->id);
+        $reviews = $this->companies->reviewsFor($company, 1, 20);
 
         $mediaBaseUrl = app(\App\Services\RemoteUploadService::class)->getMediaBaseUrl();
         $user = Auth::user();
+        $isFollowing = $this->companies->isFollowing($user, $company->id);
+
         $canAddReview = false;
         $reviewIneligibleReason = null;
         $jobIds = collect();
         if ($user && $user->jobSeeker) {
             $seeker = $user->jobSeeker;
             $seekerId = $seeker->seeker_id;
-            // Eligible statuses: shortlisted, interview requested, or hired for a job at this company (include alternate DB values)
             $eligibleStatuses = [
                 'shortlisted', 'interview_requested', 'hired',
                 'interview', 'offered',
             ];
-            // Case-insensitive status check (DB may store with different casing)
             $statusWhereRaw = "(LOWER(TRIM(status)) IN ('" . implode("','", array_map(function ($s) {
                 return strtolower(addslashes($s));
             }, $eligibleStatuses)) . "'))";
-            // Job IDs for this company (include soft-deleted jobs)
             $jobIds = JobAdvertisement::query()->where('company_id', $company->id)->withTrashed()->pluck('id');
             $hasEligibleApplication = false;
             if ($jobIds->isNotEmpty()) {
@@ -199,14 +214,13 @@ class CompanyController extends Controller
                 ->exists();
             if ($alreadyReviewed) {
                 $reviewIneligibleReason = __('You have already submitted a review for this company.');
-            } elseif (!$hasEligibleApplication) {
+            } elseif (! $hasEligibleApplication) {
                 $reviewIneligibleReason = __('You can add a review once you have been shortlisted, invited to interview, or hired at this company.');
             } else {
                 $canAddReview = true;
             }
         }
 
-        // Pre-fill review form from profile when user can add review
         $reviewRole = null;
         $reviewLocation = null;
         $reviewEmploymentStatus = null;
@@ -238,20 +252,32 @@ class CompanyController extends Controller
 
         return view('companies.show', [
             'company' => $company,
-            'openJobs' => $openJobs,
+            'openJobs' => collect($openJobs->items()),
+            'jobsMeta' => [
+                'current_page' => $openJobs->currentPage(),
+                'last_page' => $openJobs->lastPage(),
+                'total' => $openJobs->total(),
+            ],
             'mediaBaseUrl' => $mediaBaseUrl,
-            'reviews' => $reviews,
-            'reviewsCount' => $reviewsCount,
-            'avgRating' => $avgRating,
-            'starDistribution' => $starDistribution,
-            'categoryLabels' => $categoryLabels,
-            'categoryAverages' => $categoryAverages,
-            'categoryCounts' => $categoryCounts,
+            'reviews' => collect($reviews->items()),
+            'reviewsMeta' => [
+                'current_page' => $reviews->currentPage(),
+                'last_page' => $reviews->lastPage(),
+                'total' => $reviews->total(),
+            ],
+            'reviewsCount' => $stats['reviewsCount'],
+            'avgRating' => $stats['avgRating'],
+            'starDistribution' => $stats['starDistribution'],
+            'categoryLabels' => $stats['categoryLabels'],
+            'categoryAverages' => $stats['categoryAverages'],
+            'categoryCounts' => $stats['categoryCounts'],
             'canAddReview' => $canAddReview,
             'reviewIneligibleReason' => $reviewIneligibleReason,
             'reviewRole' => $reviewRole,
             'reviewLocation' => $reviewLocation,
             'reviewEmploymentStatus' => $reviewEmploymentStatus,
+            'isFollowing' => $isFollowing,
+            'isAuthenticatedSeeker' => (bool) ($user && $user->jobSeeker),
         ]);
     }
 
@@ -268,13 +294,13 @@ class CompanyController extends Controller
             'seeker_id' => $user?->jobSeeker?->seeker_id,
             'company' => ['id' => $company->id, 'name' => $company->name, 'slug' => $company->slug],
         ];
-        if (!$user || !$user->jobSeeker) {
+        if (! $user || ! $user->jobSeeker) {
             return response()->json($data);
         }
         $seekerId = $user->jobSeeker->seeker_id;
-        $jobIds = \App\Models\JobAdvertisement::query()->where('company_id', $company->id)->withTrashed()->pluck('id')->toArray();
+        $jobIds = JobAdvertisement::query()->where('company_id', $company->id)->withTrashed()->pluck('id')->toArray();
         $data['company_job_ids'] = $jobIds;
-        $allApplications = \App\Models\JobApplication::query()
+        $allApplications = JobApplication::query()
             ->whereIn('job_advertisement_id', $jobIds)
             ->where(function ($q) use ($seekerId, $user) {
                 $q->where('seeker_id', $seekerId)->orWhere('user_id', $user->id);
@@ -293,6 +319,7 @@ class CompanyController extends Controller
         $data['eligible_statuses'] = $eligibleStatuses;
         $data['has_eligible_status'] = $allApplications->contains(fn ($a) => in_array(strtolower(trim($a->status ?? '')), $eligibleStatuses));
         $data['can_add_review'] = $allApplications->isNotEmpty() && $data['has_eligible_status'];
+
         return response()->json($data);
     }
 
@@ -302,7 +329,7 @@ class CompanyController extends Controller
     public function storeReview(Request $request, Company $company): JsonResponse
     {
         $user = Auth::user();
-        if (!$user || !$user->jobSeeker) {
+        if (! $user || ! $user->jobSeeker) {
             return response()->json(['message' => 'You must be logged in as a job seeker to submit a review.'], 403);
         }
 
@@ -329,7 +356,7 @@ class CompanyController extends Controller
                 ->whereRaw($statusWhereRaw)
                 ->exists();
         }
-        if (!$hasEligibleApplication) {
+        if (! $hasEligibleApplication) {
             return response()->json([
                 'message' => 'You can add a review only after you have been shortlisted, invited to interview, or hired at this company.',
             ], 403);
@@ -358,7 +385,6 @@ class CompanyController extends Controller
             'challenges' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $seeker = $user->jobSeeker;
         $employmentMap = [
             'currently_employed' => 'Currently Employed',
             'unemployed' => 'Unemployed',
@@ -421,11 +447,51 @@ class CompanyController extends Controller
     }
 
     /**
+     * Follow a company (web session / job seeker).
+     */
+    public function follow(Company $company): JsonResponse
+    {
+        $user = Auth::user();
+        if (! $user || ! $user->jobSeeker) {
+            return response()->json(['message' => 'You must be logged in as a job seeker to follow companies.'], 403);
+        }
+
+        $this->followedCompanyService->followCompany($user->jobSeeker, $company->id);
+        $company->loadCount('followers');
+
+        return response()->json([
+            'message' => 'Following',
+            'is_following' => true,
+            'followers_count' => (int) $company->followers_count,
+        ]);
+    }
+
+    /**
+     * Unfollow a company (web session / job seeker).
+     */
+    public function unfollow(Company $company): JsonResponse
+    {
+        $user = Auth::user();
+        if (! $user || ! $user->jobSeeker) {
+            return response()->json(['message' => 'You must be logged in as a job seeker.'], 403);
+        }
+
+        $this->followedCompanyService->unfollowCompany($user->jobSeeker, $company->id);
+        $company->loadCount('followers');
+
+        return response()->json([
+            'message' => 'Unfollowed',
+            'is_following' => false,
+            'followers_count' => (int) $company->followers_count,
+        ]);
+    }
+
+    /**
      * Get featured companies with job counts (cached for 1 hour).
      */
     public function featured(): JsonResponse
     {
-        $companies = Cache::remember('featured_companies', 3600, function () {
+        $companies = \Illuminate\Support\Facades\Cache::remember('featured_companies', 3600, function () {
             return Company::query()
                 ->where('is_active', true)
                 ->withCount(['jobAdvertisements' => function ($query) {

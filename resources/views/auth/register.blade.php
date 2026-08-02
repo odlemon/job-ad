@@ -4,13 +4,13 @@
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-2xl w-full">
         <!-- Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 space-y-4">
             <!-- Header -->
             <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-900">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                     Create Account
                 </h2>
-                <p class="mt-1 text-sm text-gray-600">
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     Join JobHub and start your journey
                 </p>
             </div>
@@ -21,7 +21,7 @@
                 
                 <!-- User Type Selection -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         I am a <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
@@ -32,24 +32,24 @@
                                     <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
-                                    <span class="ml-2 font-semibold text-gray-900">Job Seeker</span>
+                                    <span class="ml-2 font-semibold text-gray-900 dark:text-white">Job Seeker</span>
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">Looking for jobs</p>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Looking for jobs</p>
                             </div>
                             <svg class="h-5 w-5 text-blue-600 absolute top-4 right-4 check-icon" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                             </svg>
                         </label>
-                        <label class="relative flex cursor-pointer rounded-lg border-2 border-gray-200 p-3 focus:outline-none hover:border-blue-500 transition user-type-option" data-type="employer">
+                        <label class="relative flex cursor-pointer rounded-lg border-2 border-gray-200 dark:border-gray-700 p-3 focus:outline-none hover:border-blue-500 transition user-type-option" data-type="employer">
                             <input type="radio" name="user_type" value="employer" class="sr-only" required>
                             <div class="flex flex-1 flex-col">
                                 <div class="flex items-center">
                                     <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                     </svg>
-                                    <span class="ml-2 font-semibold text-gray-900">Employer</span>
+                                    <span class="ml-2 font-semibold text-gray-900 dark:text-white">Employer</span>
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">Hiring talent</p>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Hiring talent</p>
                             </div>
                             <svg class="h-5 w-5 text-blue-600 absolute top-4 right-4 hidden check-icon" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -62,36 +62,36 @@
                 <div id="jobSeekerFields" class="space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="first_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 First Name <span class="text-red-500">*</span>
                             </label>
                             <input id="first_name" name="first_name" type="text" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="John">
                         </div>
                         <div>
-                            <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="last_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Last Name <span class="text-red-500">*</span>
                             </label>
                             <input id="last_name" name="last_name" type="text" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="Doe">
                         </div>
                     </div>
                     <div>
-                        <label for="location" class="block text-sm font-semibold text-gray-700 mb-1">
+                        <label for="location" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Location
                         </label>
                         <input id="location" name="location" type="text" 
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             placeholder="Victoria, Mahe">
                     </div>
                     <div>
-                        <label for="bio" class="block text-sm font-semibold text-gray-700 mb-1">
+                        <label for="bio" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Bio
                         </label>
                         <textarea id="bio" name="bio" rows="2"
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                             placeholder="Tell us about yourself..."></textarea>
                     </div>
                 </div>
@@ -99,36 +99,36 @@
                 <!-- Employer Fields -->
                 <div id="employerFields" class="hidden space-y-3">
                     <div>
-                        <label for="company_name" class="block text-sm font-semibold text-gray-700 mb-1">
+                        <label for="company_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Company Name <span class="text-red-500">*</span>
                         </label>
                         <input id="company_name" name="company_name" type="text" 
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             placeholder="Your Company Ltd">
                     </div>
                     <div>
-                        <label for="company_description" class="block text-sm font-semibold text-gray-700 mb-1">
+                        <label for="company_description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Company Description
                         </label>
                         <textarea id="company_description" name="company_description" rows="2"
-                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                             placeholder="Tell us about your company..."></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="industry" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="industry" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Industry
                             </label>
                             <input id="industry" name="industry" type="text" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="Technology">
                         </div>
                         <div>
-                            <label for="company_size" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="company_size" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Company Size
                             </label>
                             <select id="company_size" name="company_size" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                                 <option value="">Select size</option>
                                 <option value="1-10">1-10 employees</option>
                                 <option value="11-50">11-50 employees</option>
@@ -140,29 +140,29 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="website" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="website" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Website
                             </label>
                             <input id="website" name="website" type="url" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="https://yourcompany.com">
                         </div>
                         <div>
-                            <label for="address" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="address" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Address
                             </label>
                             <input id="address" name="address" type="text" 
-                                class="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="Company address">
                         </div>
                     </div>
                 </div>
 
                 <!-- Common Fields -->
-                <div class="border-t border-gray-200 pt-3 space-y-3">
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Email Address <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -172,13 +172,13 @@
                                     </svg>
                                 </div>
                                 <input id="email" name="email" type="email" autocomplete="email" required 
-                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     placeholder="you@example.com">
                             </div>
                         </div>
 
                         <div>
-                            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Phone <span class="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <div class="relative">
@@ -188,7 +188,7 @@
                                     </svg>
                                 </div>
                                 <input id="phone" name="phone" type="tel" 
-                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     placeholder="+248 1234567">
                             </div>
                         </div>
@@ -196,7 +196,7 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Password <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -206,7 +206,7 @@
                                     </svg>
                                 </div>
                                 <input id="password" name="password" type="password" autocomplete="new-password" required 
-                                    class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     placeholder="Min 8 chars">
                                 <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                                     <svg id="passwordEyeIcon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +218,7 @@
                         </div>
 
                         <div>
-                            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-1">
+                            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Confirm Password <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -228,7 +228,7 @@
                                     </svg>
                                 </div>
                                 <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required 
-                                    class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     placeholder="Re-enter password">
                                 <button type="button" id="togglePasswordConfirmation" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                                     <svg id="passwordConfirmationEyeIcon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@
                 <!-- Submit Button -->
                 <div>
                     <button type="submit" id="registerBtn"
-                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm dark:shadow-none text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                         <span id="registerBtnText">Create account</span>
                         <div id="registerBtnSpinner" class="hidden spinner-sm ml-2"></div>
                     </button>
@@ -256,7 +256,7 @@
 
             <!-- Sign In Link -->
             <div class="text-center">
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                     Already have an account?
                     <a href="{{ route('login') }}" wire:navigate class="font-semibold text-blue-600 hover:text-blue-500 transition">
                         Sign in

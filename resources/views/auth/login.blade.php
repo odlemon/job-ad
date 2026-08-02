@@ -4,13 +4,13 @@
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full">
         <!-- Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 space-y-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-8">
             <!-- Header -->
             <div class="text-center">
-                <h2 class="text-3xl font-bold text-gray-900">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
                     Welcome Back
                 </h2>
-                <p class="mt-2 text-sm text-gray-600">
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     Sign in to continue to JobHub
                 </p>
             </div>
@@ -21,7 +21,7 @@
                 
                 <!-- Email -->
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Email Address
                     </label>
                     <div class="relative">
@@ -31,14 +31,14 @@
                             </svg>
                         </div>
                         <input id="email" name="email" type="email" autocomplete="email" required 
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             placeholder="you@example.com">
                     </div>
                 </div>
 
                 <!-- Password -->
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Password
                     </label>
                     <div class="relative">
@@ -48,7 +48,7 @@
                             </svg>
                         </div>
                         <input id="password" name="password" type="password" autocomplete="current-password" required 
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             placeholder="••••••••">
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                 <!-- Submit Button -->
                 <div>
                     <button type="submit" id="loginBtn"
-                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm dark:shadow-none text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                         <span id="loginBtnText">Sign in</span>
                         <div id="loginBtnSpinner" class="hidden spinner-sm ml-2"></div>
                     </button>
@@ -68,7 +68,7 @@
 
             <!-- Sign Up Link -->
             <div class="text-center">
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                     Don't have an account?
                     <a href="{{ route('register') }}" wire:navigate class="font-semibold text-blue-600 hover:text-blue-500 transition">
                         Create one now

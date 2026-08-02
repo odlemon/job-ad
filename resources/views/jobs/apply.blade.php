@@ -3,18 +3,18 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Apply for Job</h1>
-        <p class="text-gray-600 mt-2">Fill out the form below to submit your application</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Apply for Job</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Fill out the form below to submit your application</p>
     </div>
 
     @if(isset($job))
-    <div class="bg-gradient-to-r from-blue-50 to-pink-50 rounded-2xl shadow-sm p-6 mb-6 border border-gray-100">
+    <div class="bg-gradient-to-r from-blue-50 to-pink-50 rounded-2xl shadow-sm dark:shadow-none p-6 mb-6 border border-gray-100 dark:border-gray-700">
         <div class="flex items-start justify-between">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $job->title }}</h2>
-                <p class="text-gray-700 font-medium mb-1">{{ $job->company->name ?? 'Company' }}</p>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $job->title }}</h2>
+                <p class="text-gray-700 dark:text-gray-300 font-medium mb-1">{{ $job->company->name ?? 'Company' }}</p>
                 @if($job->location)
-                    <p class="text-gray-600 text-sm">📍 {{ $job->location }}</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">📍 {{ $job->location }}</p>
                 @endif
             </div>
             <a href="{{ route('jobs.show', $job->id) }}" wire:navigate class="text-blue-600 hover:text-blue-700 text-sm font-medium">View details →</a>
@@ -22,7 +22,7 @@
     </div>
     @endif
 
-    <div class="bg-white rounded-2xl shadow-xl p-8">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
         <form id="applicationForm" class="space-y-6">
             @if(empty($questions))
                 <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -32,11 +32,11 @@
                 </div>
             @else
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Please answer the following questions:</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Please answer the following questions:</h3>
                     <div class="space-y-6">
                         @foreach($questions as $index => $question)
                             <div>
-                                <label for="question_{{ $index }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <label for="question_{{ $index }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                     {{ $question['question'] ?? $question }}
                                     @if(isset($question['required']) && $question['required'])
                                         <span class="text-red-500">*</span>
@@ -48,7 +48,7 @@
                                         name="questions[{{ $index }}]" 
                                         rows="4"
                                         @if(isset($question['required']) && $question['required']) required @endif
-                                        class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                                         placeholder="{{ $question['placeholder'] ?? 'Your answer...' }}"></textarea>
                                 @else
                                     <input 
@@ -56,11 +56,11 @@
                                         id="question_{{ $index }}" 
                                         name="questions[{{ $index }}]" 
                                         @if(isset($question['required']) && $question['required']) required @endif
-                                        class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                         placeholder="{{ $question['placeholder'] ?? 'Your answer...' }}">
                                 @endif
                                 @if(isset($question['hint']))
-                                    <p class="mt-1 text-xs text-gray-500">{{ $question['hint'] }}</p>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $question['hint'] }}</p>
                                 @endif
                             </div>
                         @endforeach
@@ -77,7 +77,7 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 </button>
-                <a href="{{ route('jobs.show', $job->id) }}" wire:navigate class="border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition inline-flex items-center">
+                <a href="{{ route('jobs.show', $job->id) }}" wire:navigate class="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition inline-flex items-center">
                     Cancel
                 </a>
             </div>

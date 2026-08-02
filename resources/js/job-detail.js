@@ -89,10 +89,10 @@ window.loadJobDetail = async function() {
                         </a>
                         
                         <!-- Job Header -->
-                        <div class="bg-white rounded-xl shadow-sm p-6">
-                            <h1 class="text-3xl font-bold text-gray-900 mb-3">${job.title}</h1>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-6">
+                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">${job.title}</h1>
                             <div class="flex items-center space-x-2 mb-4">
-                                <span class="text-lg font-semibold text-gray-700">${job.company?.name || 'Company'}</span>
+                                <span class="text-lg font-semibold text-gray-700 dark:text-gray-300">${job.company?.name || 'Company'}</span>
                                 ${job.company?.is_verified ? `
                                 <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -103,7 +103,7 @@ window.loadJobDetail = async function() {
                             <!-- Job Metadata -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 ${job.location ? `
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -112,7 +112,7 @@ window.loadJobDetail = async function() {
                                 </div>
                                 ` : ''}
                                 ${job.hide_salary || job.salary_min || job.salary_max ? `
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
@@ -120,21 +120,21 @@ window.loadJobDetail = async function() {
                                 </div>
                                 ` : ''}
                                 ${job.category ? `
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                     </svg>
                                     ${job.category.name}
                                 </div>
                                 ` : ''}
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                     </svg>
                                     ${workEnv}
                                 </div>
                                 ${job.employment_type ? `
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                     </svg>
@@ -142,7 +142,7 @@ window.loadJobDetail = async function() {
                                 </div>
                                 ` : ''}
                                 ${postedDate ? `
-                                <div class="flex items-center text-gray-600">
+                                <div class="flex items-center text-gray-600 dark:text-gray-400">
                                     <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
@@ -197,27 +197,27 @@ window.loadJobDetail = async function() {
                             
                             <!-- Job Description -->
                             <div class="mb-6">
-                                <h2 class="text-xl font-bold text-gray-900 mb-3">Job Description</h2>
-                                <p class="text-gray-700 leading-relaxed">${job.description || 'No description provided.'}</p>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Job Description</h2>
+                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">${job.description || 'No description provided.'}</p>
                             </div>
                             
                             ${job.requirements ? `
                             <div class="mb-6">
-                                <h2 class="text-xl font-bold text-gray-900 mb-3">Key Responsibilities</h2>
-                                <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">${job.requirements}</div>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Key Responsibilities</h2>
+                                <div class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">${job.requirements}</div>
                             </div>
                             ` : ''}
                             
                             ${job.benefits ? `
                             <div class="mb-6">
-                                <h2 class="text-xl font-bold text-gray-900 mb-3">Highlights</h2>
-                                <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">${job.benefits}</div>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Highlights</h2>
+                                <div class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">${job.benefits}</div>
                             </div>
                             ` : ''}
                             
                             <!-- Skills Section -->
                             <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-gray-900 mb-4">Skills</h2>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Skills</h2>
                                 <div class="flex flex-wrap gap-2">
                                     ${job.experience_level ? `
                                     <span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">${job.experience_level.charAt(0).toUpperCase() + job.experience_level.slice(1)} Level</span>
@@ -231,9 +231,9 @@ window.loadJobDetail = async function() {
                             
                             <!-- Employer Questions -->
                             <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-gray-900 mb-3">Employer questions</h2>
-                                <p class="text-gray-600 mb-3">Your application will include the following questions:</p>
-                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Employer questions</h2>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Your application will include the following questions:</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
                                     <li>What's your expected monthly basic salary?</li>
                                     <li>Which of the following statements best describes your right to work in Seychelles?</li>
                                     <li>Which of the following types of qualifications do you have?</li>
@@ -243,8 +243,8 @@ window.loadJobDetail = async function() {
                             
                             <!-- Stay Cautious -->
                             <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-gray-900 mb-3">Stay cautious</h2>
-                                <p class="text-gray-700 mb-4">Protect yourself: never share your bank or credit card details when applying for jobs. Report any suspicious job postings immediately.</p>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Stay cautious</h2>
+                                <p class="text-gray-700 dark:text-gray-300 mb-4">Protect yourself: never share your bank or credit card details when applying for jobs. Report any suspicious job postings immediately.</p>
                                 <div class="flex items-center space-x-4">
                                     <button onclick="reportJob(${job.id})" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,26 +262,26 @@ window.loadJobDetail = async function() {
                     <div class="space-y-6">
                         <!-- Company Card -->
                         ${job.company ? `
-                        <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-6">
                             <div class="flex items-center space-x-4 mb-4">
                                 <div class="w-16 h-16 bg-gradient-to-r from-blue-100 to-pink-100 rounded-full flex items-center justify-center">
                                     ${job.company.logo ? `
                                     <img src="${job.company.logo}" alt="${job.company.name}" class="w-16 h-16 rounded-full object-cover">
                                     ` : `
-                                    <span class="text-2xl font-bold text-gray-600">${job.company.name.charAt(0)}</span>
+                                    <span class="text-2xl font-bold text-gray-600 dark:text-gray-400">${job.company.name.charAt(0)}</span>
                                     `}
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-gray-900">${job.company.name}</h3>
-                                    <p class="text-sm text-gray-500">BRN/UEN: ${job.company.id || 'N/A'}</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white">${job.company.name}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">BRN/UEN: ${job.company.id || 'N/A'}</p>
                                     <div class="flex items-center mt-1">
                                         <span class="text-yellow-400">★</span>
-                                        <span class="text-sm text-gray-600 ml-1">4.2 (45 reviews)</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400 ml-1">4.2 (45 reviews)</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <button onclick="viewEmployerProfile(${job.company.id})" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center justify-center">
+                                <button onclick="viewEmployerProfile(${job.company.id})" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
@@ -298,8 +298,8 @@ window.loadJobDetail = async function() {
                         ` : ''}
                         
                         <!-- Apply Section -->
-                        <div class="bg-white rounded-xl shadow-sm p-6">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Interested in this job?</h3>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Interested in this job?</h3>
                             <div id="apply-button-container">
                                 <button id="apply-btn-${job.id}" onclick="handleApply(${job.id})" class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,8 +312,8 @@ window.loadJobDetail = async function() {
                         
                         <!-- Other Jobs from Company -->
                         ${otherCompanyJobs.length > 0 ? `
-                        <div class="bg-white rounded-xl shadow-sm p-6">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">See other available jobs?</h3>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">See other available jobs?</h3>
                             <button onclick="navigateTo('/jobs?company=' + (job.company?.id || ''))" class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition">
                                 View all jobs
                             </button>
@@ -322,23 +322,23 @@ window.loadJobDetail = async function() {
                         
                         <!-- Similar Jobs -->
                         ${similarJobs.length > 0 ? `
-                        <div class="bg-white rounded-xl shadow-sm p-6">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Similar jobs you might like</h3>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Similar jobs you might like</h3>
                             <div class="space-y-4">
                                 ${similarJobs.slice(0, 2).map(similarJob => `
-                                <a href="/jobs/${similarJob.id}" wire:navigate class="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition">
+                                <a href="/jobs/${similarJob.id}" wire:navigate class="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 hover:shadow-md transition">
                                     <div class="flex items-start space-x-3">
                                         <div class="w-12 h-12 bg-gradient-to-r from-blue-100 to-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
                                             ${similarJob.company?.logo ? `
                                             <img src="${similarJob.company.logo}" alt="${similarJob.company.name}" class="w-12 h-12 rounded-full object-cover">
                                             ` : `
-                                            <span class="text-lg font-bold text-gray-600">${similarJob.company?.name?.charAt(0) || 'C'}</span>
+                                            <span class="text-lg font-bold text-gray-600 dark:text-gray-400">${similarJob.company?.name?.charAt(0) || 'C'}</span>
                                             `}
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h4 class="font-semibold text-gray-900 truncate">${similarJob.title}</h4>
-                                            <p class="text-sm text-gray-600 truncate">${similarJob.company?.name || 'Company'}</p>
-                                            <p class="text-sm text-gray-500">@ ${similarJob.location || 'Location not specified'}</p>
+                                            <h4 class="font-semibold text-gray-900 dark:text-white truncate">${similarJob.title}</h4>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 truncate">${similarJob.company?.name || 'Company'}</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">@ ${similarJob.location || 'Location not specified'}</p>
                                         </div>
                                     </div>
                                 </a>
@@ -489,8 +489,12 @@ window.bookmarkJob = function(jobId) {
     window.saveJob(jobId);
 };
 
-window.reportJob = function(jobId) {
-    if (confirm('Are you sure you want to report this job posting?')) {
+window.reportJob = async function(jobId) {
+    const confirmed = await window.showConfirmDialog(
+        'Our team will review this posting. Only report jobs that look scammy or inappropriate.',
+        { title: 'Report this job?', confirmText: 'Report', cancelText: 'Cancel', danger: true }
+    );
+    if (confirmed) {
         showInfoToast('Thank you for reporting. We will review this job posting.');
     }
 };

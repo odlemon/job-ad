@@ -1,867 +1,774 @@
 @extends('layouts.job-seeker')
 
 @section('content')
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col">
-        @include('partials.job-seeker-navbar')
-        
-        <!-- Main Content -->
-        <main class="flex-1 p-8 bg-gray-50">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header -->
-                <div class="mb-8">
-                    <h1 class="text-2xl font-bold text-gray-900">Job Applications Tracker</h1>
-                </div>
+@php
+    use App\Http\Controllers\JobApplicationController;
+    $statusMeta = [
+        'Applied' => [
+            'color' => '#2563eb',
+            'bg' => '#dbeafe',
+            'darkBg' => 'rgba(30,58,138,.3)',
+            'icon' => 'clock',
+        ],
+        'In Review' => [
+            'color' => '#ca8a04',
+            'bg' => '#fef9c3',
+            'darkBg' => 'rgba(113,63,18,.3)',
+            'icon' => 'eye',
+        ],
+        'Interview' => [
+            'color' => '#9333ea',
+            'bg' => '#f3e8ff',
+            'darkBg' => 'rgba(88,28,135,.3)',
+            'icon' => 'calendar',
+        ],
+        'Offered' => [
+            'color' => '#16a34a',
+            'bg' => '#dcfce7',
+            'darkBg' => 'rgba(20,83,45,.3)',
+            'icon' => 'check',
+        ],
+        'Rejected' => [
+            'color' => '#dc2626',
+            'bg' => '#fee2e2',
+            'darkBg' => 'rgba(127,29,29,.3)',
+            'icon' => 'x',
+        ],
+    ];
+    $statOrder = ['Applied', 'In Review', 'Interview', 'Offered', 'Rejected'];
+@endphp
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-5 gap-4 mb-6">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">Applied</span>
-                        </div>
-                        <div class="text-3xl font-bold text-gray-900">{{ $stats['pending'] ?? $applications->total() }}</div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">In Review</span>
-                        </div>
-                        <div class="text-3xl font-bold text-gray-900">{{ $stats['reviewing'] ?? 0 }}</div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">Interview</span>
-                        </div>
-                        <div class="text-3xl font-bold text-gray-900">{{ $stats['interview'] ?? 0 }}</div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">Offered</span>
-                        </div>
-                        <div class="text-3xl font-bold text-gray-900">{{ $stats['offered'] ?? $stats['hired'] ?? 0 }}</div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-2">
-                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">Rejected</span>
-                        </div>
-                        <div class="text-3xl font-bold text-gray-900">{{ $stats['rejected'] ?? 0 }}</div>
-                    </div>
-                </div>
+<style>
+.jat-main { flex:1; overflow-y:auto; }
+.jat-wrap { max-width:80rem; margin:0 auto; padding:2rem 1rem; }
+@media (min-width:640px){ .jat-wrap{ padding-left:1.5rem; padding-right:1.5rem; } }
+@media (min-width:1024px){ .jat-wrap{ padding-left:2rem; padding-right:2rem; } }
+.jat-stack { display:flex; flex-direction:column; gap:1.5rem; }
 
-                <!-- Tabs -->
-                <div class="mb-6">
-                    <div class="flex gap-2">
-                        <button id="tab-all" class="status-tab-btn px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg font-medium text-sm shadow-md transition" data-filter="all">
-                            All Applications ({{ $applications->total() }})
-                        </button>
-                        <button id="tab-interviews" class="status-tab-btn px-6 py-2.5 bg-white text-gray-700 rounded-lg font-medium text-sm border border-gray-200 hover:bg-gray-50 transition" data-filter="interview">
-                            Interviews
-                        </button>
-                        <button id="tab-offers" class="status-tab-btn px-6 py-2.5 bg-white text-gray-700 rounded-lg font-medium text-sm border border-gray-200 hover:bg-gray-50 transition" data-filter="offered">
-                            Offers
-                        </button>
-                    </div>
-                </div>
+.jat-panel { background:#fff; border-radius:.75rem; padding:1.5rem; box-shadow:0 1px 2px rgba(0,0,0,.04); border:1px solid #e5e7eb; }
+.dark .jat-panel { background:#1f2937; border-color:#374151; }
+.jat-title { margin:0 0 1rem; font-size:1.5rem; font-weight:700; color:#111827; }
+.dark .jat-title { color:#fff; }
 
-                <!-- Applications List -->
-                <div class="space-y-4">
-                            @forelse($applications as $application)
-                                @php
-                                    $job = $application->jobAdvertisement;
-                                    $company = $job->company ?? null;
-                            $statusConfig = [
-                                'pending' => ['label' => 'Applied', 'color' => 'bg-blue-100 text-blue-700', 'filter' => 'applied'],
-                                'reviewing' => ['label' => 'In Review', 'color' => 'bg-yellow-100 text-yellow-800', 'filter' => 'reviewing'],
-                                'shortlisted' => ['label' => 'Shortlisted', 'color' => 'bg-purple-100 text-purple-700', 'filter' => 'interview'],
-                                'interview_requested' => ['label' => 'Interview', 'color' => 'bg-indigo-100 text-indigo-700', 'filter' => 'interview'],
-                                'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-700', 'filter' => 'rejected'],
-                                'hired' => ['label' => 'Offered', 'color' => 'bg-green-100 text-green-700', 'filter' => 'offered'],
-                            ];
-                            $status = $statusConfig[$application->status] ?? $statusConfig['pending'];
-                            $companyName = $company->name ?? 'Unknown Company';
-                            $logoUrl = null;
-                            if ($company && $company->logo) {
-                                $logoUrl = $company->logo;
-                                if (!str_starts_with($logoUrl, 'http://') && !str_starts_with($logoUrl, 'https://')) {
-                                    $logoUrl = asset('storage/' . $logoUrl);
-                                }
+.jat-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+@media (min-width:768px){ .jat-stats{ grid-template-columns:repeat(5,minmax(0,1fr)); } }
+.jat-stat {
+    padding:1rem; border-radius:.5rem; border:1px solid #e5e7eb; background:transparent;
+    cursor:pointer; text-align:left; transition:all .15s; width:100%;
+}
+.dark .jat-stat { border-color:#374151; }
+.jat-stat:hover { border-color:#d1d5db; }
+.dark .jat-stat:hover { border-color:#4b5563; }
+.jat-stat.is-active { border-color:#2563eb; background:#eff6ff; }
+.dark .jat-stat.is-active { border-color:#22d3ee; background:rgba(30,58,138,.2); }
+.jat-stat-top { display:flex; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+.jat-stat-top svg { width:1rem; height:1rem; flex-shrink:0; }
+.jat-stat-label { font-size:.75rem; font-weight:500; color:#4b5563; }
+.dark .jat-stat-label { color:#9ca3af; }
+.jat-stat-val { margin:0; font-size:1.5rem; font-weight:700; color:#111827; }
+.dark .jat-stat-val { color:#fff; }
+
+.jat-tabs { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; }
+.jat-tab {
+    padding:.5rem 1rem; border-radius:.5rem; font-weight:500; font-size:.875rem; cursor:pointer;
+    border:1px solid #e5e7eb; background:#fff; color:#374151; transition:all .15s;
+}
+.dark .jat-tab { background:#1f2937; border-color:#374151; color:#d1d5db; }
+.jat-tab:hover { border-color:#d1d5db; }
+.dark .jat-tab:hover { border-color:#4b5563; }
+.jat-tab.is-active {
+    border:0; color:#fff;
+    background:linear-gradient(to right,#2563eb,#06b6d4);
+}
+
+.jat-list { display:flex; flex-direction:column; gap:1rem; }
+.jat-card {
+    background:#fff; border-radius:.75rem; padding:1.5rem; box-shadow:0 1px 2px rgba(0,0,0,.04);
+    border:1px solid #e5e7eb; transition:box-shadow .15s;
+}
+.dark .jat-card { background:#1f2937; border-color:#374151; }
+.jat-card:hover { box-shadow:0 4px 6px -1px rgba(0,0,0,.08); }
+.jat-card-row { display:flex; align-items:flex-start; gap:1rem; }
+.jat-logo { width:4rem; height:4rem; border-radius:.5rem; object-fit:cover; flex-shrink:0; background:#f3f4f6; }
+.dark .jat-logo { background:#374151; }
+.jat-logo-fallback {
+    width:4rem; height:4rem; border-radius:.5rem; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(to bottom right,#2563eb,#06b6d4); color:#fff; font-weight:700; font-size:1.25rem;
+}
+.jat-body { flex:1; min-width:0; }
+.jat-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.5rem; }
+.jat-job { margin:0; font-size:1.125rem; font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dark .jat-job { color:#fff; }
+.jat-co { margin:.25rem 0 0; color:#4b5563; }
+.dark .jat-co { color:#9ca3af; }
+.jat-badge {
+    display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .75rem;
+    border-radius:9999px; font-size:.875rem; font-weight:500; white-space:nowrap; flex-shrink:0;
+}
+.jat-badge svg { width:1rem; height:1rem; }
+.jat-meta { display:grid; grid-template-columns:1fr; gap:.75rem; margin-top:1rem; }
+@media (min-width:768px){ .jat-meta{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.jat-meta-item { display:flex; align-items:center; gap:.5rem; font-size:.875rem; color:#4b5563; }
+.dark .jat-meta-item { color:#9ca3af; }
+.jat-meta-item svg { width:1rem; height:1rem; flex-shrink:0; }
+
+.jat-callout { margin-top:.75rem; padding:.75rem; border-radius:.5rem; border:1px solid; }
+.jat-callout-interview { background:#faf5ff; border-color:#e9d5ff; color:#581c87; }
+.dark .jat-callout-interview { background:rgba(88,28,135,.2); border-color:#6b21a8; color:#d8b4fe; }
+.jat-callout-offer { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
+.dark .jat-callout-offer { background:rgba(20,83,45,.2); border-color:#166534; color:#86efac; }
+.jat-callout-inner { display:flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; }
+.jat-callout-inner svg { width:1rem; height:1rem; flex-shrink:0; }
+
+.jat-notes {
+    margin-top:.75rem; padding:.75rem; border-radius:.5rem; background:#f9fafb;
+    display:flex; align-items:flex-start; gap:.5rem;
+}
+.dark .jat-notes { background:rgba(55,65,81,.5); }
+.jat-notes svg { width:1rem; height:1rem; color:#6b7280; margin-top:.125rem; flex-shrink:0; }
+.jat-notes p { margin:0; font-size:.875rem; color:#374151; }
+.dark .jat-notes p { color:#d1d5db; }
+
+.jat-actions { display:flex; align-items:center; gap:.75rem; margin-top:1rem; flex-wrap:wrap; }
+.jat-btn-primary {
+    padding:.5rem 1rem; background:#2563eb; color:#fff; border:0; border-radius:.5rem;
+    font-size:.875rem; cursor:pointer; transition:background .15s;
+}
+.jat-btn-primary:hover { background:#1d4ed8; }
+.jat-btn-secondary {
+    padding:.5rem 1rem; background:transparent; color:#374151; border:1px solid #d1d5db;
+    border-radius:.5rem; font-size:.875rem; cursor:pointer; transition:background .15s;
+}
+.dark .jat-btn-secondary { color:#d1d5db; border-color:#4b5563; }
+.jat-btn-secondary:hover { background:#f9fafb; }
+.dark .jat-btn-secondary:hover { background:#374151; }
+.jat-btn-danger {
+    padding:.5rem; color:#dc2626; background:transparent; border:0; border-radius:.5rem; cursor:pointer;
+}
+.jat-btn-danger:hover { background:#fef2f2; }
+.dark .jat-btn-danger:hover { background:rgba(127,29,29,.2); }
+.jat-btn-danger svg { width:1rem; height:1rem; display:block; }
+
+.jat-empty {
+    text-align:center; padding:3rem 1.5rem; background:#fff; border-radius:.5rem;
+    border:1px solid #e5e7eb;
+}
+.dark .jat-empty { background:#1f2937; border-color:#374151; }
+.jat-empty svg { width:3rem; height:3rem; color:#9ca3af; margin:0 auto 0.75rem; }
+.jat-empty p { margin:0; color:#4b5563; }
+.dark .jat-empty p { color:#9ca3af; }
+
+/* Modals */
+.jat-modal { display:none; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,.4); backdrop-filter:blur(2px); }
+.jat-modal.is-open { display:flex; }
+.jat-modal-panel { background:#fff; border-radius:.75rem; width:100%; max-width:56rem; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,.25); }
+.dark .jat-modal-panel { background:#1f2937; }
+.jat-modal-sm { max-width:28rem; }
+.jat-modal-head { padding:1rem 1.5rem; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; background:#f7f8f9; flex-shrink:0; }
+.dark .jat-modal-head { background:#111827; border-color:#374151; }
+.jat-modal-head h3 { margin:0; font-size:1.125rem; font-weight:600; color:#111827; }
+.dark .jat-modal-head h3 { color:#fff; }
+.jat-modal-close { border:0; background:transparent; padding:.5rem; border-radius:.5rem; cursor:pointer; color:#6b7280; }
+.jat-modal-close:hover { background:#e5e7eb; }
+.dark .jat-modal-close:hover { background:#374151; }
+.jat-modal-body { padding:1.5rem; overflow-y:auto; flex:1; }
+.jat-modal-foot { padding:1rem 1.5rem; border-top:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:1rem; background:#f7f8f9; flex-shrink:0; }
+.dark .jat-modal-foot { background:#111827; border-color:#374151; }
+.jat-textarea {
+    width:100%; border:1px solid #d1d5db; border-radius:.5rem; padding:.75rem 1rem;
+    font-size:.875rem; resize:vertical; min-height:6rem; box-sizing:border-box;
+    background:#fff; color:#111827;
+}
+.dark .jat-textarea { background:#111827; border-color:#4b5563; color:#f9fafb; }
+.jat-textarea:focus { outline:none; box-shadow:0 0 0 2px rgba(37,99,235,.35); border-color:#2563eb; }
+</style>
+
+@include('partials.job-seeker-navbar')
+
+<main class="jat-main">
+    <div class="jat-wrap">
+        <div class="jat-stack">
+            {{-- Header + clickable status stats (Bolt lb) --}}
+            <div class="jat-panel">
+                <h2 class="jat-title">Job Applications Tracker</h2>
+                <div class="jat-stats" id="jat-stats">
+                    @foreach($statOrder as $label)
+                        @php $meta = $statusMeta[$label]; @endphp
+                        <button type="button" class="jat-stat" data-filter="{{ $label }}">
+                            <div class="jat-stat-top">
+                                @if($meta['icon'] === 'clock')
+                                    <svg style="color:{{ $meta['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                @elseif($meta['icon'] === 'eye')
+                                    <svg style="color:{{ $meta['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                @elseif($meta['icon'] === 'calendar')
+                                    <svg style="color:{{ $meta['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                @elseif($meta['icon'] === 'check')
+                                    <svg style="color:{{ $meta['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                @else
+                                    <svg style="color:{{ $meta['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                @endif
+                                <span class="jat-stat-label">{{ $label }}</span>
+                            </div>
+                            <p class="jat-stat-val" data-stat="{{ $label }}">{{ $stats[$label] ?? 0 }}</p>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Tabs --}}
+            <div class="jat-tabs">
+                <button type="button" class="jat-tab is-active" data-filter="all" onclick="jatSetFilter('all')">All Applications (<span id="jat-total">{{ $totalCount }}</span>)</button>
+                <button type="button" class="jat-tab" data-filter="Interview" onclick="jatSetFilter('Interview')">Interviews</button>
+                <button type="button" class="jat-tab" data-filter="Offered" onclick="jatSetFilter('Offered')">Offers</button>
+            </div>
+
+            {{-- Cards --}}
+            <div class="jat-list" id="jat-list">
+                @forelse($applications as $application)
+                    @php
+                        $job = $application->jobAdvertisement;
+                        $company = $job->company ?? null;
+                        $label = JobApplicationController::boltStatusLabel((string) $application->status);
+                        $meta = $statusMeta[$label];
+                        $companyName = $company->name ?? 'Unknown Company';
+                        $logoUrl = null;
+                        if ($company && $company->logo) {
+                            $logoUrl = $company->logo;
+                            if (!str_starts_with($logoUrl, 'http://') && !str_starts_with($logoUrl, 'https://')) {
+                                $logoUrl = asset('storage/' . $logoUrl);
                             }
-                                @endphp
-                        
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition application-card" data-status="{{ $application->status }}" data-filter="{{ $status['filter'] }}" data-search="{{ strtolower($job->title . ' ' . $companyName) }}">
-                            <div class="flex items-start gap-4">
-                                <!-- Company Logo -->
-                                <div class="flex-shrink-0">
-                                    @if($logoUrl)
-                                        <img src="{{ $logoUrl }}" alt="{{ $companyName }}" class="w-14 h-14 rounded-lg object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center\'><span class=\'text-lg font-semibold text-gray-600\'>{{ substr($companyName, 0, 1) }}</span></div>';">
-                                            @else
-                                        <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center">
-                                            <span class="text-lg font-semibold text-gray-600">{{ substr($companyName, 0, 1) }}</span>
-                                                </div>
-                                            @endif
+                        }
+                        $info = is_array($application->additional_info) ? $application->additional_info : [];
+                        $salaryOffered = $info['salary_offered'] ?? null;
+                        if (!$salaryOffered && $label === 'Offered' && $job && ($job->salary_min || $job->salary_max)) {
+                            $min = $job->salary_min ? number_format((float) $job->salary_min) : null;
+                            $max = $job->salary_max ? number_format((float) $job->salary_max) : null;
+                            if ($min && $max) {
+                                $salaryOffered = 'SCR ' . $min . ' – ' . $max;
+                            } elseif ($min || $max) {
+                                $salaryOffered = 'SCR ' . ($min ?: $max);
+                            }
+                        }
+                        $initial = strtoupper(substr($companyName, 0, 1));
+                    @endphp
+                    <div class="jat-card application-card"
+                         data-id="{{ $application->id }}"
+                         data-status="{{ $label }}"
+                         data-raw-status="{{ $application->status }}"
+                         data-notes="{{ e($application->notes ?? '') }}">
+                        <div class="jat-card-row">
+                            @if($logoUrl)
+                                <img src="{{ $logoUrl }}" alt="{{ $companyName }}" class="jat-logo" onerror="this.onerror=null;this.outerHTML='<div class=\'jat-logo-fallback\'>{{ $initial }}</div>';">
+                            @else
+                                <div class="jat-logo-fallback">{{ $initial }}</div>
+                            @endif
+
+                            <div class="jat-body">
+                                <div class="jat-head">
+                                    <div style="min-width:0;flex:1;">
+                                        <h3 class="jat-job">{{ $job->title ?? 'Job' }}</h3>
+                                        <p class="jat-co">{{ $companyName }}</p>
+                                    </div>
+                                    <span class="jat-badge" style="background:{{ $meta['bg'] }};color:{{ $meta['color'] }};">
+                                        @if($meta['icon'] === 'clock')
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @elseif($meta['icon'] === 'eye')
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        @elseif($meta['icon'] === 'calendar')
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        @elseif($meta['icon'] === 'check')
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @else
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @endif
+                                        {{ $label }}
+                                    </span>
                                 </div>
 
-                                <!-- Application Details -->
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex-1 min-w-0">
-                                            <h3 class="text-base font-bold text-gray-900 mb-1">{{ $job->title }}</h3>
-                                            <p class="text-sm text-gray-600">{{ $companyName }}</p>
-                                        </div>
-                                        <span class="ml-4 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap {{ $status['color'] }}">
-                                            <svg class="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                @if(in_array($application->status, ['shortlisted', 'interview_requested']))
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                @elseif($application->status === 'reviewing')
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                @elseif($application->status === 'hired')
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                @elseif($application->status === 'rejected')
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                @else
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                @endif
-                                            </svg>
-                                            {{ $status['label'] }}
-                                        </span>
+                                <div class="jat-meta">
+                                    <div class="jat-meta-item">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span>Applied: {{ $application->created_at->format('M j, Y') }}</span>
                                     </div>
+                                    <div class="jat-meta-item">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>Updated: {{ $application->updated_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
 
-                                    <div class="flex items-center gap-8 text-sm text-gray-600 mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            <span class="text-gray-700">Applied: {{ $application->created_at->format('M j, Y') }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                            <span class="text-gray-700">Updated: {{ $application->updated_at->diffForHumans() }}</span>
+                                @if($application->interview_scheduled_at)
+                                    <div class="jat-callout jat-callout-interview">
+                                        <div class="jat-callout-inner">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            Interview Scheduled: {{ $application->interview_scheduled_at->format('M j, Y \a\t g:i A') }}
                                         </div>
                                     </div>
+                                @endif
 
-                                    @if($application->interview_scheduled_at)
-                                        <div class="bg-purple-50 border border-purple-200 rounded-md px-3 py-2.5 mb-3">
-                                            <div class="flex items-center gap-2">
-                                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                <span class="text-sm text-purple-900">Interview Scheduled: {{ \Carbon\Carbon::parse($application->interview_scheduled_at)->format('M j, Y \a\t g:i A') }}</span>
-                                            </div>
+                                @if($salaryOffered)
+                                    <div class="jat-callout jat-callout-offer">
+                                        <div class="jat-callout-inner">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Salary Offered: {{ $salaryOffered }}
                                         </div>
-                                    @endif
+                                    </div>
+                                @endif
 
-                                    @if($application->notes)
-                                        <div class="flex items-start gap-2 text-sm text-gray-700 mb-3 application-notes" data-application-id="{{ $application->id }}">
-                                            <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                            <span class="text-gray-700">{{ $application->notes }}</span>
-                                        </div>
-                                    @endif
+                                <div class="jat-notes application-notes" data-application-id="{{ $application->id }}" @if(!($application->notes)) style="display:none;" @endif>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <p class="jat-note-text">{{ $application->notes }}</p>
+                                </div>
 
-                                    <div class="flex items-center gap-3">
-                                        <button type="button" onclick="openApplicationModal({{ $application->id }})" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-md text-sm font-medium hover:from-blue-600 hover:to-cyan-500 shadow-md transition">View Details</button>
-                                        <button type="button" onclick="openAddNoteModal({{ $application->id }})" class="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition">Add Note</button>
-                                        <button type="button" onclick="confirmDelete({{ $application->id }})" class="p-2 text-red-600 hover:bg-red-50 rounded-md transition">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <div class="jat-actions">
+                                    <button type="button" class="jat-btn-primary" onclick="jatOpenDetails({{ $application->id }})">View Details</button>
+                                    <button type="button" class="jat-btn-secondary" onclick="jatOpenNote({{ $application->id }})">Add Note</button>
+                                    @if($label !== 'Rejected')
+                                        <button type="button" class="jat-btn-danger" title="Withdraw application" onclick="jatConfirmDelete({{ $application->id }})" aria-label="Withdraw">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
-                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-                            @empty
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                        <h3 class="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
-                            <p class="text-gray-500 mb-6">You haven't applied to any jobs yet.</p>
-                            <a href="/jobs" wire:navigate class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">Browse Jobs</a>
-                        </div>
-                            @endforelse
-                </div>
-
-                <!-- Pagination -->
-                @if($applications->hasPages())
-                    <div class="mt-8">
-                        {{ $applications->links() }}
                     </div>
-                @endif
+                @empty
+                    <div class="jat-empty" id="jat-empty-all">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p>You haven't applied to any jobs yet.</p>
+                        <p style="margin-top:1rem;"><a href="{{ url('/jobs') }}" class="jat-btn-primary" style="display:inline-block;text-decoration:none;">Browse Jobs</a></p>
+                    </div>
+                @endforelse
             </div>
-        </main>
+
+            <div class="jat-empty" id="jat-empty-filter" style="display:none;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p>No applications found with this filter.</p>
+            </div>
+        </div>
     </div>
+</main>
 
-<!-- Application Detail Modal (matches employer Applicant Profile design) -->
-<div id="applicationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
-    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
-        <!-- Modal Header -->
-        <div class="px-6 py-4 flex justify-between items-center flex-shrink-0 border-b border-gray-200" style="background-color: #F7F8F9;">
-            <h3 class="text-xl font-semibold text-gray-900">Application Details</h3>
-            <div class="flex items-center space-x-3">
-                <button type="button" onclick="closeApplicationModal()" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition" title="Close">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Modal Body -->
-        <div id="applicationModalContent" class="p-6 overflow-y-auto flex-1 bg-white">
-            <div class="text-center py-8">
-                <div class="spinner mx-auto mb-4"></div>
-                <p class="text-gray-500">Loading application details...</p>
-            </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div id="applicationModalFooter" class="border-t border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0" style="display: none; background-color: #F7F8F9;">
-            <button type="button" onclick="closeApplicationModal()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
-                Close
+{{-- Detail modal --}}
+<div id="jat-detail-modal" class="jat-modal" role="dialog" aria-modal="true">
+    <div class="jat-modal-panel">
+        <div class="jat-modal-head">
+            <h3>Application Details</h3>
+            <button type="button" class="jat-modal-close" onclick="jatCloseDetails()" aria-label="Close">
+                <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
-            <div class="flex items-center space-x-3">
-                <a id="jsAppModalViewJob" href="#" target="_blank" class="inline-flex items-center px-5 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition font-medium text-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-                    View Job Posting
-                </a>
-                <button type="button" id="jsAppModalWithdraw" class="px-5 py-2.5 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition font-medium text-sm">
-                    Withdraw
-                </button>
+        </div>
+        <div id="jat-detail-body" class="jat-modal-body">
+            <p style="text-align:center;color:#6b7280;">Loading…</p>
+        </div>
+        <div class="jat-modal-foot">
+            <button type="button" class="jat-btn-secondary" onclick="jatCloseDetails()">Close</button>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                <a id="jat-view-job" href="#" target="_blank" class="jat-btn-primary" style="text-decoration:none;">View Job Posting</a>
+                <button type="button" id="jat-withdraw-btn" class="jat-btn-secondary" style="color:#dc2626;border-color:#fca5a5;" onclick="jatWithdrawFromModal()">Withdraw</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Decline Interview Modal -->
-<div id="jsDeclineInterviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-2">Decline interview</h2>
-        <p class="text-sm text-gray-600 mb-4">You can optionally share a short reason with the employer.</p>
-        <form id="jsDeclineInterviewForm" onsubmit="submitDeclineInterview(event)">
-            <input type="hidden" id="jsDeclineAppId" value="">
-            <textarea id="jsDeclineReason" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Reason for declining (optional)"></textarea>
-            <div class="mt-4 flex items-center justify-end gap-3">
-                <button type="button" onclick="closeDeclineModal()" class="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="submit" id="jsDeclineSubmitBtn" class="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md flex items-center gap-2">
-                    Submit
-                </button>
+{{-- Note modal --}}
+<div id="jat-note-modal" class="jat-modal" role="dialog" aria-modal="true">
+    <div class="jat-modal-panel jat-modal-sm">
+        <div class="jat-modal-head">
+            <h3>Add Note</h3>
+            <button type="button" class="jat-modal-close" onclick="jatCloseNote()" aria-label="Close">
+                <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="jat-modal-body">
+            <textarea id="jat-note-text" class="jat-textarea" placeholder="Add your note here…"></textarea>
+            <div style="display:flex;gap:.75rem;margin-top:1rem;">
+                <button type="button" id="jat-save-note" class="jat-btn-primary" style="flex:1;" onclick="jatSaveNote()">Save Note</button>
+                <button type="button" class="jat-btn-secondary" onclick="jatCloseNote()">Cancel</button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- Add Note Modal -->
-<div id="addNoteModal" class="hidden fixed inset-0 bg-transparent h-full w-full z-50 flex items-center justify-center p-4">
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md">
-        <!-- Modal Header -->
-        <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-lg">
-            <h3 class="text-lg font-bold text-gray-900">Add Note</h3>
-            <button onclick="closeAddNoteModal()" class="text-gray-400 hover:text-gray-600 transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+{{-- Delete confirm --}}
+<div id="jat-delete-modal" class="jat-modal" role="dialog" aria-modal="true">
+    <div class="jat-modal-panel jat-modal-sm">
+        <div class="jat-modal-head">
+            <h3>Withdraw application?</h3>
+            <button type="button" class="jat-modal-close" onclick="jatCloseDelete()" aria-label="Close">
+                <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
+        <div class="jat-modal-body">
+            <p style="margin:0;color:#4b5563;font-size:.875rem;">This will remove the application from your tracker. This cannot be undone.</p>
+            <div style="display:flex;gap:.75rem;margin-top:1.25rem;justify-content:flex-end;">
+                <button type="button" class="jat-btn-secondary" onclick="jatCloseDelete()">Cancel</button>
+                <button type="button" id="jat-delete-confirm" class="jat-btn-primary" style="background:#dc2626;" onclick="jatDeleteNow()">Withdraw</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        <!-- Modal Content -->
-        <div class="p-6">
-            <textarea id="noteText" rows="4" placeholder="Add your note here..." 
-                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-            <div class="flex gap-3 mt-4">
-                <button id="saveNoteBtn" onclick="saveNote()" class="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium flex items-center justify-center gap-2">
-                    <span id="saveNoteText">Save Note</span>
-                    <div id="saveNoteSpinner" class="hidden">
-                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </div>
-                </button>
-                <button onclick="closeAddNoteModal()" class="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
-                    Cancel
-                </button>
+{{-- Decline interview --}}
+<div id="jat-decline-modal" class="jat-modal" role="dialog" aria-modal="true">
+    <div class="jat-modal-panel jat-modal-sm">
+        <div class="jat-modal-head">
+            <h3>Decline interview</h3>
+            <button type="button" class="jat-modal-close" onclick="jatCloseDecline()" aria-label="Close">
+                <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="jat-modal-body">
+            <p style="margin:0 0 .75rem;font-size:.875rem;color:#4b5563;">Optionally share a short reason with the employer.</p>
+            <textarea id="jat-decline-reason" class="jat-textarea" placeholder="Reason (optional)"></textarea>
+            <div style="display:flex;gap:.75rem;margin-top:1rem;justify-content:flex-end;">
+                <button type="button" class="jat-btn-secondary" onclick="jatCloseDecline()">Cancel</button>
+                <button type="button" class="jat-btn-primary" onclick="jatSubmitDecline()">Submit</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-let currentApplicationId = null;
+(function () {
+    var currentFilter = 'all';
+    var noteAppId = null;
+    var deleteAppId = null;
+    var detailAppId = null;
+    var declineAppId = null;
+    var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-// Tab filtering
-document.querySelectorAll('.status-tab-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        setActiveTab(this);
-        filterApplications(this.dataset.filter);
-    });
-});
+    function toastOk(msg) {
+        if (typeof window.showSuccessToast === 'function') window.showSuccessToast(msg);
+        else alert(msg);
+    }
+    function toastErr(msg) {
+        if (typeof window.showErrorToast === 'function') window.showErrorToast(msg);
+        else alert(msg);
+    }
 
-function setActiveTab(activeBtn) {
-    document.querySelectorAll('.status-tab-btn').forEach(btn => {
-        btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-cyan-400', 'text-white', 'shadow-md');
-        btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200', 'hover:bg-gray-50');
-    });
-    activeBtn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200', 'hover:bg-gray-50');
-    activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-cyan-400', 'text-white', 'shadow-md');
-}
-
-function filterApplications(filter) {
-    const cards = document.querySelectorAll('.application-card');
-    cards.forEach(card => {
-        if (filter === 'all' || card.dataset.filter === filter) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
+    window.jatSetFilter = function (filter, allowToggle) {
+        if (allowToggle && filter !== 'all' && currentFilter === filter) {
+            filter = 'all';
         }
-    });
-}
+        currentFilter = filter;
 
-    function openApplicationModal(applicationId) {
-        const modal = document.getElementById('applicationModal');
-        const content = document.getElementById('applicationModalContent');
-        
-        modal.classList.remove('hidden');
-        
-        // Show loading state
-        content.innerHTML = `
-            <div class="text-center py-8">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p class="text-gray-500 mt-4">Loading application details...</p>
-            </div>
-        `;
-        
-        // Fetch application details
-        fetch(`/job-seeker/applications/${applicationId}`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.application) {
-                populateApplicationModal(data.application);
-            } else {
-                content.innerHTML = '<div class="text-red-600">Failed to load application details.</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            content.innerHTML = '<div class="text-red-600">An error occurred while loading the application.</div>';
+        document.querySelectorAll('.jat-stat').forEach(function (el) {
+            el.classList.toggle('is-active', filter !== 'all' && el.dataset.filter === filter);
         });
-    }
-
-    function populateApplicationModal(application) {
-        const content = document.getElementById('applicationModalContent');
-        
-    const statusConfig = {
-        'pending': { label: 'Pending', color: 'bg-blue-100 text-blue-700' },
-        'reviewing': { label: 'In Review', color: 'bg-yellow-100 text-yellow-800' },
-        'shortlisted': { label: 'Shortlisted', color: 'bg-purple-100 text-purple-700' },
-        'interview_requested': { label: 'Interview', color: 'bg-indigo-100 text-indigo-700' },
-        'rejected': { label: 'Rejected', color: 'bg-red-100 text-red-700' },
-        'hired': { label: 'Hired', color: 'bg-green-100 text-green-700' },
-    };
-    const status = statusConfig[application.status] || statusConfig['pending'];
-
-    const job = application.job_advertisement || {};
-    const company = job.company || {};
-    let companyLogo = null;
-    if (company.logo) {
-        companyLogo = company.logo.startsWith('http') ? company.logo : `{{ asset('storage/') }}/${company.logo}`;
-    }
-    const companyInitial = (company.name || 'C').charAt(0).toUpperCase();
-    const appliedDate = new Date(application.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    // Interview section
-    const hasInterview = !!application.interview_scheduled_at;
-    const interviewStatus = application.interview_status || 'pending';
-    const interviewDate = hasInterview ? new Date(application.interview_scheduled_at).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
-    const interviewBadgeClasses = {
-            'pending': 'bg-yellow-100 text-yellow-800',
-        'accepted': 'bg-emerald-100 text-emerald-800',
-        'declined': 'bg-red-100 text-red-800',
-    };
-    const interviewBadgeText = {
-        'pending': 'Waiting for your response',
-        'accepted': 'You accepted',
-        'declined': 'You declined',
-    };
-
-        content.innerHTML = `
-        <div class="space-y-6 text-gray-800">
-            <!-- Summary Card (employer Applicant Profile style) -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                <div class="flex items-start gap-5">
-                    <div class="flex-shrink-0">
-                        ${companyLogo
-                            ? `<img src="${companyLogo}" alt="${company.name}" class="w-[72px] h-[72px] rounded-xl object-cover border border-gray-200" onerror="this.onerror=null;this.outerHTML='<div style=\\'width:72px;height:72px\\' class=\\'rounded-xl flex items-center justify-center bg-gray-100 border border-gray-200 text-gray-400 font-bold text-2xl\\'>${companyInitial}</div>';">`
-                            : `<div style="width:72px;height:72px" class="rounded-xl flex items-center justify-center bg-gray-100 border border-gray-200 text-gray-400 font-bold text-2xl">${companyInitial}</div>`
-                        }
-                                </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <h4 class="text-[22px] font-bold text-gray-900 leading-tight">${job.title || 'Job Title'}</h4>
-                                <p class="text-sm text-gray-500 mt-1">${company.name || 'Company'}</p>
-                            </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold ${status.color} whitespace-nowrap">${status.label}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-x-12 gap-y-2.5 mt-4 text-sm text-gray-700">
-                            ${job.location ? `<div class="flex items-center gap-2.5"><svg class="w-[18px] h-[18px] text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>${job.location}</div>` : ''}
-                            ${job.employment_type ? `<div class="flex items-center gap-2.5"><svg class="w-[18px] h-[18px] text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>${job.employment_type}</div>` : ''}
-                            ${(job.salary_min || job.salary_max) ? `<div class="flex items-center gap-2.5"><svg class="w-[18px] h-[18px] text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>SCR ${(job.salary_min || 0).toLocaleString()} – ${(job.salary_max || 0).toLocaleString()}</div>` : ''}
-                            ${job.category ? `<div class="flex items-center gap-2.5"><svg class="w-[18px] h-[18px] text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>${job.category.name}</div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                        </div>
-                        
-            <!-- Applied On -->
-            <div class="flex flex-wrap items-center gap-4 bg-blue-50 rounded-xl px-4 py-3 border border-blue-100">
-                <div class="flex items-center gap-2 text-gray-700">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                    <span class="text-sm font-medium">Applied on ${appliedDate}</span>
-                            </div>
-                        </div>
-                        
-            ${hasInterview ? `
-            <!-- Interview Details -->
-            <div class="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-4">
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <div class="flex items-center gap-2 text-indigo-800">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span class="text-sm font-semibold">Interview Scheduled</span>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${interviewBadgeClasses[interviewStatus] || 'bg-indigo-100 text-indigo-800'}">${interviewBadgeText[interviewStatus] || 'Scheduled'}</span>
-                </div>
-                <div class="text-sm text-indigo-900 space-y-1">
-                    <div><span class="font-medium">Date &amp; Time:</span> ${interviewDate}</div>
-                    ${application.interview_location ? `<div><span class="font-medium">Location:</span> ${application.interview_location}</div>` : ''}
-                    ${application.interview_notes ? `<div><span class="font-medium">Notes:</span> ${application.interview_notes}</div>` : ''}
-                    ${interviewStatus === 'declined' && application.interview_response_reason ? `<div class="mt-1 text-xs text-red-800"><span class="font-medium">Your reason:</span> ${application.interview_response_reason}</div>` : ''}
-                        </div>
-                ${interviewStatus === 'pending' ? `
-                <div class="flex items-center gap-2 mt-4">
-                    <button onclick="jsRespondInterview(${application.id}, 'accepted')" class="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Accept Interview</button>
-                    <button onclick="jsOpenDeclineModal(${application.id})" class="px-5 py-2 text-sm font-semibold border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition">Decline</button>
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
-
-                <!-- Job Description -->
-                ${job.description ? `
-                    <div class="border-b border-gray-200 pb-6">
-                <h5 class="flex items-center gap-2 text-lg font-bold text-gray-900 mb-3">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                    Job Description
-                </h5>
-                <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${job.description}</p>
-                    </div>
-                ` : ''}
-
-                <!-- Cover Letter -->
-                ${application.cover_letter ? `
-                    <div class="border-b border-gray-200 pb-6">
-                <h5 class="flex items-center gap-2 text-lg font-bold text-gray-900 mb-3">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
-                    Your Cover Letter
-                </h5>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${application.cover_letter}</div>
-                    </div>
-                ` : ''}
-
-            <!-- Your Note -->
-            ${application.notes ? `
-            <div class="application-note-detail border-b border-gray-200 pb-6">
-                <h5 class="flex items-center gap-2 text-lg font-bold text-gray-900 mb-3">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                    Your Note
-                </h5>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">${application.notes}</div>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-
-    // Wire footer
-    const footer = document.getElementById('applicationModalFooter');
-    if (footer) footer.style.display = 'flex';
-    const viewJobLink = document.getElementById('jsAppModalViewJob');
-    if (viewJobLink && job.id) viewJobLink.href = '/jobs/' + job.id;
-    const withdrawBtn = document.getElementById('jsAppModalWithdraw');
-    if (withdrawBtn) {
-        withdrawBtn.onclick = function() { withdrawApplication(application.id, application.status); };
-    }
-    }
-
-    function closeApplicationModal() {
-        document.getElementById('applicationModal').classList.add('hidden');
-    const footer = document.getElementById('applicationModalFooter');
-    if (footer) footer.style.display = 'none';
-}
-
-// Interview response functions
-function jsRespondInterview(applicationId, response) {
-    sendJsInterviewResponse(applicationId, response, '');
-}
-
-function jsOpenDeclineModal(applicationId) {
-    document.getElementById('jsDeclineAppId').value = applicationId;
-    document.getElementById('jsDeclineReason').value = '';
-    document.getElementById('jsDeclineInterviewModal').classList.remove('hidden');
-}
-
-function closeDeclineModal() {
-    document.getElementById('jsDeclineInterviewModal').classList.add('hidden');
-}
-
-function submitDeclineInterview(e) {
-    e.preventDefault();
-    const appId = document.getElementById('jsDeclineAppId').value;
-    const reason = document.getElementById('jsDeclineReason').value;
-    sendJsInterviewResponse(appId, 'declined', reason);
-}
-
-function sendJsInterviewResponse(applicationId, response, reason) {
-    const btn = response === 'declined' ? document.getElementById('jsDeclineSubmitBtn') : null;
-    const orig = btn ? btn.innerHTML : '';
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-sm inline-block mr-2 align-middle"></span><span>Sending...</span>'; }
-
-    fetch(`/job-seeker/applications/${applicationId}/interview-response`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ response: response, reason: reason || '' })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
-        if (data.application) {
-            closeDeclineModal();
-            if (typeof window.showSuccessToast === 'function') window.showSuccessToast(response === 'accepted' ? 'Interview accepted!' : 'Interview declined.');
-            // Re-fetch and refresh modal
-            openApplicationModal(applicationId);
-        } else {
-            if (typeof window.showErrorToast === 'function') window.showErrorToast(data.message || 'Failed to respond');
-        }
-    })
-    .catch(err => {
-        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
-        console.error(err);
-        if (typeof window.showErrorToast === 'function') window.showErrorToast('An error occurred.');
-    });
-}
-
-function openAddNoteModal(applicationId) {
-    currentApplicationId = applicationId;
-    
-    // Find existing note in the card
-    const cards = document.querySelectorAll('.application-card');
-    let existingNote = '';
-    
-    cards.forEach(card => {
-        const viewBtn = card.querySelector(`button[onclick*="openApplicationModal(${applicationId})"]`);
-        if (viewBtn) {
-            const notesSection = card.querySelector(`.application-notes[data-application-id="${applicationId}"]`);
-            if (notesSection) {
-                const noteSpan = notesSection.querySelector('span');
-                if (noteSpan) {
-                    existingNote = noteSpan.textContent.trim();
-                }
-            }
-        }
-    });
-    
-    document.getElementById('addNoteModal').classList.remove('hidden');
-    document.getElementById('noteText').value = existingNote;
-    document.getElementById('noteText').focus();
-}
-
-function closeAddNoteModal() {
-    document.getElementById('addNoteModal').classList.add('hidden');
-    currentApplicationId = null;
-    // Reset button state
-    const saveBtn = document.getElementById('saveNoteBtn');
-    const saveText = document.getElementById('saveNoteText');
-    const saveSpinner = document.getElementById('saveNoteSpinner');
-    if (saveBtn) {
-        saveBtn.disabled = false;
-        saveText.classList.remove('hidden');
-        saveSpinner.classList.add('hidden');
-    }
-}
-
-function saveNote() {
-    const noteText = document.getElementById('noteText').value;
-    const saveBtn = document.getElementById('saveNoteBtn');
-    const saveText = document.getElementById('saveNoteText');
-    const saveSpinner = document.getElementById('saveNoteSpinner');
-    
-    if (!noteText.trim()) {
-        if (typeof window.showWarningToast === 'function') {
-            window.showWarningToast('Please enter a note');
-        } else {
-            alert('Please enter a note');
-        }
-        return;
-    }
-    
-    // Show loading state
-    saveBtn.disabled = true;
-    saveText.classList.add('hidden');
-    saveSpinner.classList.remove('hidden');
-    
-    fetch(`/job-seeker/applications/${currentApplicationId}/note`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ note: noteText })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            if (typeof window.showSuccessToast === 'function') {
-                window.showSuccessToast('Note saved successfully');
-            }
-            closeAddNoteModal();
-            // Update the note in real time without page reload
-            updateNoteInCard(currentApplicationId, noteText);
-            // Update note in detail modal if it's open
-            updateNoteInDetailModal(currentApplicationId, noteText);
-        } else {
-            if (typeof window.showErrorToast === 'function') {
-                window.showErrorToast('Failed to save note');
-            } else {
-                alert('Failed to save note');
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        if (typeof window.showErrorToast === 'function') {
-            window.showErrorToast('An error occurred while saving the note.');
-        } else {
-            alert('An error occurred while saving the note.');
-        }
-    })
-    .finally(() => {
-        // Hide loading state
-        saveBtn.disabled = false;
-        saveText.classList.remove('hidden');
-        saveSpinner.classList.add('hidden');
-    });
-}
-
-function updateNoteInDetailModal(applicationId, noteText) {
-    const modal = document.getElementById('applicationModal');
-    if (modal && !modal.classList.contains('hidden')) {
-        const modalContent = document.getElementById('applicationModalContent');
-        if (modalContent) {
-            let notesSection = modalContent.querySelector('.application-note-detail');
-            if (!notesSection) {
-                const spaceDiv = modalContent.querySelector('.space-y-6');
-                if (spaceDiv) {
-                    notesSection = document.createElement('div');
-                    notesSection.className = 'application-note-detail border-b border-gray-200 pb-6';
-                    notesSection.innerHTML = `
-                        <h5 class="flex items-center gap-2 text-lg font-bold text-gray-900 mb-3">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                            Your Note
-                        </h5>
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">${noteText}</div>
-                    `;
-                    spaceDiv.appendChild(notesSection);
-                }
-            } else {
-                const noteDiv = notesSection.querySelector('.bg-gray-50');
-                if (noteDiv) noteDiv.textContent = noteText;
-            }
-        }
-    }
-}
-
-function updateNoteInCard(applicationId, noteText) {
-    // Find the card for this application by looking for the button with the application ID
-    const cards = document.querySelectorAll('.application-card');
-    let targetCard = null;
-    
-    cards.forEach(card => {
-        const viewBtn = card.querySelector(`button[onclick*="openApplicationModal(${applicationId})"]`);
-        const deleteBtn = card.querySelector(`button[onclick*="confirmDelete(${applicationId})"]`);
-        if (viewBtn || deleteBtn) {
-            targetCard = card;
-        }
-    });
-    
-    if (targetCard) {
-        updateNoteInCardElement(targetCard, noteText, applicationId);
-    }
-}
-
-function updateNoteInCardElement(card, noteText, applicationId) {
-    // Find or create the notes section
-    let notesSection = card.querySelector(`.application-notes[data-application-id="${applicationId}"]`);
-    
-    if (!notesSection) {
-        // Find the interview scheduled section or dates section to insert after
-        let insertAfter = card.querySelector('.bg-purple-50');
-        if (!insertAfter) {
-            insertAfter = card.querySelector('.flex.items-center.gap-8');
-        }
-        
-        if (insertAfter && insertAfter.parentElement) {
-            notesSection = document.createElement('div');
-            notesSection.className = 'flex items-start gap-2 text-sm text-gray-700 mb-3 application-notes';
-            notesSection.setAttribute('data-application-id', applicationId);
-            notesSection.innerHTML = `
-                <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <span class="text-gray-700">${noteText}</span>
-            `;
-            insertAfter.parentElement.insertBefore(notesSection, insertAfter.nextSibling);
-        }
-    } else {
-        // Update existing notes
-        const noteTextSpan = notesSection.querySelector('span');
-        if (noteTextSpan) {
-            noteTextSpan.textContent = noteText;
-        }
-    }
-}
-
-function confirmDelete(applicationId) {
-    // Show confirmation toast
-    if (typeof window.showWarningToast === 'function') {
-        window.showWarningToast('Deleting application...', 2000);
-    }
-    
-    // Small delay to show the toast, then proceed with deletion
-    setTimeout(() => {
-        // First fetch the application to check its status
-        fetch(`/job-seeker/applications/${applicationId}`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.application) {
-                withdrawApplication(applicationId, data.application.status);
-            } else {
-                if (typeof window.showErrorToast === 'function') {
-                    window.showErrorToast('Failed to load application details');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            if (typeof window.showErrorToast === 'function') {
-                window.showErrorToast('An error occurred while checking application status.');
-            }
+        document.querySelectorAll('.jat-tab').forEach(function (el) {
+            var isAll = filter === 'all' && el.dataset.filter === 'all';
+            el.classList.toggle('is-active', isAll || el.dataset.filter === filter);
         });
-    }, 500);
-}
 
-function withdrawApplication(applicationId, currentStatus) {
-    // Check if status has been changed by employer
-    // Only allow withdrawal if status is 'pending' or 'reviewing'
-    // If status is 'shortlisted', 'hired', or 'rejected', employer has already acted
-    const withdrawableStatuses = ['pending', 'reviewing', 'interview_requested'];
-    
-    if (!withdrawableStatuses.includes(currentStatus)) {
-        if (typeof window.showErrorToast === 'function') {
-            window.showErrorToast('Cannot withdraw application. The employer has already reviewed your application.');
-        } else {
-            alert('Cannot withdraw application. The employer has already reviewed your application.');
+        var visible = 0;
+        document.querySelectorAll('.application-card').forEach(function (card) {
+            var show = filter === 'all' || card.dataset.status === filter;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        var emptyFilter = document.getElementById('jat-empty-filter');
+        var hasAny = document.querySelectorAll('.application-card').length > 0;
+        if (emptyFilter) {
+            emptyFilter.style.display = (hasAny && visible === 0) ? '' : 'none';
         }
-        return;
-    }
-    
-    fetch(`/job-seeker/applications/${applicationId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            if (typeof window.showSuccessToast === 'function') {
-                window.showSuccessToast('Application withdrawn successfully');
-            }
-            closeApplicationModal();
-            // Remove the card in real time without page reload
-            removeApplicationCard(applicationId);
-        } else {
-            if (typeof window.showErrorToast === 'function') {
-                window.showErrorToast(data.error || 'Failed to withdraw application');
-            } else {
-                alert(data.error || 'Failed to withdraw application');
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        if (typeof window.showErrorToast === 'function') {
-            window.showErrorToast('An error occurred while withdrawing the application.');
-        } else {
-            alert('An error occurred while withdrawing the application.');
-        }
+    };
+
+    // Stat cards toggle filter on / off (Bolt behavior)
+    document.querySelectorAll('.jat-stat').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            jatSetFilter(btn.dataset.filter, true);
+        });
+        btn.removeAttribute('onclick');
     });
-}
 
-function removeApplicationCard(applicationId) {
-    // Find the card for this application
-    const cards = document.querySelectorAll('.application-card');
-    cards.forEach(card => {
-        const viewBtn = card.querySelector(`button[onclick*="openApplicationModal(${applicationId})"]`);
-        const deleteBtn = card.querySelector(`button[onclick*="confirmDelete(${applicationId})"]`);
-        if (viewBtn || deleteBtn) {
-            // Animate out
-            card.style.transition = 'opacity 0.3s, transform 0.3s';
-            card.style.opacity = '0';
-            card.style.transform = 'translateX(-20px)';
-            setTimeout(() => {
+    window.jatOpenDetails = function (id) {
+        detailAppId = id;
+        var modal = document.getElementById('jat-detail-modal');
+        var body = document.getElementById('jat-detail-body');
+        modal.classList.add('is-open');
+        body.innerHTML = '<p style="text-align:center;color:#6b7280;">Loading…</p>';
+
+        fetch('/job-seeker/applications/' + id, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.application) {
+                body.innerHTML = '<p style="color:#dc2626;">Failed to load application details.</p>';
+                return;
+            }
+            jatRenderDetails(data.application);
+        })
+        .catch(function () {
+            body.innerHTML = '<p style="color:#dc2626;">An error occurred while loading the application.</p>';
+        });
+    };
+
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function jatRenderDetails(app) {
+        var body = document.getElementById('jat-detail-body');
+        var job = app.job_advertisement || {};
+        var company = job.company || {};
+        var statusMap = {
+            applied: 'Applied', pending: 'Applied', reviewing: 'In Review', in_review: 'In Review',
+            interview: 'Interview', shortlisted: 'Interview', interview_requested: 'Interview',
+            offered: 'Offered', hired: 'Offered', rejected: 'Rejected'
+        };
+        var label = statusMap[app.status] || 'Applied';
+        var applied = app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        var hasInterview = !!app.interview_scheduled_at;
+        var interviewDate = hasInterview ? new Date(app.interview_scheduled_at).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+        var iStatus = app.interview_status || 'pending';
+        var info = app.additional_info || {};
+        var salary = info.salary_offered || '';
+
+        body.innerHTML =
+            '<div style="display:flex;flex-direction:column;gap:1.25rem;">' +
+            '<div style="border:1px solid #e5e7eb;border-radius:.75rem;padding:1.25rem;">' +
+            '<div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;">' +
+            '<div><h4 style="margin:0;font-size:1.25rem;font-weight:700;color:#111827;">' + esc(job.title || 'Job') + '</h4>' +
+            '<p style="margin:.25rem 0 0;color:#6b7280;">' + esc(company.name || 'Company') + '</p></div>' +
+            '<span style="padding:.25rem .75rem;border-radius:9999px;font-size:.75rem;font-weight:600;background:#eff6ff;color:#2563eb;">' + esc(label) + '</span>' +
+            '</div>' +
+            '<p style="margin:.75rem 0 0;font-size:.875rem;color:#4b5563;">Applied on ' + esc(applied) + '</p>' +
+            '</div>' +
+            (hasInterview ? (
+                '<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:.75rem;padding:1rem;">' +
+                '<div style="font-weight:600;color:#3730a3;margin-bottom:.5rem;">Interview Scheduled — ' + esc(interviewDate) + '</div>' +
+                (app.interview_location ? '<div style="font-size:.875rem;color:#312e81;">Location: ' + esc(app.interview_location) + '</div>' : '') +
+                (app.interview_notes ? '<div style="font-size:.875rem;color:#312e81;margin-top:.25rem;">Notes: ' + esc(app.interview_notes) + '</div>' : '') +
+                (iStatus === 'pending' ? (
+                    '<div style="display:flex;gap:.5rem;margin-top:.75rem;">' +
+                    '<button type="button" class="jat-btn-primary" onclick="jatRespondInterview(' + app.id + ',\'accepted\')">Accept Interview</button>' +
+                    '<button type="button" class="jat-btn-secondary" style="color:#dc2626;border-color:#fca5a5;" onclick="jatOpenDecline(' + app.id + ')">Decline</button>' +
+                    '</div>'
+                ) : ('<div style="margin-top:.5rem;font-size:.875rem;font-weight:500;">You ' + esc(iStatus) + ' this interview.</div>')) +
+                '</div>'
+            ) : '') +
+            (salary ? '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.75rem;padding:1rem;color:#14532d;font-weight:500;font-size:.875rem;">Salary Offered: ' + esc(salary) + '</div>' : '') +
+            (app.cover_letter ? (
+                '<div><h5 style="margin:0 0 .5rem;font-size:1rem;font-weight:700;">Your Cover Letter</h5>' +
+                '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:.5rem;padding:1rem;font-size:.875rem;white-space:pre-wrap;">' + esc(app.cover_letter) + '</div></div>'
+            ) : '') +
+            (app.notes ? (
+                '<div class="application-note-detail"><h5 style="margin:0 0 .5rem;font-size:1rem;font-weight:700;">Your Note</h5>' +
+                '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:.5rem;padding:1rem;font-size:.875rem;">' + esc(app.notes) + '</div></div>'
+            ) : '') +
+            (job.description ? (
+                '<div><h5 style="margin:0 0 .5rem;font-size:1rem;font-weight:700;">Job Description</h5>' +
+                '<div style="font-size:.875rem;color:#374151;white-space:pre-wrap;">' + esc(job.description) + '</div></div>'
+            ) : '') +
+            '</div>';
+
+        var viewJob = document.getElementById('jat-view-job');
+        if (viewJob) viewJob.href = job.id ? ('/jobs/' + job.id) : '#';
+
+        var withdraw = document.getElementById('jat-withdraw-btn');
+        if (withdraw) {
+            withdraw.style.display = label === 'Rejected' ? 'none' : '';
+            withdraw.onclick = function () { jatConfirmDelete(app.id); };
+        }
+    }
+
+    window.jatCloseDetails = function () {
+        document.getElementById('jat-detail-modal').classList.remove('is-open');
+        detailAppId = null;
+    };
+
+    window.jatWithdrawFromModal = function () {
+        if (detailAppId) jatConfirmDelete(detailAppId);
+    };
+
+    window.jatOpenNote = function (id) {
+        noteAppId = id;
+        var card = document.querySelector('.application-card[data-id="' + id + '"]');
+        var existing = card ? (card.dataset.notes || '') : '';
+        document.getElementById('jat-note-text').value = existing;
+        document.getElementById('jat-note-modal').classList.add('is-open');
+        document.getElementById('jat-note-text').focus();
+    };
+
+    window.jatCloseNote = function () {
+        document.getElementById('jat-note-modal').classList.remove('is-open');
+        noteAppId = null;
+    };
+
+    window.jatSaveNote = function () {
+        if (!noteAppId) return;
+        var text = document.getElementById('jat-note-text').value;
+        var btn = document.getElementById('jat-save-note');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+
+        fetch('/job-seeker/applications/' + noteAppId + '/notes', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ notes: text })
+        })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+            btn.disabled = false;
+            btn.textContent = 'Save Note';
+            if (!res.ok) {
+                toastErr(res.d.message || 'Failed to save note');
+                return;
+            }
+            toastOk('Note saved successfully');
+            var id = noteAppId;
+            var card = document.querySelector('.application-card[data-id="' + id + '"]');
+            if (card) {
+                card.dataset.notes = text;
+                var box = card.querySelector('.application-notes');
+                var p = card.querySelector('.jat-note-text');
+                if (box && p) {
+                    p.textContent = text;
+                    box.style.display = text.trim() ? '' : 'none';
+                }
+            }
+            jatCloseNote();
+        })
+        .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Save Note';
+            toastErr('An error occurred while saving the note.');
+        });
+    };
+
+    window.jatConfirmDelete = function (id) {
+        deleteAppId = id;
+        document.getElementById('jat-delete-modal').classList.add('is-open');
+    };
+
+    window.jatCloseDelete = function () {
+        document.getElementById('jat-delete-modal').classList.remove('is-open');
+        deleteAppId = null;
+    };
+
+    window.jatDeleteNow = function () {
+        if (!deleteAppId) return;
+        var id = deleteAppId;
+        var btn = document.getElementById('jat-delete-confirm');
+        btn.disabled = true;
+        btn.textContent = 'Withdrawing…';
+
+        fetch('/job-seeker/applications/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            }
+        })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+            btn.disabled = false;
+            btn.textContent = 'Withdraw';
+            if (!res.ok) {
+                toastErr(res.d.message || 'Failed to withdraw application');
+                return;
+            }
+            toastOk('Application withdrawn successfully');
+            jatCloseDelete();
+            jatCloseDetails();
+            var card = document.querySelector('.application-card[data-id="' + id + '"]');
+            if (card) {
+                var status = card.dataset.status;
                 card.remove();
-                // Update stats if needed
-                updateStatsAfterDelete();
-            }, 300);
-        }
-    });
-}
+                var statEl = document.querySelector('[data-stat="' + status + '"]');
+                if (statEl) {
+                    var n = Math.max(0, parseInt(statEl.textContent, 10) - 1);
+                    statEl.textContent = String(n);
+                }
+                var total = document.getElementById('jat-total');
+                if (total) total.textContent = String(Math.max(0, parseInt(total.textContent, 10) - 1));
+                jatSetFilter(currentFilter);
+            }
+        })
+        .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Withdraw';
+            toastErr('An error occurred while withdrawing the application.');
+        });
+    };
 
-function updateStatsAfterDelete() {
-    // Recalculate and update the stats cards
-    const cards = document.querySelectorAll('.application-card:not([style*="display: none"])');
-    const stats = {
-        applied: 0,
-        reviewing: 0,
-        interview: 0,
-        offered: 0,
-        rejected: 0
+    window.jatRespondInterview = function (id, response) {
+        fetch('/job-seeker/applications/' + id + '/interview-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ response: response, reason: '' })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.application) {
+                toastOk(response === 'accepted' ? 'Interview accepted!' : 'Interview declined.');
+                jatOpenDetails(id);
+            } else {
+                toastErr(data.message || 'Failed to respond');
+            }
+        })
+        .catch(function () { toastErr('An error occurred.'); });
     };
-    
-    cards.forEach(card => {
-        const filter = card.dataset.filter;
-        if (filter && stats.hasOwnProperty(filter)) {
-            stats[filter]++;
-        }
+
+    window.jatOpenDecline = function (id) {
+        declineAppId = id;
+        document.getElementById('jat-decline-reason').value = '';
+        document.getElementById('jat-decline-modal').classList.add('is-open');
+    };
+
+    window.jatCloseDecline = function () {
+        document.getElementById('jat-decline-modal').classList.remove('is-open');
+        declineAppId = null;
+    };
+
+    window.jatSubmitDecline = function () {
+        if (!declineAppId) return;
+        var reason = document.getElementById('jat-decline-reason').value;
+        var id = declineAppId;
+        fetch('/job-seeker/applications/' + id + '/interview-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ response: 'declined', reason: reason || '' })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.application) {
+                toastOk('Interview declined.');
+                jatCloseDecline();
+                jatOpenDetails(id);
+            } else {
+                toastErr(data.message || 'Failed to respond');
+            }
+        })
+        .catch(function () { toastErr('An error occurred.'); });
+    };
+
+    // Close modals on backdrop click
+    ['jat-detail-modal', 'jat-note-modal', 'jat-delete-modal', 'jat-decline-modal'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+            if (e.target === el) el.classList.remove('is-open');
+        });
     });
-    
-    // Update the stat numbers (if elements exist)
-    const statElements = {
-        applied: document.querySelector('.application-card')?.closest('.grid')?.querySelector('.text-3xl')?.parentElement,
-        // We can add more specific selectors if needed
-    };
-}
+})();
 </script>
-
 @endsection

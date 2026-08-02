@@ -105,6 +105,13 @@ Route::prefix('admin')->group(function () {
         Route::get('/inbox/unread-count', [\App\Http\Controllers\Admin\AdminInboxController::class, 'unreadCount']);
         Route::put('/inbox/mark-all-read', [\App\Http\Controllers\Admin\AdminInboxController::class, 'markAllAsRead']);
         Route::put('/inbox/{id}/read', [\App\Http\Controllers\Admin\AdminInboxController::class, 'markAsRead']);
+
+        // Support tickets + job reports
+        Route::get('/support-tickets', [\App\Http\Controllers\Admin\AdminSupportController::class, 'ticketsIndex']);
+        Route::get('/support-tickets/{id}', [\App\Http\Controllers\Admin\AdminSupportController::class, 'ticketsShow']);
+        Route::put('/support-tickets/{id}', [\App\Http\Controllers\Admin\AdminSupportController::class, 'ticketsUpdate']);
+        Route::get('/job-reports', [\App\Http\Controllers\Admin\AdminSupportController::class, 'reportsIndex']);
+        Route::put('/job-reports/{id}', [\App\Http\Controllers\Admin\AdminSupportController::class, 'reportsUpdate']);
     });
 });
 
@@ -115,6 +122,10 @@ Route::get('/jobs/{id}', [\App\Http\Controllers\Public\JobSearchController::clas
 
 // Public companies and categories
 Route::get('/companies/featured', [\App\Http\Controllers\Public\CompanyController::class, 'featured']);
+Route::get('/public/companies', [\App\Http\Controllers\Public\CompanyController::class, 'apiIndex']);
+Route::get('/public/companies/{idOrSlug}', [\App\Http\Controllers\Public\CompanyController::class, 'apiShow']);
+Route::get('/public/companies/{idOrSlug}/jobs', [\App\Http\Controllers\Public\CompanyController::class, 'apiJobs']);
+Route::get('/public/companies/{idOrSlug}/reviews', [\App\Http\Controllers\Public\CompanyController::class, 'apiReviews']);
 Route::get('/companies/{id}', [\App\Http\Controllers\Api\Scoop\ScoopApiController::class, 'companyShow']);
 Route::get('/companies/{id}/jobs', [\App\Http\Controllers\Api\Scoop\ScoopApiController::class, 'companyJobs']);
 Route::get('/companies/{id}/reviews', [\App\Http\Controllers\Api\Scoop\ScoopApiController::class, 'companyReviews']);

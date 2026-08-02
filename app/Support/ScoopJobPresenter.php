@@ -117,7 +117,15 @@ class ScoopJobPresenter
 
     private static function resolveSeekerId(): ?int
     {
-        $user = Auth::guard('sanctum')->user() ?? Auth::user();
+        $user = null;
+        try {
+            $user = Auth::guard('sanctum')->user();
+        } catch (\Throwable) {
+            $user = null;
+        }
+
+        $user = $user ?? Auth::user();
+
         if ($user && $user->user_type === 'job_seeker') {
             return $user->jobSeeker?->seeker_id;
         }

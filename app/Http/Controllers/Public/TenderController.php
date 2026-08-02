@@ -26,19 +26,22 @@ class TenderController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $categories = $tenders
+            ->map(fn ($t) => $t->category?->name ?: ($t->sector ?? null))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
         $sectors = $tenders->pluck('sector')->filter()->unique()->sort()->values();
         $types = $tenders->pluck('tender_type')->filter()->unique()->sort()->values();
         $locations = $tenders->pluck('location')->filter()->unique()->sort()->values();
-        $entities = $tenders->pluck('entity_name')->filter()->unique()->sort()->values();
-        $deadlines = $tenders->pluck('submission_deadline')->filter()->map(fn ($d) => $d->format('M d, Y'))->unique()->sort()->values();
 
         return view('tenders.index', [
             'tenders' => $tenders,
+            'categories' => $categories,
             'sectors' => $sectors,
             'types' => $types,
             'locations' => $locations,
-            'entities' => $entities,
-            'deadlines' => $deadlines,
         ]);
     }
 

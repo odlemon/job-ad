@@ -28,6 +28,7 @@ class User extends Authenticatable
         'is_active',
         'is_verified',
         'last_login',
+        'password_changed_at',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'is_verified' => 'boolean',
             'last_login' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
     }
 

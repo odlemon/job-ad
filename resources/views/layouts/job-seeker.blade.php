@@ -7,19 +7,20 @@
 
     <title>{{ $title ?? 'Job Seeker Dashboard - JobHub' }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    @include('partials.theme-head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="font-sans antialiased bg-gray-50" data-user-type="job_seeker">
-    <div class="min-h-screen bg-gray-50">
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200" data-user-type="job_seeker" data-user-id="{{ auth()->id() }}">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         @include('partials.job-seeker-sidebar')
-        
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col ml-64">
+
+        <div class="flex-1 flex flex-col min-w-0 js-seeker-main">
+            <style>
+                .js-seeker-main { margin-left:0; }
+                @media (min-width:1024px){ .js-seeker-main { margin-left:16rem; } }
+            </style>
             @yield('content')
         </div>
     </div>

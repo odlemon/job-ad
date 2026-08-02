@@ -1,7 +1,7 @@
 @extends('layouts.employer')
 
 @section('content')
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-white dark:bg-gray-800">
     @include('partials.employer-navbar')
 
     <div class="flex">
@@ -24,7 +24,7 @@
                     $primaryCampaign = $job->campaigns->first();
                     $companyName = $job->company->name ?? 'Employer';
                 @endphp
-                <div class="mt-4 p-5 rounded-md border border-gray-200 bg-[#F0F5FA]">
+                <div class="mt-4 p-5 rounded-md border border-gray-200 dark:border-gray-700 bg-[#F0F5FA]">
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h2 class="text-lg font-bold" style="color: #1A202C;">{{ $job->title }}</h2>
@@ -43,13 +43,13 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-3">
-                            <div class="bg-white rounded-md border border-gray-200 px-4 py-2.5 shadow-sm">
+                            <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-sm dark:shadow-none">
                                 <div class="flex items-center gap-1.5" style="color: #374151;">
                                     <svg class="w-4 h-4" style="color: #6B7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     <span class="font-semibold">{{ $viewsCount }}</span> <span class="text-sm" style="color: #6B7280;">Views</span>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-md border border-gray-200 px-4 py-2.5 shadow-sm">
+                            <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-sm dark:shadow-none">
                                 <div class="flex items-center gap-1.5" style="color: #374151;">
                                     <svg class="w-4 h-4" style="color: #6B7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                                     <span class="font-semibold">{{ $applications->count() }}</span> <span class="text-sm" style="color: #6B7280;">Applications</span>
@@ -61,19 +61,19 @@
 
                 {{-- Summary cards: larger, explicit colors --}}
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                    <div class="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-6 shadow-sm dark:shadow-none">
                         <div class="text-sm mb-1" style="color: #6B7280;">Total Applicants</div>
                         <div class="text-3xl font-bold" style="color: #1A202C;">{{ $stats['total'] }}</div>
                     </div>
-                    <div class="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-6 shadow-sm dark:shadow-none">
                         <div class="text-sm mb-1" style="color: #6B7280;">Shortlisted</div>
                         <div class="text-3xl font-bold" style="color: #1A202C;">{{ $stats['shortlisted'] }}</div>
                     </div>
-                    <div class="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-6 shadow-sm dark:shadow-none">
                         <div class="text-sm mb-1" style="color: #6B7280;">Selected</div>
                         <div class="text-3xl font-bold" style="color: #059669;">{{ $stats['selected'] }}</div>
                     </div>
-                    <div class="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-6 shadow-sm dark:shadow-none">
                         <div class="text-sm mb-1" style="color: #6B7280;">Rejected</div>
                         <div class="text-3xl font-bold" style="color: #DC2626;">{{ $stats['rejected'] }}</div>
                     </div>
@@ -132,7 +132,7 @@
                                 $avatarGradient = ['from-blue-500 to-blue-600', 'from-purple-500 to-purple-600', 'from-rose-500 to-rose-600', 'from-amber-500 to-amber-600'][abs(crc32($application->first_name . $application->last_name)) % 4];
                                 $showUrl = route('employer.applications.show', $application->id) . '?from=job_applicants&job_id=' . $job->id;
                             @endphp
-                            <div class="bg-white rounded-md border border-gray-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4">
+                            <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none p-5 flex flex-col md:flex-row md:items-center gap-4">
                                 <div class="flex flex-1 flex-wrap items-start gap-4 min-w-0">
                                     <div class="relative flex-shrink-0">
                                         @if($photoUrl)
@@ -161,21 +161,21 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
-                                    <a href="{{ $showUrl }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md font-medium text-sm transition shadow-sm" style="background-color: #2563eb;">
+                                    <a href="{{ $showUrl }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md font-medium text-sm transition shadow-sm dark:shadow-none" style="background-color: #2563eb;">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         View Profile
                                     </a>
-                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'shortlisted', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 text-sm font-medium border-gray-300" style="color: #374151;">Shortlist</button>
-                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'rejected', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 text-sm font-medium border-gray-300" style="color: #374151;">Reject</button>
-                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'hired', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 text-sm font-medium border-gray-300" style="color: #374151;">Select</button>
-                                    <a href="{{ route('employer.applications.index', ['job_id' => $job->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium" style="color: #374151;">Pool</a>
-                                    <a href="{{ route('employer.applications.export', ['ids' => $application->id]) }}" class="p-2 border border-gray-300 rounded-md hover:bg-gray-50" style="color: #6B7280;" title="Download">
+                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'shortlisted', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium border-gray-300 dark:border-gray-600" style="color: #374151;">Shortlist</button>
+                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'rejected', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium border-gray-300 dark:border-gray-600" style="color: #374151;">Reject</button>
+                                    <button type="button" onclick="jobApplicantUpdateStatus({{ $application->id }}, 'hired', this)" class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium border-gray-300 dark:border-gray-600" style="color: #374151;">Select</button>
+                                    <a href="{{ route('employer.applications.index', ['job_id' => $job->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium" style="color: #374151;">Pool</a>
+                                    <a href="{{ route('employer.applications.export', ['ids' => $application->id]) }}" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700" style="color: #6B7280;" title="Download">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                     </a>
                                 </div>
                             </div>
                         @empty
-                            <div class="bg-white rounded-md border border-gray-200 p-12 text-center">
+                            <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-12 text-center">
                                 <p style="color: #6B7280;">No applicants yet for this job.</p>
                             </div>
                         @endforelse

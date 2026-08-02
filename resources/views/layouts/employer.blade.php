@@ -7,14 +7,12 @@
 
     <title>{{ $title ?? 'Employer Dashboard - JobHub' }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    @include('partials.theme-head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="font-sans antialiased bg-gray-50" data-user-type="employer">
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200" data-user-type="employer" data-user-id="{{ auth()->id() }}">
     @yield('content')
 
     @livewireScripts

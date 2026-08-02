@@ -1,149 +1,182 @@
 @extends('layouts.app')
 
+@section('title', 'Companies')
+
 @section('content')
-<style>
-    .company-hero {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+@php
+    $selectedIndustries = collect(explode(',', (string) ($filters['industry'] ?? '')))
+        ->map(fn ($v) => trim($v))
+        ->filter()
+        ->values()
+        ->all();
+    $jobsValue = $filters['jobs'] ?? 'all';
+    if ($jobsValue === 'available') {
+        $jobsValue = '1-10';
     }
-    .company-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    if ($jobsValue === '' || $jobsValue === null) {
+        $jobsValue = 'all';
     }
-    .company-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-    }
-</style>
+    $hasActiveFilters = ($filters['search'] ?? '') !== ''
+        || count($selectedIndustries) > 0
+        || ($jobsValue !== 'all');
+@endphp
+<div id="companies-page" class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200"
+     data-api-url="{{ url('/api/public/companies') }}"
+     data-initial-search="{{ e($filters['search'] ?? '') }}"
+     data-initial-industry="{{ e(implode(',', $selectedIndustries)) }}"
+     data-initial-jobs="{{ e($jobsValue) }}">
 
-<!-- Hero Section -->
-<section class="company-hero relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-10 right-20 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-        <div class="absolute bottom-10 left-10 w-48 h-48 bg-cyan-300 rounded-full blur-2xl"></div>
-    </div>
+    {{-- Bolt hero (inline colors so the banner never washes out if Tailwind purges gradient stops) --}}
+    <div class="companies-hero relative overflow-hidden"
+         style="background: linear-gradient(to bottom right, #1e3a8a, #1e40af, #1e3a8a);">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div class="absolute top-16 right-6 sm:right-12 md:right-24 w-20 h-20 md:w-24 md:h-24 rounded-full"
+                 style="background:#ec4899; opacity:0.9;"></div>
+            <div class="absolute -top-8 -right-8 w-64 h-64 md:w-80 md:h-80 rounded-full"
+                 style="background:rgba(29,78,216,0.35); filter:blur(48px);"></div>
+        </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
-            <div class="lg:w-1/2">
-                <h1 class="text-3xl md:text-4xl font-bold text-white leading-tight">Find the right company for you</h1>
-                <p class="mt-3 text-blue-100 text-lg">Everything you need to know about a company, all in one place.</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-16 relative z-10">
+            <div class="grid md:grid-cols-2 gap-10 lg:gap-12 items-center">
+                <div class="min-w-0">
+                    <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#ffffff;">Find the right company for you</h1>
+                    <p class="text-base sm:text-lg mb-8" style="color:#dbeafe;">Everything you need to know about a company, all in one place</p>
 
-                <!-- Search & Filters -->
-                <div class="mt-8 flex flex-wrap items-center gap-3">
-                    <div class="relative flex-1 min-w-[200px]">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input
-                            type="text"
-                            id="company-search"
-                            value="{{ $filters['search'] ?? '' }}"
-                            placeholder="Search by company name..."
-                            class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/90 backdrop-blur text-gray-900 placeholder-gray-500 border-0 focus:ring-2 focus:ring-white text-sm"
-                        >
+                    <div class="flex flex-col sm:flex-row sm:items-stretch bg-white rounded-lg shadow-md overflow-visible relative">
+                        <div class="relative flex-1 min-w-0">
+                            <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" id="company-search" value="{{ $filters['search'] ?? '' }}"
+                                   placeholder="Search by company name"
+                                   class="w-full h-11 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:ring-0">
+                        </div>
+
+                        <div class="hidden sm:block w-px self-stretch bg-gray-200 my-2.5" aria-hidden="true"></div>
+
+                        <div class="relative filter-dropdown border-t sm:border-t-0 border-gray-100" id="industry-dropdown">
+                            <button type="button" id="industry-filter-btn"
+                                    class="inline-flex items-center gap-1.5 h-11 px-4 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors whitespace-nowrap w-full sm:w-auto justify-between sm:justify-start">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                    Industry
+                                    <span id="industry-count-badge" class="{{ count($selectedIndustries) ? '' : 'hidden' }} inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-blue-600 rounded-full">{{ count($selectedIndustries) ?: '' }}</span>
+                                </span>
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div id="industry-menu" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto filter-dropdown">
+                                <div class="p-3">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-semibold text-gray-900">Select Industries</span>
+                                        <button type="button" id="industry-clear" class="text-xs text-blue-600 hover:text-blue-700 font-medium {{ count($selectedIndustries) ? '' : 'hidden' }}">Clear all</button>
+                                    </div>
+                                    <div class="space-y-1" id="industry-options">
+                                        @foreach($industries as $ind)
+                                            <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                                <input type="checkbox" value="{{ $ind }}" class="industry-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                       {{ in_array($ind, $selectedIndustries, true) ? 'checked' : '' }}>
+                                                <span class="text-sm text-gray-700">{{ $ind }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hidden sm:block w-px self-stretch bg-gray-200 my-2.5" aria-hidden="true"></div>
+
+                        <div class="relative filter-dropdown border-t sm:border-t-0 border-gray-100" id="jobs-dropdown">
+                            <button type="button" id="jobs-filter-btn"
+                                    class="inline-flex items-center gap-1.5 h-11 px-4 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors whitespace-nowrap w-full sm:w-auto justify-between sm:justify-start rounded-b-lg sm:rounded-none sm:rounded-r-lg">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                    Jobs Available
+                                </span>
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div id="jobs-menu" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50 filter-dropdown">
+                                <div class="p-2" id="jobs-options">
+                                    @foreach([
+                                        'all' => 'All Jobs',
+                                        '1-10' => '1-10 jobs',
+                                        '11-20' => '11-20 jobs',
+                                        '21-30' => '21-30 jobs',
+                                        '30+' => '30+ jobs',
+                                    ] as $val => $label)
+                                        <button type="button" data-jobs-value="{{ $val }}"
+                                                class="jobs-option w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-50 transition-colors {{ $jobsValue === $val ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700' }}">
+                                            {{ $label }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="clear-filters-btn"
+                                class="{{ $hasActiveFilters ? '' : 'hidden' }} absolute -bottom-10 left-0 text-sm underline underline-offset-2"
+                                style="color:#dbeafe;">
+                            Clear all filters
+                        </button>
                     </div>
-                    <select id="industry-filter" class="py-2.5 px-4 rounded-lg bg-white/90 backdrop-blur text-gray-700 border-0 focus:ring-2 focus:ring-white text-sm cursor-pointer">
-                        <option value="">Industry</option>
-                        @foreach($industries as $ind)
-                            <option value="{{ $ind }}" {{ ($filters['industry'] ?? '') === $ind ? 'selected' : '' }}>{{ $ind }}</option>
-                        @endforeach
-                    </select>
-                    <select id="jobs-filter" class="py-2.5 px-4 rounded-lg bg-white/90 backdrop-blur text-gray-700 border-0 focus:ring-2 focus:ring-white text-sm cursor-pointer">
-                        <option value="">Jobs Available</option>
-                        <option value="available" {{ ($filters['jobs'] ?? '') === 'available' ? 'selected' : '' }}>Has Open Jobs</option>
-                    </select>
                 </div>
-            </div>
-            <div class="hidden lg:block lg:w-1/3">
-                <img src="https://img.freepik.com/free-photo/business-woman-working-laptop_23-2148994703.jpg" alt="Companies" class="w-64 h-64 object-cover rounded-full border-4 border-white/30 shadow-2xl mx-auto">
+
+                <div class="hidden md:flex justify-center lg:justify-end items-center relative">
+                    <div class="relative z-10 shrink-0 rounded-full overflow-hidden shadow-2xl"
+                         style="width:16rem;height:16rem;border:8px solid rgba(255,255,255,0.12);">
+                        <img src="https://images.pexels.com/photos/3756681/pexels-photo-3756681.jpeg?auto=compress&cs=tinysrgb&w=600"
+                             alt="Professional"
+                             width="256"
+                             height="256"
+                             class="block"
+                             style="width:100%;height:100%;object-fit:cover;">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</section>
 
-<!-- Companies Grid -->
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <p id="company-count" class="text-sm text-gray-600 mb-6">Showing <span class="font-semibold">{{ method_exists($companies, 'total') ? $companies->total() : $companies->count() }}</span> companies</p>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-6">
+            <p id="company-count" class="text-gray-600 dark:text-gray-400">
+                Showing <span class="font-semibold text-gray-900 dark:text-white">{{ method_exists($companies, 'total') ? $companies->total() : $companies->count() }}</span> companies
+            </p>
+        </div>
 
-    <div id="companies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-        @forelse($companies as $company)
-            @php
-                $logoUrl = null;
-                if ($company->logo) {
-                    if (str_starts_with($company->logo, 'http')) {
-                        $logoUrl = $company->logo;
-                    } elseif (str_starts_with($company->logo, 'company-logos/')) {
-                        $logoUrl = $mediaBaseUrl . '/' . $company->logo;
-                    } else {
-                        $logoUrl = $mediaBaseUrl . '/' . $company->logo;
+        <div id="companies-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+            @foreach($companies as $company)
+                @php
+                    $logoUrl = null;
+                    if ($company->logo) {
+                        $logoUrl = str_starts_with($company->logo, 'http')
+                            ? $company->logo
+                            : rtrim($mediaBaseUrl, '/') . '/' . ltrim($company->logo, '/');
                     }
-                }
-            @endphp
-            <a href="{{ route('companies.show', $company->slug ?: $company->id) }}" class="company-card bg-white border border-gray-100 rounded-xl p-5 flex flex-col items-center text-center cursor-pointer" data-name="{{ strtolower($company->name) }}" data-industry="{{ strtolower($company->industry ?? '') }}" data-jobs="{{ $company->job_advertisements_count }}">
-                <div class="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden mb-3">
-                    @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $company->name }}" class="w-full h-full object-contain p-1">
-                    @else
-                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    @endif
-                </div>
-                <h3 class="text-sm font-bold text-gray-900 truncate w-full" title="{{ $company->name }}">{{ \Illuminate\Support\Str::limit($company->name, 20) }}</h3>
-                <p class="text-xs text-blue-600 mt-1">{{ $company->job_advertisements_count }} {{ \Illuminate\Support\Str::plural('job', $company->job_advertisements_count) }}</p>
-            </a>
-        @empty
-            <div class="col-span-full text-center py-16">
-                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <p class="text-gray-500 text-lg font-medium">No companies found</p>
-                <p class="text-gray-400 text-sm mt-1">Try adjusting your search or filters.</p>
-            </div>
-        @endforelse
-    </div>
-    @if(method_exists($companies, 'links'))
-        <div class="mt-8">{{ $companies->links() }}</div>
-    @endif
-</section>
+                    $jobsCount = (int) ($company->jobs_count ?? $company->job_advertisements_count ?? 0);
+                @endphp
+                <a href="{{ route('companies.show', $company->slug ?: $company->id) }}" wire:navigate
+                   class="company-card bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 flex flex-col items-center justify-center cursor-pointer group border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:-translate-y-1">
+                    <div class="w-20 h-20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300 shadow-sm overflow-hidden"
+                         style="background: linear-gradient(to bottom right, #eff6ff, #f1f5f9);">
+                        @if($logoUrl)
+                            <img src="{{ $logoUrl }}" alt="{{ $company->name }}" class="w-full h-full object-cover" loading="lazy">
+                        @else
+                            <span class="text-4xl font-bold text-blue-600 dark:text-blue-400">{{ strtoupper(substr($company->name, 0, 1)) }}</span>
+                        @endif
+                    </div>
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white text-center mb-2 line-clamp-2 min-h-[3rem] flex items-center justify-center">{{ $company->name }}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 text-center font-medium">{{ $jobsCount }} {{ \Illuminate\Support\Str::plural('job', $jobsCount) }}</p>
+                </a>
+            @endforeach
+        </div>
 
-@push('scripts')
-<script>
-(function() {
-    const searchInput = document.getElementById('company-search');
-    const industryFilter = document.getElementById('industry-filter');
-    const jobsFilter = document.getElementById('jobs-filter');
-    const grid = document.getElementById('companies-grid');
-    const countEl = document.getElementById('company-count');
+        <div id="companies-empty" class="text-center py-20 {{ $companies->count() ? 'hidden' : '' }}">
+            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No companies found</h3>
+            <p class="text-gray-600 dark:text-gray-400">Try adjusting your search terms</p>
+        </div>
 
-    function filterCards() {
-        const search = (searchInput.value || '').toLowerCase().trim();
-        const industry = (industryFilter.value || '').toLowerCase();
-        const jobsAvail = jobsFilter.value;
-
-        const cards = grid.querySelectorAll('.company-card');
-        let visible = 0;
-
-        cards.forEach(card => {
-            const name = card.dataset.name || '';
-            const cardIndustry = card.dataset.industry || '';
-            const jobCount = parseInt(card.dataset.jobs || '0', 10);
-
-            let show = true;
-            if (search && !name.includes(search)) show = false;
-            if (industry && cardIndustry !== industry) show = false;
-            if (jobsAvail === 'available' && jobCount === 0) show = false;
-
-            card.style.display = show ? '' : 'none';
-            if (show) visible++;
-        });
-
-        if (countEl) {
-            countEl.innerHTML = `Showing <span class="font-semibold">${visible}</span> companies`;
-        }
-    }
-
-    let debounceTimer;
-    searchInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(filterCards, 200);
-    });
-    industryFilter.addEventListener('change', filterCards);
-    jobsFilter.addEventListener('change', filterCards);
-})();
-</script>
-@endpush
+        <div id="companies-pagination" class="mt-10 flex justify-center items-center gap-2 flex-wrap"
+             data-page="{{ method_exists($companies, 'currentPage') ? $companies->currentPage() : 1 }}"
+             data-last-page="{{ method_exists($companies, 'lastPage') ? $companies->lastPage() : 1 }}">
+        </div>
+    </main>
+</div>
 @endsection

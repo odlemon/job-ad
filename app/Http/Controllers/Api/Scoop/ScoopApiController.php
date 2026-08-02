@@ -216,15 +216,39 @@ class ScoopApiController extends Controller
             return response()->json(['message' => 'Job not found'], 404);
         }
 
-        DB::table('job_reports')->insert([
-            'user_id' => $request->user()->id,
+        $user = $request->user();
+        $reason = $request->input('reason');
+        $payload = [
+            'user_id' => $user->id,
             'job_advertisement_id' => $id,
-            'reason' => $request->input('reason'),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            'reason' => $reason,
+        ];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_reports', 'status')) {
+            $payload['status'] = 'pending';
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_reports', 'category')) {
+            $payload['category'] = 'other';
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_reports', 'details')) {
+            $payload['details'] = $reason;
+        }
 
-        return response()->json(['message' => 'Job reported']);
+        $report = \App\Models\JobReport::create($payload);
+        $job = JobAdvertisement::find($id);
+
+        app(\App\Services\NotificationService::class)->notifyAdmins(
+            'job_report',
+            'Suspicious job report #'.$report->id,
+            ($user->name ?? 'A user').' reported job "'.($job->title ?? '#'.$id).'"',
+            [
+                'report_id' => $report->id,
+                'job_id' => $id,
+                'job_title' => $job->title ?? null,
+                'user_id' => $user->id,
+            ]
+        );
+
+        return response()->json(['message' => 'Job reported', 'report_id' => $report->id]);
     }
 
     public function recommendedJobs(Request $request): JsonResponse
@@ -303,24 +327,40 @@ class ScoopApiController extends Controller
     public function getSettings(Request $request): JsonResponse
     {
         $seeker = $this->seekerOrFail($request);
+        $defaults = [
+            'app_notifications' => true,
+            'email_notifications' => true,
+            'job_alerts' => true,
+            'application_updates' => true,
+            'marketing_emails' => false,
+            'two_factor_enabled' => false,
+        ];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_seeker_settings', 'show_activity_status')) {
+            $defaults['show_activity_status'] = true;
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_seeker_settings', 'allow_contact_by_recruiters')) {
+            $defaults['allow_contact_by_recruiters'] = true;
+        }
+
         $settings = JobSeekerSetting::firstOrCreate(
             ['seeker_id' => $seeker->seeker_id],
-            [
-                'app_notifications' => true,
-                'email_notifications' => true,
-                'job_alerts' => true,
-                'application_updates' => true,
-                'marketing_emails' => false,
-                'two_factor_enabled' => false,
-            ]
+            $defaults
         );
 
-        return response()->json([
-            'data' => $settings->only([
-                'app_notifications', 'email_notifications', 'job_alerts',
-                'application_updates', 'marketing_emails', 'two_factor_enabled',
-            ]),
-        ]);
+        $keys = [
+            'app_notifications', 'email_notifications', 'job_alerts',
+            'application_updates', 'marketing_emails', 'two_factor_enabled',
+        ];
+        foreach (['show_activity_status', 'allow_contact_by_recruiters'] as $key) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_seeker_settings', $key)) {
+                $keys[] = $key;
+            }
+        }
+
+        $data = $settings->only($keys);
+        $data['public_profile'] = (bool) ($seeker->public_profile ?? true);
+
+        return response()->json(['data' => $data]);
     }
 
     public function updateSettings(Request $request): JsonResponse
@@ -329,12 +369,22 @@ class ScoopApiController extends Controller
         $keys = [
             'app_notifications', 'email_notifications', 'job_alerts',
             'application_updates', 'marketing_emails', 'two_factor_enabled',
+            'show_activity_status', 'allow_contact_by_recruiters',
         ];
         $data = [];
         foreach ($keys as $key) {
-            if ($request->has($key)) {
+            if ($request->has($key) && \Illuminate\Support\Facades\Schema::hasColumn('job_seeker_settings', $key)) {
                 $data[$key] = $request->boolean($key);
             }
+        }
+
+        if ($request->has('public_profile')) {
+            $seeker->public_profile = $request->boolean('public_profile');
+            $seeker->save();
+        }
+        if ($request->has('allow_contact_by_recruiters')) {
+            $seeker->open_to_opportunities = $request->boolean('allow_contact_by_recruiters');
+            $seeker->save();
         }
 
         $settings = JobSeekerSetting::updateOrCreate(
@@ -342,31 +392,57 @@ class ScoopApiController extends Controller
             $data
         );
 
-        return response()->json([
-            'data' => $settings->only([
-                'app_notifications', 'email_notifications', 'job_alerts',
-                'application_updates', 'marketing_emails', 'two_factor_enabled',
-            ]),
-        ]);
+        $outKeys = [
+            'app_notifications', 'email_notifications', 'job_alerts',
+            'application_updates', 'marketing_emails', 'two_factor_enabled',
+        ];
+        foreach (['show_activity_status', 'allow_contact_by_recruiters'] as $key) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_seeker_settings', $key)) {
+                $outKeys[] = $key;
+            }
+        }
+        $payload = $settings->only($outKeys);
+        $payload['public_profile'] = (bool) $seeker->fresh()->public_profile;
+
+        return response()->json(['data' => $payload]);
     }
 
     public function contactSupport(Request $request): JsonResponse
     {
         $seeker = $this->seekerOrFail($request);
         $data = $request->validate([
-            'subject' => 'required|string|max:120',
-            'message' => 'required|string|max:2000',
+            'subject' => 'required|string|max:160',
+            'message' => 'required|string|max:5000',
+            'priority' => 'nullable|in:low,medium,high',
         ]);
 
-        \Illuminate\Support\Facades\Log::info('job_seeker_support_contact', [
-            'seeker_id' => $seeker->seeker_id,
-            'user_id' => $request->user()?->id,
-            'email' => $request->user()?->email,
+        $user = $request->user();
+        $ticket = \App\Models\SupportTicket::create([
+            'user_id' => $user->id,
             'subject' => $data['subject'],
             'message' => $data['message'],
+            'priority' => $data['priority'] ?? 'medium',
+            'channel' => 'ticket',
+            'status' => 'open',
         ]);
 
-        return response()->json(['message' => 'Support message received']);
+        app(\App\Services\NotificationService::class)->notifyAdmins(
+            'support_ticket',
+            'New support ticket #'.$ticket->id,
+            ($user->name ?? 'A job seeker').' submitted a ticket: '.$ticket->subject,
+            [
+                'ticket_id' => $ticket->id,
+                'user_id' => $user->id,
+                'seeker_id' => $seeker->seeker_id,
+                'priority' => $ticket->priority,
+                'subject' => $ticket->subject,
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Support message received',
+            'ticket_id' => $ticket->id,
+        ], 201);
     }
 
     public function hobbiesIndex(Request $request): JsonResponse
@@ -478,6 +554,7 @@ class ScoopApiController extends Controller
         $category = $request->filled('category') ? (string) $request->get('category') : null;
 
         $paginator = $this->notificationService->paginateForUser($user->id, $limit, $isRead, $category);
+        $unreadCount = $this->notificationService->getUnreadCount($user->id);
 
         $slice = collect($paginator->items())->map(function ($n) {
             $type = (string) ($n->type ?? '');
@@ -485,20 +562,26 @@ class ScoopApiController extends Controller
                 ? 'applications'
                 : 'alerts';
             $data = is_array($n->data) ? $n->data : [];
+            $message = $data['message'] ?? $data['body'] ?? $n->message ?? '';
 
             return [
                 'id' => (string) $n->id,
+                'type' => $type,
                 'category' => $category,
                 'title' => $data['title'] ?? $n->title ?? 'Notification',
-                'body' => $data['message'] ?? $data['body'] ?? $n->message ?? '',
+                'message' => $message,
+                'body' => $message,
                 'read' => (bool) $n->is_read,
                 'is_read' => (bool) $n->is_read,
+                'data' => $data,
                 'created_at' => optional($n->created_at)?->toIso8601String() ?? now()->toIso8601String(),
             ];
         })->values();
 
         return response()->json([
             'data' => $slice,
+            'notifications' => $slice,
+            'unread_count' => $unreadCount,
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),
@@ -510,8 +593,11 @@ class ScoopApiController extends Controller
 
     public function notificationsUnreadCount(Request $request): JsonResponse
     {
+        $count = $this->notificationService->getUnreadCount($request->user()->id);
+
         return response()->json([
-            'data' => ['count' => $this->notificationService->getUnreadCount($request->user()->id)],
+            'data' => ['count' => $count],
+            'unread_count' => $count,
         ]);
     }
 
@@ -522,14 +608,22 @@ class ScoopApiController extends Controller
             return response()->json(['message' => 'Notification not found'], 404);
         }
 
-        return response()->json(['message' => 'Marked read']);
+        $count = $this->notificationService->getUnreadCount($request->user()->id);
+
+        return response()->json([
+            'message' => 'Marked read',
+            'unread_count' => $count,
+        ]);
     }
 
     public function notificationsMarkAllRead(Request $request): JsonResponse
     {
         $this->notificationService->markAllAsRead($request->user()->id);
 
-        return response()->json(['message' => 'All marked read']);
+        return response()->json([
+            'message' => 'All marked read',
+            'unread_count' => 0,
+        ]);
     }
 
     public function notificationsDestroy(Request $request, string $id): JsonResponse

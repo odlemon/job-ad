@@ -1,7 +1,7 @@
 @extends('layouts.employer')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     @include('partials.employer-navbar')
 
     <div class="flex">
@@ -18,7 +18,7 @@
                             : route('employer.applications.index');
                         $backLabel = request('from') === 'job_applicants' ? 'Back to Job Applicants' : 'Back to Applications';
                     @endphp
-                    <a href="{{ $backUrl }}" wire:navigate class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+                    <a href="{{ $backUrl }}" wire:navigate class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 mb-4">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
@@ -26,8 +26,8 @@
                     </a>
                     <div class="flex items-start justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $application->first_name }} {{ $application->last_name }}</h1>
-                            <p class="text-gray-600">{{ $application->jobAdvertisement->title }}</p>
+                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ $application->first_name }} {{ $application->last_name }}</h1>
+                            <p class="text-gray-600 dark:text-gray-400">{{ $application->jobAdvertisement->title }}</p>
                         </div>
                         @php
                             $statusConfig = [
@@ -53,42 +53,42 @@
                 </div>
 
                 <!-- Applicant Information -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Applicant Information</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Applicant Information</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-sm text-gray-500 mb-1">Full Name</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $application->first_name }} {{ $application->last_name }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Full Name</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $application->first_name }} {{ $application->last_name }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 mb-1">Email</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $application->email }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $application->email }}</p>
                         </div>
                         @if($application->phone)
                         <div>
-                            <p class="text-sm text-gray-500 mb-1">Phone</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $application->phone }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $application->phone }}</p>
                         </div>
                         @endif
                         <div>
-                            <p class="text-sm text-gray-500 mb-1">Applied Date</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $application->created_at->format('M d, Y') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Applied Date</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $application->created_at->format('M d, Y') }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Cover Letter -->
                 @if($application->cover_letter)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Cover Letter</h2>
-                    <p class="text-gray-700 whitespace-pre-wrap">{{ $application->cover_letter }}</p>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Cover Letter</h2>
+                    <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ $application->cover_letter }}</p>
                 </div>
                 @endif
 
                 <!-- Resume -->
                 @if($application->resume_path)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Resume</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Resume</h2>
                     @php
                         $resumeUrl = null;
                         if (str_starts_with($application->resume_path, 'http://') || str_starts_with($application->resume_path, 'https://')) {
@@ -107,11 +107,11 @@
                 @endif
 
                 <!-- Job Details -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Job Details</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Job Details</h2>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $application->jobAdvertisement->title }}</h3>
-                        <p class="text-gray-600">{{ $application->jobAdvertisement->company->name ?? 'Unknown Company' }}</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ $application->jobAdvertisement->title }}</h3>
+                        <p class="text-gray-600 dark:text-gray-400">{{ $application->jobAdvertisement->company->name ?? 'Unknown Company' }}</p>
                         <a href="{{ route('employer.jobs.show', $application->jobAdvertisement->id) }}" wire:navigate class="text-blue-600 hover:text-blue-800 mt-2 inline-block">
                             View Job Posting →
                         </a>
@@ -119,12 +119,12 @@
                 </div>
 
                 <!-- Status Update -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Update Status</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Update Status</h2>
                     <form id="statusForm" onsubmit="updateStatus(event)" class="space-y-4">
                         <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select id="status" name="status" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <select id="status" name="status" required class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="applied" {{ $application->status === 'applied' ? 'selected' : '' }}>Applied</option>
                                 <option value="in_review" {{ $application->status === 'in_review' ? 'selected' : '' }}>In Review</option>
                                 <option value="interview" {{ $application->status === 'interview' ? 'selected' : '' }}>Interview</option>
@@ -133,8 +133,8 @@
                             </select>
                         </div>
                         <div>
-                            <label for="employer_notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                            <textarea id="employer_notes" name="employer_notes" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add notes about this applicant...">{{ old('employer_notes', $application->employer_notes) }}</textarea>
+                            <label for="employer_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+                            <textarea id="employer_notes" name="employer_notes" rows="4" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add notes about this applicant...">{{ old('employer_notes', $application->employer_notes) }}</textarea>
                         </div>
                         <div class="flex justify-end">
                             <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium">

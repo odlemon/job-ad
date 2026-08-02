@@ -5,7 +5,7 @@
 @endphp
 
 @section('content')
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-white dark:bg-gray-800">
     @include('partials.employer-navbar')
 
     <div class="flex">
@@ -15,7 +15,7 @@
         <main class="flex-1 p-6 ml-64 w-0 min-w-0">
             <div class="w-full relative">
                 <!-- Single white block: banner + form, same width behavior as Job Listings -->
-                <div class="bg-white border border-gray-200 shadow-sm overflow-hidden rounded-md">
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none overflow-hidden rounded-md">
                     <!-- Banner: blue gradient (200px) -->
                     <div class="relative overflow-hidden" style="height: 200px;">
                         <div id="cover-image-container" class="absolute inset-0 bg-gradient-to-r from-sky-400 via-blue-500 to-blue-700">
@@ -49,25 +49,25 @@
                     </div>
 
                     <!-- White content area: edit button top-right, light grey input boxes -->
-                    <div id="company-info-section" class="px-8 pt-24 pb-8 relative bg-white">
+                    <div id="company-info-section" class="px-8 pt-24 pb-8 relative bg-white dark:bg-gray-800">
                     <button type="button" id="company-edit-btn" class="absolute top-6 right-8 w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow hover:bg-blue-700 transition" title="Edit company information">
                         <svg id="company-edit-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L15.586 6.586z"></path></svg>
                     </button>
                     <div id="company-info-skeleton" class="hidden animate-pulse">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4"><div class="space-y-4"><div class="h-4 bg-gray-200 rounded w-28"></div><div class="h-10 bg-gray-200 rounded-md"></div></div><div class="space-y-4"><div class="h-4 bg-gray-200 rounded w-28"></div><div class="h-10 bg-gray-200 rounded-md"></div></div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4"><div class="space-y-4"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div><div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div></div><div class="space-y-4"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div><div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div></div></div>
                     </div>
                     <div id="company-info-content">
                         <form id="companyInfoForm" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
                                 <div class="space-y-5">
                                     <div>
-                                        <label for="name" class="block text-sm font-medium text-gray-600 mb-1.5">Company Name</label>
-                                        <input type="text" id="name" name="name" required value="{{ old('name', $company->name) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="TechCorp Inc.">
+                                        <label for="name" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Company Name</label>
+                                        <input type="text" id="name" name="name" required value="{{ old('name', $company->name) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="TechCorp Inc.">
                                     </div>
                                     <div>
-                                        <label for="industry" class="block text-sm font-medium text-gray-600 mb-1.5">Industry</label>
+                                        <label for="industry" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Industry</label>
                                         <div class="relative">
-                                            <select id="industry" name="industry" class="w-full border border-gray-200 rounded-md px-4 py-2.5 pr-10 appearance-none bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white">
+                                            <select id="industry" name="industry" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 pr-10 appearance-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white">
                                                 <option value="">Select industry</option>
                                                 <option value="Technology" {{ old('industry', $company->industry) == 'Technology' ? 'selected' : '' }}>Technology</option>
                                                 <option value="Finance" {{ old('industry', $company->industry) == 'Finance' ? 'selected' : '' }}>Finance</option>
@@ -77,14 +77,14 @@
                                                 <option value="Manufacturing" {{ old('industry', $company->industry) == 'Manufacturing' ? 'selected' : '' }}>Manufacturing</option>
                                                 <option value="Other" {{ old('industry', $company->industry) == 'Other' ? 'selected' : '' }}>Other</option>
                                             </select>
-                                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700 dark:text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-600 mb-1.5">Company Size & Working Hours</label>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Company Size & Working Hours</label>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="relative">
-                                                <select id="size" name="size" class="w-full border border-gray-200 rounded-md px-4 py-2.5 pr-10 appearance-none bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white">
+                                                <select id="size" name="size" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 pr-10 appearance-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white">
                                                     <option value="">Select size</option>
                                                     <option value="1-10 employees" {{ old('size', $company->size) == '1-10 employees' ? 'selected' : '' }}>1-10 employees</option>
                                                     <option value="11-50 employees" {{ old('size', $company->size) == '11-50 employees' ? 'selected' : '' }}>11-50 employees</option>
@@ -93,45 +93,45 @@
                                                     <option value="501-1000 employees" {{ old('size', $company->size) == '501-1000 employees' ? 'selected' : '' }}>501-1000 employees</option>
                                                     <option value="1000+ employees" {{ old('size', $company->size) == '1000+ employees' ? 'selected' : '' }}>1000+ employees</option>
                                                 </select>
-                                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700 dark:text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                             </div>
                                             <div class="hidden">
-                                                <label for="working_hours_legacy" class="block text-sm font-medium text-gray-600 mb-1.5 md:mb-0">Working Hours (legacy)</label>
-                                                <input type="text" id="working_hours_legacy" name="working_hours_legacy" value="{{ old('working_hours', $company->working_hours) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="e.g. Mon–Fri, 9:00am – 5:30pm">
+                                                <label for="working_hours_legacy" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5 md:mb-0">Working Hours (legacy)</label>
+                                                <input type="text" id="working_hours_legacy" name="working_hours_legacy" value="{{ old('working_hours', $company->working_hours) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="e.g. Mon–Fri, 9:00am – 5:30pm">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="space-y-5">
                                     <div>
-                                        <label for="location" class="block text-sm font-medium text-gray-600 mb-1.5">Location</label>
+                                        <label for="location" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Location</label>
                                         <div class="relative">
-                                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                            <input type="text" id="location" name="location" value="{{ old('location', $company->location) }}" class="w-full border border-gray-200 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="San Francisco, CA">
+                                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <input type="text" id="location" name="location" value="{{ old('location', $company->location) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="San Francisco, CA">
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="founded_year" class="block text-sm font-medium text-gray-600 mb-1.5">Founded Year</label>
+                                        <label for="founded_year" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Founded Year</label>
                                         <div class="relative">
-                                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            <input type="number" id="founded_year" name="founded_year" value="{{ old('founded_year', $company->founded_year) }}" class="w-full border border-gray-200 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white w-32" placeholder="2015" min="1800" max="{{ date('Y') }}">
+                                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            <input type="number" id="founded_year" name="founded_year" value="{{ old('founded_year', $company->founded_year) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white w-32" placeholder="2015" min="1800" max="{{ date('Y') }}">
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="working_hours" class="block text-sm font-medium text-gray-600 mb-1.5">Working Hours</label>
-                                        <input type="text" id="working_hours" name="working_hours" value="{{ old('working_hours', $company->working_hours) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="e.g. Mon–Fri, 9:00am – 5:30pm (flexible)">
+                                        <label for="working_hours" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Working Hours</label>
+                                        <input type="text" id="working_hours" name="working_hours" value="{{ old('working_hours', $company->working_hours) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="e.g. Mon–Fri, 9:00am – 5:30pm (flexible)">
                                     </div>
                                 </div>
                             </div>
-                            <div class="pt-4 space-y-5 border-t border-gray-100">
+                            <div class="pt-4 space-y-5 border-t border-gray-100 dark:border-gray-700">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label for="description" class="block text-sm font-medium text-gray-600 mb-1.5">Company Description</label>
-                                        <textarea id="description" name="description" rows="5" class="w-full border border-gray-200 rounded-md px-4 py-3 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white resize-y" placeholder="TechCorp is a leading technology company specializing in innovative software solutions. We're passionate about building products that make a difference.">{{ old('description', $company->description) }}</textarea>
+                                        <label for="description" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Company Description</label>
+                                        <textarea id="description" name="description" rows="5" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white resize-y" placeholder="TechCorp is a leading technology company specializing in innovative software solutions. We're passionate about building products that make a difference.">{{ old('description', $company->description) }}</textarea>
                                     </div>
                                     <div>
-                                        <label for="workplace_description" class="block text-sm font-medium text-gray-600 mb-1.5">Workplace & Environment</label>
-                                        <textarea id="workplace_description" name="workplace_description" rows="5" class="w-full border border-gray-200 rounded-md px-4 py-3 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white resize-y" placeholder="Describe the office layout, remote culture, collaboration style, perks, etc.">{{ old('workplace_description', $company->workplace_description) }}</textarea>
+                                        <label for="workplace_description" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Workplace & Environment</label>
+                                        <textarea id="workplace_description" name="workplace_description" rows="5" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white resize-y" placeholder="Describe the office layout, remote culture, collaboration style, perks, etc.">{{ old('workplace_description', $company->workplace_description) }}</textarea>
                                     </div>
                                 </div>
 
@@ -169,7 +169,7 @@
                                             ];
                                         @endphp
 
-                                    <label class="block text-sm font-medium text-gray-600 mb-1.5">Benefits</label>
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Benefits</label>
                                     <input type="hidden" id="culture_benefits" name="culture_benefits" value='@json($selectedBenefits)'>
 
                                     <div id="benefits-options" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -180,7 +180,7 @@
                                             <button
                                                 type="button"
                                                 class="benefit-option flex items-start gap-3 p-3 rounded-lg border text-left transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
-                                                    {{ $isSelected ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-400' : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50' }}"
+                                                    {{ $isSelected ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-400' : 'border-gray-200 bg-white dark:bg-gray-800 hover:border-blue-400 hover:bg-blue-50' }}"
                                                 data-benefit-label="{{ $label }}"
                                             >
                                                 <div class="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -189,17 +189,17 @@
                                                     </svg>
                                                 </div>
                                                 <div>
-                                                    <div class="text-sm font-semibold text-gray-900">{{ $label }}</div>
-                                                    <div class="text-xs text-gray-600 mt-0.5">{{ $description }}</div>
+                                                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $label }}</div>
+                                                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ $description }}</div>
                                                 </div>
                                             </button>
                                         @endforeach
                                     </div>
                                     <div class="mt-2 flex items-center justify-between">
-                                        <p class="text-xs text-gray-500">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
                                             Select up to <span class="font-semibold">6</span> benefits.
                                         </p>
-                                        <p id="benefits-count" class="text-xs text-gray-500">
+                                        <p id="benefits-count" class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ count($selectedBenefits) }}/6 selected
                                         </p>
                                     </div>
@@ -207,32 +207,32 @@
                                         You can select up to 6 benefits only.
                                     </p>
                                 </div>
-                                <div class="pt-4 border-t border-gray-100">
-                                    <h3 class="text-sm font-semibold text-gray-700 mb-3">Social Links</h3>
+                                <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Social Links</h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
-                                            <label for="website" class="block text-sm font-medium text-gray-600 mb-1.5">Website</label>
+                                            <label for="website" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Website</label>
                                             <div class="relative">
-                                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                                                <input type="url" id="website" name="website" value="{{ old('website', $company->website) }}" class="w-full border border-gray-200 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://techcorp.com">
+                                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                                                <input type="url" id="website" name="website" value="{{ old('website', $company->website) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://techcorp.com">
                                             </div>
                                         </div>
                                         <div>
-                                            <label for="linkedin" class="block text-sm font-medium text-gray-600 mb-1.5">LinkedIn</label>
-                                            <input type="url" id="linkedin" name="linkedin" value="{{ old('linkedin', $company->linkedin) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://linkedin.com/company/techcorp">
+                                            <label for="linkedin" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">LinkedIn</label>
+                                            <input type="url" id="linkedin" name="linkedin" value="{{ old('linkedin', $company->linkedin) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://linkedin.com/company/techcorp">
                                         </div>
                                         <div>
-                                            <label for="facebook" class="block text-sm font-medium text-gray-600 mb-1.5">Facebook</label>
-                                            <input type="url" id="facebook" name="facebook" value="{{ old('facebook', $company->facebook) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://facebook.com/yourcompany">
+                                            <label for="facebook" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Facebook</label>
+                                            <input type="url" id="facebook" name="facebook" value="{{ old('facebook', $company->facebook) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://facebook.com/yourcompany">
                                         </div>
                                         <div>
-                                            <label for="twitter" class="block text-sm font-medium text-gray-600 mb-1.5">Twitter</label>
-                                            <input type="url" id="twitter" name="twitter" value="{{ old('twitter', $company->twitter) }}" class="w-full border border-gray-200 rounded-md px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://twitter.com/techcorp">
+                                            <label for="twitter" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Twitter</label>
+                                            <input type="url" id="twitter" name="twitter" value="{{ old('twitter', $company->twitter) }}" class="w-full border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white" placeholder="https://twitter.com/techcorp">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="pt-4 border-t border-gray-200">
+                            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button type="button" id="save-company-info-btn" onclick="saveCompanyInfo()" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-md hover:from-blue-600 hover:to-cyan-500 shadow-md transition font-medium flex items-center gap-2">
                                     <svg id="save-info-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <svg id="save-info-loading" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -272,21 +272,21 @@
                 <!-- Gallery + Verification row -->
                 <div class="mt-8 mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                     <!-- Company Gallery Section (left, half width) -->
-                    <div id="gallery-section" class="bg-white border border-gray-200 shadow-sm rounded-md p-8 flex flex-col">
+                    <div id="gallery-section" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none rounded-md p-8 flex flex-col">
                         <!-- Skeleton Loader -->
                         <div id="gallery-skeleton" class="hidden animate-pulse">
-                            <div class="h-6 bg-gray-200 rounded w-48 mb-4"></div>
+                            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
                             <div class="grid grid-cols-3 gap-4 mb-4">
                                 @for($i = 0; $i < 6; $i++)
-                                    <div class="aspect-square bg-gray-200 rounded-lg"></div>
+                                    <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
                                 @endfor
                             </div>
-                            <div class="h-12 bg-gray-200 rounded w-full"></div>
+                            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                         </div>
                         
                         <!-- Content -->
                         <div id="gallery-content" class="flex-1 flex flex-col">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Company Gallery</h2>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Company Gallery</h2>
                             <div id="gallery-grid" class="grid grid-cols-3 gap-4 mb-4">
                                 @php
                                     $gallery = is_array($company->gallery_images) ? $company->gallery_images : (is_string($company->gallery_images) ? json_decode($company->gallery_images, true) : []);
@@ -309,7 +309,7 @@
                                             $imageUrl = $mediaBaseUrl . '/' . $image;
                                         }
                                     @endphp
-                                    <div class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group">
+                                    <div class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 group">
                                         <img src="{{ $imageUrl }}" alt="Gallery {{ $index+1 }}" class="w-full h-full object-cover">
                                         <button onclick="deleteGalleryImage({{ $index }})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition opacity-0 group-hover:opacity-100">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,7 +321,7 @@
                                 
                                 @if(count($gallery) < 6)
                                     @for($i = count($gallery); $i < 6; $i++)
-                                        <div class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                                        <div class="aspect-square border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                                             <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -330,7 +330,7 @@
                                     @endfor
                                 @endif
                             </div>
-                            <button type="button" id="gallery-upload-btn" onclick="document.getElementById('gallery_images_file').click()" class="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition flex items-center justify-center space-x-2 mt-auto">
+                            <button type="button" id="gallery-upload-btn" onclick="document.getElementById('gallery_images_file').click()" class="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition flex items-center justify-center space-x-2 mt-auto">
                                 <svg id="gallery-upload-icon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
@@ -338,27 +338,27 @@
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">Upload Photos</span>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Upload Photos</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Verification Status Section (right, half width) -->
-                    <div id="verification-section" class="bg-white border border-gray-200 shadow-sm rounded-md p-8 flex flex-col">
+                    <div id="verification-section" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none rounded-md p-8 flex flex-col">
                         <!-- Skeleton Loader -->
                         <div id="verification-skeleton" class="hidden animate-pulse">
-                            <div class="h-6 bg-gray-200 rounded w-48 mb-4"></div>
-                            <div class="h-24 bg-gray-200 rounded mb-4"></div>
+                            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
+                            <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
                             <div class="space-y-2">
-                                <div class="h-4 bg-gray-200 rounded w-full"></div>
-                                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
                             </div>
                         </div>
                         
                         <!-- Content -->
                         <div id="verification-content" class="flex-1 flex flex-col">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Verification Status</h2>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Verification Status</h2>
                             @if($company->verified_at)
                                 <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                                     <div class="flex items-center justify-between">
@@ -369,8 +369,8 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <div class="font-semibold text-gray-900">Company Verified</div>
-                                                <div class="text-sm text-gray-600">
+                                                <div class="font-semibold text-gray-900 dark:text-white">Company Verified</div>
+                                                <div class="text-sm text-gray-600 dark:text-gray-400">
                                                     Verified on {{ $company->verified_at->format('F d, Y') }} at {{ $company->verified_at->format('g:i A') }}
                                                 </div>
                                             </div>
@@ -387,16 +387,16 @@
                                             </svg>
                                         </div>
                                         <div>
-                                            <div class="font-semibold text-gray-900">Not Verified</div>
-                                            <div class="text-sm text-gray-600">Your company is not yet verified</div>
+                                            <div class="font-semibold text-gray-900 dark:text-white">Not Verified</div>
+                                            <div class="text-sm text-gray-600 dark:text-gray-400">Your company is not yet verified</div>
                                         </div>
                                     </div>
                                 </div>
                             @endif
                             
                             <div class="mt-2">
-                                <h3 class="font-semibold text-gray-900 mb-2">Benefits of Verification</h3>
-                                <ul class="space-y-2 text-sm text-gray-600">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Benefits of Verification</h3>
+                                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                     <li class="flex items-start">
                                         <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -832,7 +832,7 @@ function updateGalleryGrid(galleryImages, mediaBaseUrl = null) {
         // Add empty placeholders
         for (let i = 0; i < 6; i++) {
             const placeholderDiv = document.createElement('div');
-            placeholderDiv.className = 'aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50';
+            placeholderDiv.className = 'aspect-square border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-900';
             placeholderDiv.innerHTML = `
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -882,7 +882,7 @@ function updateGalleryGrid(galleryImages, mediaBaseUrl = null) {
         console.log('Adding gallery image:', image, '-> URL:', imagePath);
         
         imageDiv.innerHTML = `
-            <div class="w-full h-full rounded-lg overflow-hidden border-2 border-gray-200">
+            <div class="w-full h-full rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                 <img src="${imagePath}" alt="Gallery ${index + 1}" class="w-full h-full object-cover" onerror="console.error('Failed to load image:', '${imagePath}'); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23999\\'%3E%3Cpath d=\\'M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z\\'/%3E%3Cpath d=\\'M15 13a3 3 0 11-6 0 3 3 0 016 0z\\'/%3E%3C/svg%3E';">
             </div>
             <button onclick="deleteGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition opacity-0 group-hover:opacity-100">
@@ -898,7 +898,7 @@ function updateGalleryGrid(galleryImages, mediaBaseUrl = null) {
     if (galleryImages.length < 6) {
         for (let i = galleryImages.length; i < 6; i++) {
             const placeholderDiv = document.createElement('div');
-            placeholderDiv.className = 'aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50';
+            placeholderDiv.className = 'aspect-square border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-900';
             placeholderDiv.innerHTML = `
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -1096,7 +1096,11 @@ async function saveCompanyInfo() {
 
 // Delete gallery image
 async function deleteGalleryImage(index) {
-    if (!confirm('Are you sure you want to delete this image?')) {
+    const confirmed = await window.showConfirmDialog(
+        'This image will be removed from your company gallery.',
+        { title: 'Delete image?', confirmText: 'Delete', cancelText: 'Cancel' }
+    );
+    if (!confirmed) {
         return;
     }
     

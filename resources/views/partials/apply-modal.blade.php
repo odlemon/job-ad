@@ -1,59 +1,59 @@
 <!-- Application Preview Modal -->
 <div id="applyModal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);">
-    <div class="relative w-full max-w-lg mx-4 bg-white rounded-xl shadow-2xl overflow-hidden" style="max-height: 90vh;">
+    <div class="relative w-full max-w-lg mx-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden" style="max-height: 90vh;">
         <div class="overflow-y-auto" style="max-height: 90vh;">
             <!-- Header -->
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-                <h2 class="text-lg font-bold text-gray-900">Apply for this job</h2>
+            <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Apply for this job</h2>
                 <button onclick="window.closeApplyModal()" class="p-1 text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
             <!-- Job Summary -->
-            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white rounded-lg shadow-sm border border-gray-100 p-1 flex items-center justify-center flex-shrink-0">
+                    <div class="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700 p-1 flex items-center justify-center flex-shrink-0">
                         <img id="applyModalLogo" src="" alt="" class="w-full h-full object-contain rounded">
                     </div>
                     <div class="min-w-0">
-                        <h3 id="applyModalJobTitle" class="text-sm font-bold text-gray-900 truncate"></h3>
-                        <p id="applyModalCompany" class="text-xs text-gray-500 truncate"></p>
+                        <h3 id="applyModalJobTitle" class="text-sm font-bold text-gray-900 dark:text-white truncate"></h3>
+                        <p id="applyModalCompany" class="text-xs text-gray-500 dark:text-gray-400 truncate"></p>
                     </div>
                 </div>
             </div>
 
             <!-- Your Application Info -->
             <div class="px-6 py-5 space-y-4">
-                <h4 class="text-sm font-semibold text-gray-900">Your Application Details</h4>
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Your Application Details</h4>
 
                 <div class="space-y-3">
                     <div class="flex items-center gap-3 text-sm">
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <span class="text-gray-500 w-16">Name</span>
-                        <span id="applyModalName" class="text-gray-900 font-medium"></span>
+                        <span class="text-gray-500 dark:text-gray-400 w-16">Name</span>
+                        <span id="applyModalName" class="text-gray-900 dark:text-white font-medium"></span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        <span class="text-gray-500 w-16">Email</span>
-                        <span id="applyModalEmail" class="text-gray-900 font-medium"></span>
+                        <span class="text-gray-500 dark:text-gray-400 w-16">Email</span>
+                        <span id="applyModalEmail" class="text-gray-900 dark:text-white font-medium"></span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                        <span class="text-gray-500 w-16">Phone</span>
-                        <span id="applyModalPhone" class="text-gray-900 font-medium"></span>
+                        <span class="text-gray-500 dark:text-gray-400 w-16">Phone</span>
+                        <span id="applyModalPhone" class="text-gray-900 dark:text-white font-medium"></span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="text-gray-500 w-16">CV</span>
-                        <span id="applyModalCV" class="text-gray-900 font-medium"></span>
+                        <span class="text-gray-500 dark:text-gray-400 w-16">CV</span>
+                        <span id="applyModalCV" class="text-gray-900 dark:text-white font-medium"></span>
                     </div>
                 </div>
 
                 <!-- Cover Letter (optional) -->
                 <div>
-                    <label for="applyModalCoverLetter" class="block text-sm font-semibold text-gray-700 mb-1.5">Cover Letter <span class="text-gray-400 text-xs font-normal">(optional)</span></label>
-                    <textarea id="applyModalCoverLetter" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Tell the employer why you're a great fit for this role..."></textarea>
+                    <label for="applyModalCoverLetter" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Cover Letter <span class="text-gray-400 text-xs font-normal">(optional)</span></label>
+                    <textarea id="applyModalCoverLetter" rows="4" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Tell the employer why you're a great fit for this role..."></textarea>
                 </div>
 
                 <!-- Error/Success Messages -->
@@ -62,9 +62,9 @@
             </div>
 
             <!-- Footer -->
-            <div class="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
-                <button onclick="window.closeApplyModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                <button id="submitApplyBtn" class="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition shadow-sm flex items-center gap-2" style="background:#ec4899;">
+            <div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-end gap-3">
+                <button onclick="window.closeApplyModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
+                <button id="submitApplyBtn" class="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition shadow-sm dark:shadow-none flex items-center gap-2" style="background:#ec4899;">
                     <span id="submitApplyBtnText">Submit Application</span>
                     <svg id="submitApplySpinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -148,7 +148,7 @@
             var cvEl = document.getElementById('applyModalCV');
             if (seeker.cv_file_path) {
                 cvEl.textContent = 'CV attached';
-                cvEl.className = 'text-gray-900 font-medium';
+                cvEl.className = 'text-gray-900 dark:text-white font-medium';
             } else {
                 cvEl.textContent = 'No CV uploaded';
                 cvEl.className = 'text-amber-600 font-medium';

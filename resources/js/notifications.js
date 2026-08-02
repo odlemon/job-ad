@@ -1,301 +1,343 @@
-// Notification system
-(function() {
-    let notificationPollInterval = null;
+import { io } from 'socket.io-client';
+
+/**
+ * Shared notifications: navbar badge (+ employer dropdown) + Socket.IO realtime.
+ */
+(function () {
     let unreadCount = 0;
+    let pollTimer = null;
+    let socket = null;
+    let started = false;
 
-    let isInitialized = false;
+    const REALTIME_URL = (import.meta.env.VITE_REALTIME_URL || 'http://127.0.0.1:3001').replace(/\/$/, '');
 
-    function initNotifications() {
-        const notificationButton = document.getElementById('notification-button');
-        const notificationDropdown = document.getElementById('notification-dropdown');
-
-        if (!notificationButton || !notificationDropdown) {
-            return;
-        }
-
-        if (notificationButton.dataset.initialized === 'true') {
-            return;
-        }
-
-        notificationButton.dataset.initialized = 'true';
-        isInitialized = true;
-
-        // Toggle dropdown
-        notificationButton.addEventListener('click', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            const isHidden = notificationDropdown.classList.contains('hidden');
-            console.log('Notification button clicked, isHidden:', isHidden);
-            notificationDropdown.classList.toggle('hidden');
-            if (isHidden) {
-                // Opening dropdown, load notifications
-                loadNotifications();
-            }
-        });
-
-        // Close dropdown when clicking outside
-        const closeHandler = function(e) {
-            const container = document.getElementById('notification-container');
-            if (container && !container.contains(e.target)) {
-                notificationDropdown.classList.add('hidden');
-            }
-        };
-        document.removeEventListener('click', closeHandler);
-        document.addEventListener('click', closeHandler);
-
-        // Mark all as read
-        const markAllReadBtn = document.getElementById('mark-all-read-btn');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                markAllAsRead();
-            });
-        }
-
-        // Load notifications and start polling
-        loadNotifications();
-        if (!notificationPollInterval) {
-            startPolling();
-        }
+    function csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
 
-    function loadNotifications() {
-        const notificationList = document.getElementById('notification-list');
-        if (!notificationList) return;
+    function userId() {
+        const fromBody = Number(document.body?.dataset?.userId || 0);
+        if (fromBody > 0) return fromBody;
+        const fromMeta = Number(document.querySelector('meta[name="user-id"]')?.content || 0);
+        return fromMeta > 0 ? fromMeta : 0;
+    }
 
-        fetch('/api/notifications?limit=10', {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            unreadCount = data.unread_count || 0;
-            updateBadge();
-            renderNotifications(data.notifications || []);
-        })
-        .catch(error => {
-            console.error('Error loading notifications:', error);
-            notificationList.innerHTML = `
-                <div class="p-4 text-center text-red-500">
-                    <p class="text-sm">Error loading notifications</p>
-                </div>
-            `;
-        });
+    function authHeaders(json) {
+        const h = {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf(),
+        };
+        if (json) h['Content-Type'] = 'application/json';
+        return h;
     }
 
     function updateBadge() {
         const badge = document.getElementById('notification-badge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+        if (!badge) return;
+
+        if (unreadCount > 0) {
+            const label = unreadCount > 9 ? '9+' : String(unreadCount);
+            badge.textContent = label;
+            badge.classList.remove('hidden');
+            badge.style.display = 'flex';
+            // Employer uses a tiny red dot — still show count if possible
+            if (badge.classList.contains('w-2') || badge.classList.contains('h-2')) {
+                badge.classList.remove('w-2', 'h-2');
+                badge.classList.add('min-w-4', 'h-4', 'px-1', 'text-[10px]', 'font-bold', 'items-center', 'justify-center', 'rounded-full');
+                badge.style.minWidth = '1rem';
+                badge.style.height = '1rem';
+                badge.style.fontSize = '0.65rem';
+                badge.style.fontWeight = '700';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
+                badge.style.borderRadius = '9999px';
+                badge.style.padding = '0 0.2rem';
+                badge.style.color = '#fff';
+                badge.style.background = '#ef4444';
             }
+        } else {
+            badge.textContent = '0';
+            badge.classList.add('hidden');
+            badge.style.display = 'none';
         }
-    }
 
-    function renderNotifications(notifications) {
-        const notificationList = document.getElementById('notification-list');
-        if (!notificationList) return;
-
-        if (notifications.length === 0) {
-            notificationList.innerHTML = `
-                <div class="p-8 text-center text-gray-500">
-                    <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    </svg>
-                    <p>No notifications</p>
-                </div>
-            `;
-            return;
+        // Full page counter (seeker notifications page)
+        const pageNum = document.getElementById('notif-unread-num');
+        const pageText = document.getElementById('notif-unread-text');
+        if (pageNum) pageNum.textContent = String(unreadCount);
+        if (pageText) {
+            pageText.textContent =
+                'You have ' + unreadCount + ' unread notification' + (unreadCount !== 1 ? 's' : '');
         }
 
-        notificationList.innerHTML = notifications.map(notification => {
-            const isRead = notification.is_read;
-            const timeAgo = getTimeAgo(notification.created_at);
-            const bgColor = isRead ? 'bg-white' : 'bg-blue-50';
-            
-            return `
-                <div class="notification-item ${bgColor} border-b border-gray-100 px-4 py-3 hover:bg-gray-50 cursor-pointer transition" 
-                     data-id="${notification.id}" 
-                     data-read="${isRead}"
-                     onclick="handleNotificationClick(${notification.id}, ${notification.data?.application_id || 'null'})">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">${escapeHtml(notification.title)}</p>
-                            <p class="text-xs text-gray-600 mt-1">${escapeHtml(notification.message)}</p>
-                            <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
-                        </div>
-                        ${!isRead ? '<div class="ml-2 w-2 h-2 bg-blue-600 rounded-full"></div>' : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function handleNotificationClick(notificationId, applicationId) {
-        // Mark as read
-        markAsRead(notificationId);
-        
-        // Navigate based on user type
-        const userType = document.body.getAttribute('data-user-type') || '';
-        const currentPath = window.location.pathname;
-        
-        // Determine user type from current path if not in body attribute
-        let isJobSeeker = false;
-        if (userType === 'job_seeker' || currentPath.includes('/job-seeker')) {
-            isJobSeeker = true;
-        } else if (userType === 'employer' || currentPath.includes('/employer')) {
-            isJobSeeker = false;
-        }
-        
-        if (applicationId && applicationId !== 'null') {
-            if (isJobSeeker) {
-                // Navigate to job seeker applications page
-                if (typeof navigateTo === 'function') {
-                    navigateTo(`/job-seeker/applications`);
-                } else {
-                    window.location.href = `/job-seeker/applications`;
-                }
-            } else {
-                // Navigate to employer applications page
-                if (typeof navigateTo === 'function') {
-                    navigateTo(`/employer/applications`);
-                } else {
-                    window.location.href = `/employer/applications`;
-                }
-            }
-        }
-    }
-
-    function markAsRead(notificationId) {
-        fetch(`/api/notifications/${notificationId}/read`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            unreadCount = data.unread_count || 0;
-            updateBadge();
-            
-            // Update notification item
-            const item = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
-            if (item) {
-                item.classList.remove('bg-blue-50');
-                item.classList.add('bg-white');
-                item.setAttribute('data-read', 'true');
-                const dot = item.querySelector('.bg-blue-600');
-                if (dot) dot.remove();
-            }
-        })
-        .catch(error => {
-            console.error('Error marking notification as read:', error);
-        });
-    }
-
-    function markAllAsRead() {
-        fetch('/api/notifications/mark-all-read', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            unreadCount = 0;
-            updateBadge();
-            loadNotifications();
-        })
-        .catch(error => {
-            console.error('Error marking all as read:', error);
-        });
-    }
-
-    function startPolling() {
-        // Poll every 30 seconds
-        notificationPollInterval = setInterval(() => {
-            fetch('/api/notifications/unread-count', {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+        window.dispatchEvent(
+            new CustomEvent('jobhub:notifications-updated', {
+                detail: { unreadCount },
             })
-            .then(response => response.json())
-            .then(data => {
-                const newCount = data.unread_count || 0;
-                if (newCount !== unreadCount) {
-                    unreadCount = newCount;
-                    updateBadge();
-                    // Reload notifications if dropdown is open
-                    const dropdown = document.getElementById('notification-dropdown');
-                    if (dropdown && !dropdown.classList.contains('hidden')) {
-                        loadNotifications();
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error polling notifications:', error);
-            });
-        }, 30000);
+        );
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text == null ? '' : String(text);
+        return div.innerHTML;
     }
 
     function getTimeAgo(dateString) {
         const date = new Date(dateString);
         const now = new Date();
         const diffInSeconds = Math.floor((now - date) / 1000);
-        
-        if (diffInSeconds < 60) return 'Just now';
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        if (Number.isNaN(diffInSeconds) || diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+        if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+        if (diffInSeconds < 604800) return Math.floor(diffInSeconds / 86400) + 'd ago';
         return date.toLocaleDateString();
     }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    function renderDropdown(notifications) {
+        const list = document.getElementById('notification-list');
+        if (!list) return;
+
+        if (!notifications.length) {
+            list.innerHTML =
+                '<div class="p-8 text-center text-gray-500 dark:text-gray-400"><p>No notifications</p></div>';
+            return;
+        }
+
+        list.innerHTML = notifications
+            .map((n) => {
+                const isRead = !!(n.is_read || n.read);
+                const bg = isRead ? 'bg-white dark:bg-gray-800' : 'bg-blue-50 dark:bg-blue-900/20';
+                const appId = n.data?.application_id ?? 'null';
+                return (
+                    '<div class="notification-item ' +
+                    bg +
+                    ' border-b border-gray-100 dark:border-gray-700 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition" data-id="' +
+                    escapeHtml(n.id) +
+                    '" data-read="' +
+                    isRead +
+                    '" onclick="window.handleNotificationClick && window.handleNotificationClick(\'' +
+                    escapeHtml(n.id) +
+                    "', " +
+                    appId +
+                    ')">' +
+                    '<div class="flex items-start justify-between gap-2">' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<p class="text-sm font-medium text-gray-900 dark:text-white">' +
+                    escapeHtml(n.title) +
+                    '</p>' +
+                    '<p class="text-xs text-gray-600 dark:text-gray-400 mt-1">' +
+                    escapeHtml(n.message || n.body || '') +
+                    '</p>' +
+                    '<p class="text-xs text-gray-400 mt-1">' +
+                    escapeHtml(getTimeAgo(n.created_at)) +
+                    '</p>' +
+                    '</div>' +
+                    (!isRead ? '<div class="ml-2 w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1"></div>' : '') +
+                    '</div></div>'
+                );
+            })
+            .join('');
     }
 
-    // Make handleNotificationClick globally available
-    window.handleNotificationClick = handleNotificationClick;
+    async function fetchUnreadCount() {
+        const res = await fetch('/api/notifications/unread-count', {
+            credentials: 'same-origin',
+            headers: authHeaders(false),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        unreadCount = data.unread_count ?? data.data?.count ?? 0;
+        updateBadge();
+    }
 
-    // Initialize on page load
-    function initializeNotifications() {
-        // Wait a bit to ensure DOM is ready
-        setTimeout(() => {
-            initNotifications();
-        }, 100);
+    async function loadDropdownNotifications() {
+        const list = document.getElementById('notification-list');
+        if (!list) return;
+
+        try {
+            const res = await fetch('/api/notifications?limit=10', {
+                credentials: 'same-origin',
+                headers: authHeaders(false),
+            });
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+            unreadCount = data.unread_count ?? unreadCount;
+            updateBadge();
+            renderDropdown(data.notifications || data.data || []);
+        } catch (e) {
+            list.innerHTML =
+                '<div class="p-4 text-center text-red-500"><p class="text-sm">Error loading notifications</p></div>';
+        }
+    }
+
+    function onRealtimeNotification(payload) {
+        unreadCount = Math.max(0, unreadCount + 1);
+        updateBadge();
+
+        const dropdown = document.getElementById('notification-dropdown');
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            loadDropdownNotifications();
+        }
+
+        // Let full page reload list if present
+        window.dispatchEvent(
+            new CustomEvent('jobhub:notification-new', {
+                detail: payload || {},
+            })
+        );
+
+        if (typeof window.showSuccessToast === 'function' && payload?.title) {
+            window.showSuccessToast(payload.title);
+        }
+    }
+
+    function connectSocket() {
+        const uid = userId();
+        if (!uid || socket) return;
+
+        try {
+            socket = io(REALTIME_URL, {
+                transports: ['websocket', 'polling'],
+                auth: { userId: uid },
+                query: { userId: uid },
+                reconnection: true,
+                reconnectionDelay: 2000,
+            });
+
+            socket.on('connect', () => {
+                socket.emit('join', { userId: uid });
+            });
+
+            socket.on('notification:new', onRealtimeNotification);
+            socket.on('connect_error', () => {
+                // Polling remains as fallback
+            });
+        } catch (e) {
+            console.warn('Realtime socket unavailable', e);
+        }
+    }
+
+    function startPolling() {
+        if (pollTimer) return;
+        pollTimer = setInterval(() => {
+            fetchUnreadCount().catch(() => {});
+        }, 30000);
+    }
+
+    function initDropdown() {
+        const button = document.getElementById('notification-button');
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!button || !dropdown) return;
+        if (button.dataset.notifBound === 'true') return;
+        button.dataset.notifBound = 'true';
+
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const opening = dropdown.classList.contains('hidden');
+            dropdown.classList.toggle('hidden');
+            if (opening) loadDropdownNotifications();
+        });
+
+        document.addEventListener('click', function (e) {
+            const container = document.getElementById('notification-container');
+            if (container && !container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        const markAll = document.getElementById('mark-all-read-btn');
+        if (markAll && !markAll.dataset.notifBound) {
+            markAll.dataset.notifBound = 'true';
+            markAll.addEventListener('click', function (e) {
+                e.stopPropagation();
+                markAllAsRead();
+            });
+        }
+    }
+
+    async function markAsRead(notificationId) {
+        const res = await fetch('/api/notifications/' + notificationId + '/read', {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: authHeaders(true),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        unreadCount = data.unread_count ?? Math.max(0, unreadCount - 1);
+        updateBadge();
+
+        const item = document.querySelector('.notification-item[data-id="' + notificationId + '"]');
+        if (item) {
+            item.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+            item.classList.add('bg-white', 'dark:bg-gray-800');
+            item.setAttribute('data-read', 'true');
+            const dot = item.querySelector('.bg-blue-600');
+            if (dot) dot.remove();
+        }
+    }
+
+    async function markAllAsRead() {
+        const res = await fetch('/api/notifications/mark-all-read', {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: authHeaders(true),
+        });
+        if (!res.ok) return;
+        unreadCount = 0;
+        updateBadge();
+        loadDropdownNotifications();
+        window.dispatchEvent(new CustomEvent('jobhub:notifications-all-read'));
+    }
+
+    window.handleNotificationClick = function (notificationId, applicationId) {
+        markAsRead(notificationId);
+        const userType = document.body.getAttribute('data-user-type') || '';
+        const path = window.location.pathname;
+        const isSeeker = userType === 'job_seeker' || path.includes('/job-seeker') || path === '/dashboard';
+
+        if (applicationId && applicationId !== 'null') {
+            window.location.href = isSeeker ? '/job-seeker/applications' : '/employer/applications';
+            return;
+        }
+
+        if (isSeeker) {
+            window.location.href = '/job-seeker/notifications';
+        }
+    };
+
+    window.JobHubNotifications = {
+        refresh: fetchUnreadCount,
+        markAsRead,
+        markAllAsRead,
+        getUnreadCount: () => unreadCount,
+    };
+
+    function boot() {
+        if (!document.getElementById('notification-badge') && !document.getElementById('notification-button')) {
+            // Still allow socket if user id present (e.g. notifications page without badge mid-nav)
+        }
+        if (started) {
+            initDropdown();
+            return;
+        }
+        started = true;
+        initDropdown();
+        fetchUnreadCount().catch(() => {});
+        connectSocket();
+        startPolling();
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeNotifications);
+        document.addEventListener('DOMContentLoaded', boot);
     } else {
-        initializeNotifications();
+        boot();
     }
 
-    // Re-initialize on Livewire navigation
-    if (typeof Livewire !== 'undefined') {
-        document.addEventListener('livewire:navigated', function() {
-            setTimeout(initNotifications, 200);
-        });
-    }
-
-    // Also try to initialize after a short delay (in case elements are added dynamically)
-    setTimeout(initializeNotifications, 500);
+    document.addEventListener('livewire:navigated', function () {
+        started = false;
+        setTimeout(boot, 150);
+    });
 })();

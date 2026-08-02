@@ -1,9 +1,9 @@
 <!-- Experience Modal -->
 <div id="experience-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Work Experience</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Work Experience</h3>
                 <button onclick="closeExperienceModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -13,46 +13,46 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title *</label>
                 <input type="text" id="exp-job-title" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Name *</label>
                 <input type="text" id="exp-company" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
                 <input type="text" id="exp-location"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date *</label>
                     <input type="date" id="exp-start-date" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
                     <input type="date" id="exp-end-date"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
             <div>
                 <label class="flex items-center">
                     <input type="checkbox" id="exp-is-current" class="mr-2">
-                    <span class="text-sm text-gray-700">I currently work here</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">I currently work here</span>
                 </label>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                 <textarea id="exp-description" rows="4"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeExperienceModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeExperienceModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveExperience()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -60,10 +60,10 @@
 
 <!-- Education Modal -->
 <div id="education-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Education</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Education</h3>
                 <button onclick="closeEducationModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -73,58 +73,58 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Degree *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Degree *</label>
                 <input type="text" id="edu-degree" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Institution *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Institution *</label>
                 <input type="text" id="edu-institution" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
                 <input type="text" id="edu-location"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date *</label>
                     <input type="date" id="edu-start-date" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
                     <input type="date" id="edu-end-date"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
             <div>
                 <label class="flex items-center cursor-pointer">
                     <input type="checkbox" id="edu-is-current" class="mr-2">
-                    <span class="text-sm text-gray-700">Current</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Current</span>
                 </label>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">GPA</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GPA</label>
                     <input type="number" id="edu-gpa" step="0.01" min="0" max="4"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">GPA Scale</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GPA Scale</label>
                     <input type="text" id="edu-gpa-scale" value="4.0"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                 <textarea id="edu-description" rows="3"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeEducationModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeEducationModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveEducation()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -132,10 +132,10 @@
 
 <!-- Skill Modal -->
 <div id="skill-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Skill</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Skill</h3>
                 <button onclick="closeSkillModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -145,14 +145,14 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Skill Name *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Skill Name *</label>
                 <input type="text" id="skill-name" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Proficiency Level *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Proficiency Level *</label>
                 <select id="skill-proficiency" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="beginner">Beginner</option>
                     <option value="intermediate" selected>Intermediate</option>
                     <option value="advanced">Advanced</option>
@@ -160,8 +160,8 @@
                 </select>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeSkillModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeSkillModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveSkill()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -169,10 +169,10 @@
 
 <!-- Language Modal -->
 <div id="language-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Language</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Language</h3>
                 <button onclick="closeLanguageModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -182,14 +182,14 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Language *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language *</label>
                 <input type="text" id="language-name" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Proficiency Level *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Proficiency Level *</label>
                 <select id="language-proficiency" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="basic">Basic</option>
                     <option value="conversational" selected>Conversational</option>
                     <option value="fluent">Fluent</option>
@@ -197,8 +197,8 @@
                 </select>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeLanguageModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeLanguageModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveLanguage()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -206,10 +206,10 @@
 
 <!-- Certification Modal -->
 <div id="certification-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Certification</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Certification</h3>
                 <button onclick="closeCertificationModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -219,50 +219,50 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Certification Name *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Certification Name *</label>
                 <input type="text" id="cert-name" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Issuing Organization *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Issuing Organization *</label>
                 <input type="text" id="cert-organization" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Issue Date *</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Issue Date *</label>
                     <input type="date" id="cert-issue-date" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry Date</label>
                     <input type="date" id="cert-expiry-date"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Credential ID</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Credential ID</label>
                 <input type="text" id="cert-credential-id"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Credential URL</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Credential URL</label>
                 <input type="url" id="cert-credential-url"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Certificate File</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Certificate File</label>
                 <input type="file" id="cert-file" accept=".pdf,.jpg,.jpeg,.png" class="sr-only" aria-hidden="true"
                     onchange="handleCertFileSelect(event)">
                 <button type="button" id="cert-file-trigger" onclick="document.getElementById('cert-file').click()"
-                    class="w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-4 flex items-center justify-center gap-2 text-gray-600 hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-700 transition cursor-pointer">
+                    class="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-4 py-4 flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-700 transition cursor-pointer">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
                     </svg>
                     <span id="cert-file-trigger-text">Choose file</span>
                     <span class="text-gray-400 text-sm">— PDF, JPG or PNG (max 5MB)</span>
                 </button>
-                <div id="cert-file-preview" class="hidden mt-3 p-3 bg-gray-50 rounded-lg">
+                <div id="cert-file-preview" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <div id="cert-file-icon" class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -271,8 +271,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <p id="cert-file-name" class="text-sm font-medium text-gray-900"></p>
-                                <p id="cert-file-size" class="text-xs text-gray-500"></p>
+                                <p id="cert-file-name" class="text-sm font-medium text-gray-900 dark:text-white"></p>
+                                <p id="cert-file-size" class="text-xs text-gray-500 dark:text-gray-400"></p>
                             </div>
                         </div>
                         <button onclick="clearCertFile()" class="text-red-600 hover:text-red-700">
@@ -284,8 +284,8 @@
                 </div>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeCertificationModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeCertificationModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveCertification()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -293,10 +293,10 @@
 
 <!-- Reference Modal -->
 <div id="reference-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-900">Add Reference</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Reference</h3>
                 <button onclick="closeReferenceModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -306,24 +306,24 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Reference Name *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference Name *</label>
                 <input type="text" id="ref-name" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
                 <input type="text" id="ref-title" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company *</label>
                 <input type="text" id="ref-company" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Relationship *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Relationship *</label>
                 <select id="ref-relationship" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="former_manager">Former Manager</option>
                     <option value="former_colleague">Former Colleague</option>
                     <option value="former_client">Former Client</option>
@@ -332,23 +332,23 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
                 <input type="email" id="ref-email" required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
                 <input type="tel" id="ref-phone"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
                 <textarea id="ref-notes" rows="3"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeReferenceModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeReferenceModal()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
             <button onclick="saveReference()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition">Save</button>
         </div>
     </div>
@@ -356,9 +356,9 @@
 
 <!-- File Preview Modal -->
 <div id="file-preview-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
-        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-gray-900" id="preview-modal-title">File Preview</h3>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white" id="preview-modal-title">File Preview</h3>
             <button onclick="closeFilePreview()" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -369,12 +369,12 @@
             <div id="preview-content" class="w-full h-full flex items-center justify-center">
                 <div class="text-center">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p class="mt-4 text-gray-600">Loading preview...</p>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading preview...</p>
                 </div>
             </div>
         </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-            <button onclick="closeFilePreview()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Close</button>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
+            <button onclick="closeFilePreview()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">Close</button>
             <a id="preview-download-link" href="#" target="_blank" download class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-lg hover:from-blue-600 hover:to-cyan-500 shadow-md transition inline-flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>

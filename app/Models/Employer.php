@@ -22,6 +22,9 @@ class Employer extends Model
         'address',
         'business_certificate_path',
         'coin_balance',
+        'billing_card_brand',
+        'billing_card_last4',
+        'billing_card_exp',
         'verified_at',
     ];
 

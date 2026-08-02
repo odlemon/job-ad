@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
 use App\Models\CampaignType;
+use App\Models\CoinTransaction;
 use App\Models\JobAdvertisement;
 use App\Models\JobApplication;
 use App\Models\JobCampaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployerCampaignController extends Controller
 {
@@ -163,27 +165,84 @@ class EmployerCampaignController extends Controller
             'payment_method' => 'required|in:coin,card,lpo',
         ]);
 
-        $created = 0;
+        $paymentMethod = $validated['payment_method'];
+        $totalCoinsNeeded = 0;
+        $prepared = [];
+
         foreach ($validated['campaigns'] as $c) {
             $job = JobAdvertisement::where('id', $c['job_id'])
                 ->where('company_id', $employer->company_id)
                 ->first();
-            if (!$job) continue;
+            if (!$job) {
+                continue;
+            }
 
             $type = CampaignType::find($c['campaign_type_id']);
-            if (!$type) continue;
+            if (!$type) {
+                continue;
+            }
 
-            JobCampaign::create([
-                'job_advertisement_id' => $job->id,
-                'campaign_type_id' => $type->id,
+            $prepared[] = [
+                'job' => $job,
+                'type' => $type,
                 'duration_days' => (int) $c['duration_days'],
-                'status' => 'active',
-                'payment_method' => $validated['payment_method'],
-                'launched_at' => now(),
-                'ends_at' => now()->addDays((int) $c['duration_days']),
-            ]);
-            $created++;
+            ];
+            if ($paymentMethod === 'coin') {
+                $totalCoinsNeeded += (int) $type->coins_price;
+            }
         }
+
+        if (empty($prepared)) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['message' => 'No valid campaigns to launch.'], 422);
+            }
+            return redirect()->back()->with('error', 'No valid campaigns to launch.');
+        }
+
+        if ($paymentMethod === 'coin') {
+            $balance = (int) ($employer->coin_balance ?? 0);
+            if ($balance < $totalCoinsNeeded) {
+                if ($request->expectsJson() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'Insufficient coins. Required: ' . $totalCoinsNeeded . ', balance: ' . $balance . '.',
+                    ], 402);
+                }
+                return redirect()->back()->with('error', 'Insufficient coins.');
+            }
+        }
+
+        $created = 0;
+        DB::transaction(function () use ($employer, $prepared, $paymentMethod, $totalCoinsNeeded, &$created) {
+            foreach ($prepared as $item) {
+                $campaign = JobCampaign::create([
+                    'job_advertisement_id' => $item['job']->id,
+                    'campaign_type_id' => $item['type']->id,
+                    'duration_days' => $item['duration_days'],
+                    'status' => 'active',
+                    'payment_method' => $paymentMethod,
+                    'launched_at' => now(),
+                    'ends_at' => now()->addDays($item['duration_days']),
+                ]);
+                $created++;
+
+                if ($paymentMethod === 'coin') {
+                    CoinTransaction::create([
+                        'employer_id' => $employer->employer_id,
+                        'type' => CoinTransaction::TYPE_SPEND,
+                        'amount' => (int) $item['type']->coins_price,
+                        'description' => 'Campaign: ' . $item['type']->name . ' for ' . $item['job']->title,
+                        'reference_type' => JobCampaign::class,
+                        'reference_id' => $campaign->id,
+                    ]);
+                }
+            }
+
+            if ($paymentMethod === 'coin' && $totalCoinsNeeded > 0) {
+                $employer->refresh();
+                $employer->coin_balance = (int) ($employer->coin_balance ?? 0) - $totalCoinsNeeded;
+                $employer->save();
+            }
+        });
 
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json([
@@ -285,6 +344,15 @@ class EmployerCampaignController extends Controller
             }
             $employer->coin_balance = $balance - $totalCoins;
             $employer->save();
+
+            CoinTransaction::create([
+                'employer_id' => $employer->employer_id,
+                'type' => CoinTransaction::TYPE_SPEND,
+                'amount' => $totalCoins,
+                'description' => 'Campaign extend/upgrade',
+                'reference_type' => JobCampaign::class,
+                'reference_id' => $campaign->id,
+            ]);
         }
 
         if ($upgraded) {

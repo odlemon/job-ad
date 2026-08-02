@@ -19,29 +19,43 @@ class JobApplicationController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
-        // Get paginated applications for the user
-        $applications = $this->service->getByUserIdPaginated($user->id, 15);
 
-        // Status counts via SQL — not a second full collection load
-        $rawCounts = \App\Models\JobApplication::query()
-            ->where('user_id', $user->id)
-            ->selectRaw('status, COUNT(*) as c')
-            ->groupBy('status')
-            ->pluck('c', 'status');
+        // Full list for Bolt-style client filters (seekers rarely have huge volumes)
+        $applications = $this->service->getByUserId($user->id);
 
         $stats = [
-            'pending' => (int) (($rawCounts['pending'] ?? 0) + ($rawCounts['applied'] ?? 0)),
-            'reviewing' => (int) (($rawCounts['reviewing'] ?? 0) + ($rawCounts['in_review'] ?? 0)),
-            'shortlisted' => (int) (($rawCounts['shortlisted'] ?? 0) + ($rawCounts['interview'] ?? 0)),
-            'hired' => (int) (($rawCounts['hired'] ?? 0) + ($rawCounts['offered'] ?? 0)),
-            'rejected' => (int) ($rawCounts['rejected'] ?? 0),
+            'Applied' => 0,
+            'In Review' => 0,
+            'Interview' => 0,
+            'Offered' => 0,
+            'Rejected' => 0,
         ];
-        
+
+        foreach ($applications as $application) {
+            $label = self::boltStatusLabel((string) $application->status);
+            $stats[$label] = ($stats[$label] ?? 0) + 1;
+        }
+
         return view('job-seeker.applications', [
             'applications' => $applications,
             'stats' => $stats,
+            'totalCount' => $applications->count(),
         ]);
+    }
+
+    /**
+     * Map DB status values to Bolt tracker labels.
+     */
+    public static function boltStatusLabel(string $status): string
+    {
+        return match (true) {
+            in_array($status, ['applied', 'pending'], true) => 'Applied',
+            in_array($status, ['reviewing', 'in_review'], true) => 'In Review',
+            in_array($status, ['interview', 'shortlisted', 'interview_requested'], true) => 'Interview',
+            in_array($status, ['offered', 'hired'], true) => 'Offered',
+            $status === 'rejected' => 'Rejected',
+            default => 'Applied',
+        };
     }
 
     /**
@@ -99,11 +113,13 @@ class JobApplicationController extends Controller
         }
         
         $validated = $request->validate([
-            'notes' => 'nullable|string',
+            'notes' => 'nullable|string|max:5000',
+            'note' => 'nullable|string|max:5000',
         ]);
-        
-        $application = $this->service->update($application, $validated);
-        
+
+        $notes = $validated['notes'] ?? $validated['note'] ?? null;
+        $application = $this->service->update($application, ['notes' => $notes]);
+
         return response()->json(['message' => 'Notes updated successfully', 'application' => $application], 200);
     }
 

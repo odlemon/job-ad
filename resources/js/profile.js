@@ -420,7 +420,7 @@
         if (!displayDiv) return;
 
         if (preferences.length === 0) {
-            displayDiv.innerHTML = '<span class="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">No preferences set</span>';
+            displayDiv.innerHTML = '<span class="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md text-sm">No preferences set</span>';
         } else {
             displayDiv.innerHTML = preferences.map(pref => {
                 const labels = {
@@ -621,20 +621,20 @@
         listEl.innerHTML = documents.map(function(doc) {
             const dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
             const primaryBadge = doc.is_primary ? '<span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Primary resume</span>' : '';
-            return '<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-4 document-item" data-document-id="' + doc.id + '">' +
+            return '<div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg gap-4 document-item" data-document-id="' + doc.id + '">' +
                 '<div class="flex items-center space-x-3 min-w-0 flex-1">' +
                 '<div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">' +
                 '<svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></div>' +
                 '<div class="min-w-0 flex-1">' +
-                '<p class="font-medium text-gray-900 truncate" title="' + (doc.name || '').replace(/"/g, '&quot;') + '">' + (doc.name || 'Document') + '</p>' +
-                '<p class="text-xs text-gray-500">' + dateStr + '</p>' +
+                '<p class="font-medium text-gray-900 dark:text-white truncate" title="' + (doc.name || '').replace(/"/g, '&quot;') + '">' + (doc.name || 'Document') + '</p>' +
+                '<p class="text-xs text-gray-500 dark:text-gray-400">' + dateStr + '</p>' +
                 '</div>' +
                 (primaryBadge ? '<div class="flex-shrink-0">' + primaryBadge + '</div>' : '') +
                 '</div>' +
                 '<div class="flex items-center space-x-2 flex-shrink-0">' +
                 (!doc.is_primary ? '<button type="button" class="document-set-primary text-blue-600 hover:text-blue-700 text-sm font-medium px-2 py-1 rounded hover:bg-blue-50 transition" data-id="' + doc.id + '">Set primary</button>' : '') +
-                '<a href="' + (doc.file_path || '#') + '" target="_blank" download class="text-gray-600 hover:text-gray-700 text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 transition inline-flex items-center">Download</a>' +
-                '<button type="button" class="document-delete text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition" data-id="' + doc.id + '">Delete</button>' +
+                '<a href="' + (doc.file_path || '#') + '" target="_blank" download class="text-gray-600 dark:text-gray-400 hover:text-gray-700 text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition inline-flex items-center">Download</a>' +
+                '<button type="button" class="document-delete text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition" data-id="' + doc.id + '">Delete</button>' +
                 '</div></div>';
         }).join('');
 
@@ -670,7 +670,7 @@
     }
 
     async function deleteDocument(id) {
-        if (!confirm('Delete this document?')) return;
+        if (!(await window.showConfirmDialog('This document will be permanently removed.', { title: 'Delete document?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
         try {
             const response = await fetch(`${API_BASE}/job-seeker/documents/${id}`, {
                 method: 'DELETE',
@@ -1379,7 +1379,7 @@
         if (skeleton) skeleton.classList.add('hidden');
 
         if (experiences.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No work experience added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No work experience added yet.</p>';
             return;
         }
 
@@ -1391,22 +1391,22 @@
             return `
                 <div class="flex gap-3 items-start">
                     <div class="flex justify-center flex-shrink-0 w-4 mt-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white shadow-sm" style="margin-left: -9px;"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white shadow-sm dark:shadow-none" style="margin-left: -9px;"></div>
                     </div>
                     <div class="flex-1 relative min-w-0 py-2">
-                        <button type="button" onclick="deleteExperience(${exp.id}, this)" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
+                        <button type="button" onclick="deleteExperience(${exp.id}, this)" class="absolute top-0 right-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
-                        <h3 class="font-semibold text-gray-900 pr-8">${(exp.job_title || '').replace(/</g, '&lt;')}</h3>
-                        <p class="text-sm text-gray-600 mt-0.5">${(exp.company_name || '')}${exp.location ? ' • ' + (exp.location || '') : ''}</p>
-                        <p class="text-sm text-gray-600 mt-1">${startDate} - ${endDate}${currentBadge}</p>
-                        ${desc ? `<p class="text-sm text-gray-700 mt-2">${desc}</p>` : ''}
+                        <h3 class="font-semibold text-gray-900 dark:text-white pr-8">${(exp.job_title || '').replace(/</g, '&lt;')}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">${(exp.company_name || '')}${exp.location ? ' • ' + (exp.location || '') : ''}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${startDate} - ${endDate}${currentBadge}</p>
+                        ${desc ? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-2">${desc}</p>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
 
-        container.innerHTML = `<div class="border-l-2 border-gray-200 pl-1 space-y-4">${itemsHtml}</div>`;
+        container.innerHTML = `<div class="border-l-2 border-gray-200 dark:border-gray-700 pl-1 space-y-4">${itemsHtml}</div>`;
     }
 
     function openExperienceModal(id = null) {
@@ -1487,7 +1487,7 @@
     }
 
     async function deleteExperience(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this experience?')) return;
+        if (!(await window.showConfirmDialog('This work experience entry will be permanently removed from your profile.', { title: 'Delete experience?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteExperience(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -1540,7 +1540,7 @@
         if (skeleton) skeleton.classList.add('hidden');
 
         if (educations.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No education added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No education added yet.</p>';
             return;
         }
         container.innerHTML = educations.map(edu => {
@@ -1549,13 +1549,13 @@
             const gpaScale = edu.gpa_scale || '4.0';
             const gpaText = edu.gpa != null && edu.gpa !== '' ? ` GPA: ${edu.gpa}/${gpaScale}` : '';
             return `
-                <div class="rounded-md border border-gray-200 bg-white shadow-sm p-4 relative">
-                    <button type="button" onclick="deleteEducation(${edu.id}, this)" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
+                <div class="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm dark:shadow-none p-4 relative">
+                    <button type="button" onclick="deleteEducation(${edu.id}, this)" class="absolute top-3 right-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    <h3 class="font-semibold text-gray-900 pr-8">${(edu.degree || '').replace(/</g, '&lt;')}</h3>
-                    <p class="text-sm text-gray-600 mt-0.5">${(edu.institution || '')}${edu.location ? ' ' + (edu.location || '') : ''}</p>
-                    <p class="text-sm text-gray-600 mt-1">${startYear} - ${endYear}${gpaText}</p>
+                    <h3 class="font-semibold text-gray-900 dark:text-white pr-8">${(edu.degree || '').replace(/</g, '&lt;')}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">${(edu.institution || '')}${edu.location ? ' ' + (edu.location || '') : ''}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${startYear} - ${endYear}${gpaText}</p>
                 </div>
             `;
         }).join('');
@@ -1642,7 +1642,7 @@
     }
 
     async function deleteEducation(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this education?')) return;
+        if (!(await window.showConfirmDialog('This education entry will be permanently removed from your profile.', { title: 'Delete education?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteEducation(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -1696,17 +1696,17 @@
         if (skeleton) skeleton.classList.add('hidden');
         
         if (skills.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No skills added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No skills added yet.</p>';
             return;
         }
         container.innerHTML = skills.map(skill => {
             const levelText = skill.proficiency_level ? (skill.proficiency_level.charAt(0).toUpperCase() + skill.proficiency_level.slice(1)) : '—';
             const skillName = (skill.skill_name || '').replace(/</g, '&lt;');
             return `
-                <span class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg border border-gray-100">
-                    <span class="text-gray-900 font-medium text-sm">${skillName}</span>
+                <span class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <span class="text-gray-900 dark:text-white font-medium text-sm">${skillName}</span>
                     <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">${levelText}</span>
-                    <button type="button" onclick="deleteSkill(${skill.id}, this)" class="text-gray-500 hover:text-gray-700 p-0.5 rounded cursor-pointer ml-0.5" title="Remove">
+                    <button type="button" onclick="deleteSkill(${skill.id}, this)" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 p-0.5 rounded cursor-pointer ml-0.5" title="Remove">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -1767,7 +1767,7 @@
     }
 
     async function deleteSkill(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this skill?')) return;
+        if (!(await window.showConfirmDialog('This skill will be permanently removed from your profile.', { title: 'Delete skill?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteSkill(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -1821,7 +1821,7 @@
         if (skeleton) skeleton.classList.add('hidden');
         
         if (languages.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm col-span-2">No languages added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm col-span-2">No languages added yet.</p>';
             return;
         }
         const languageIconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>';
@@ -1829,13 +1829,13 @@
             const levelText = lang.proficiency_level ? (lang.proficiency_level.charAt(0).toUpperCase() + lang.proficiency_level.slice(1)) : '—';
             const langName = (lang.language || '').replace(/</g, '&lt;');
             return `
-                <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-none p-4 flex items-center gap-3">
                     <span class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-600">${languageIconSvg}</span>
                     <div class="flex-1 min-w-0">
-                        <p class="font-medium text-gray-900">${langName}</p>
-                        <p class="text-sm text-gray-500 mt-0.5">${levelText}</p>
+                        <p class="font-medium text-gray-900 dark:text-white">${langName}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">${levelText}</p>
                     </div>
-                    <button type="button" onclick="deleteLanguage(${lang.id}, this)" class="flex-shrink-0 text-gray-500 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
+                    <button type="button" onclick="deleteLanguage(${lang.id}, this)" class="flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -1894,7 +1894,7 @@
     }
 
     async function deleteLanguage(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this language?')) return;
+        if (!(await window.showConfirmDialog('This language will be permanently removed from your profile.', { title: 'Delete language?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteLanguage(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -1962,7 +1962,7 @@
             const safeFileUrl = fileUrl.replace(/"/g, '&quot;');
 
             return `
-                <div class="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-start justify-between gap-4">
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-4 flex items-start justify-between gap-4">
                     <div class="flex items-start gap-3">
                         <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1970,9 +1970,9 @@
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-gray-900">${name}</h3>
-                            <p class="text-sm text-gray-600">${org}</p>
-                            ${datesLine ? `<p class="text-xs text-gray-500 mt-1">${datesLine}</p>` : ''}
+                            <h3 class="font-semibold text-gray-900 dark:text-white">${name}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${org}</p>
+                            ${datesLine ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${datesLine}</p>` : ''}
                             ${fileUrl ? `
                                 <button type="button" data-file-url="${safeFileUrl}" onclick="previewFile('cert', this.dataset.fileUrl)" class="mt-2 inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1993,7 +1993,7 @@
         }).join('');
 
         const uploadBlock = `
-            <button type="button" onclick="openCertificationModal()" class="mt-3 w-full border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 flex items-center justify-center text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer bg-gray-50">
+            <button type="button" onclick="openCertificationModal()" class="mt-3 w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer bg-gray-50 dark:bg-gray-900">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
                 </svg>
@@ -2088,7 +2088,7 @@
     }
 
     async function deleteCertification(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this certification?')) return;
+        if (!(await window.showConfirmDialog('This certification will be permanently removed from your profile.', { title: 'Delete certification?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteCertification(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -2142,13 +2142,13 @@
         if (skeleton) skeleton.classList.add('hidden');
 
         if (references.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No references added yet.</p>';
+            container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No references added yet.</p>';
             return;
         }
 
         const peopleIconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #0194A5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
-        const envelopeIconSvg = '<svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>';
-        const phoneIconSvg = '<svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>';
+        const envelopeIconSvg = '<svg class="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>';
+        const phoneIconSvg = '<svg class="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>';
 
         container.innerHTML = references.map(ref => {
             const name = (ref.reference_name || '').replace(/</g, '&lt;');
@@ -2159,7 +2159,7 @@
             const phone = (ref.phone || '').replace(/</g, '&lt;');
             const roleLine = [title, company].filter(Boolean).join(' at ') || '—';
             return `
-                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-start gap-3 relative">
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm dark:shadow-none p-4 flex items-start gap-3 relative">
                     <button type="button" onclick="deleteReference(${ref.id}, this)" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 p-1 rounded cursor-pointer" title="Remove">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -2167,12 +2167,12 @@
                     </button>
                     <span class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-lg" style="background-color: #E0F7FA;">${peopleIconSvg}</span>
                     <div class="flex-1 min-w-0 pr-8">
-                        <h3 class="font-semibold text-gray-900 text-base">${name}</h3>
-                        <p class="text-sm text-gray-700 mt-0.5">${roleLine}</p>
-                        <p class="text-sm text-gray-600 mt-0.5">${rel}</p>
+                        <h3 class="font-semibold text-gray-900 dark:text-white text-base">${name}</h3>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-0.5">${roleLine}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">${rel}</p>
                         <div class="mt-2 space-y-1">
-                            ${email ? `<div class="flex items-center gap-2 text-sm text-gray-600">${envelopeIconSvg}<a href="mailto:${email}" class="hover:text-blue-600 truncate">${email}</a></div>` : ''}
-                            ${phone ? `<div class="flex items-center gap-2 text-sm text-gray-600">${phoneIconSvg}<a href="tel:${phone}" class="hover:text-blue-600">${phone}</a></div>` : ''}
+                            ${email ? `<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">${envelopeIconSvg}<a href="mailto:${email}" class="hover:text-blue-600 truncate">${email}</a></div>` : ''}
+                            ${phone ? `<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">${phoneIconSvg}<a href="tel:${phone}" class="hover:text-blue-600">${phone}</a></div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -2251,7 +2251,7 @@
     }
 
     async function deleteReference(id, buttonElement = null) {
-        if (!confirm('Are you sure you want to delete this reference?')) return;
+        if (!(await window.showConfirmDialog('This reference will be permanently removed from your profile.', { title: 'Delete reference?', confirmText: 'Delete', cancelText: 'Cancel' }))) return;
 
         const deleteButton = buttonElement || document.querySelector(`button[onclick*="deleteReference(${id})"]`);
         const originalText = deleteButton ? deleteButton.innerHTML : '';
@@ -2313,7 +2313,7 @@
         const container = document.getElementById('category-preferences-display');
         if (!container) return;
         if (categoryPreferences.length === 0) {
-            container.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm">No categories selected</span>';
+            container.innerHTML = '<span class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md text-sm">No categories selected</span>';
             const countEl = document.getElementById('category-count');
             if (countEl) countEl.textContent = '0 of 6 categories selected';
             return;
@@ -2458,7 +2458,7 @@
         const displayDiv = document.getElementById('hobbies-display');
         if (!displayDiv) return;
         if (hobbies.length === 0) {
-            displayDiv.innerHTML = '<span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm">No hobbies added</span>';
+            displayDiv.innerHTML = '<span class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md text-sm">No hobbies added</span>';
         } else {
             displayDiv.innerHTML = hobbies.map(hobby =>
                 `<span class="px-4 py-2 bg-pink-100 text-pink-700 rounded-md text-sm">${hobby}</span>`
@@ -2554,7 +2554,7 @@
         previewContent.innerHTML = `
             <div class="text-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p class="mt-4 text-gray-600">Loading preview...</p>
+                <p class="mt-4 text-gray-600 dark:text-gray-400">Loading preview...</p>
             </div>
         `;
         
@@ -2570,7 +2570,7 @@
             // Preview PDF using iframe
             previewContent.innerHTML = `
                 <div class="w-full h-full">
-                    <iframe src="${url}" class="w-full h-full min-h-[600px] rounded-lg border border-gray-200" 
+                    <iframe src="${url}" class="w-full h-full min-h-[600px] rounded-lg border border-gray-200 dark:border-gray-700" 
                             frameborder="0" 
                             onerror="this.parentElement.innerHTML='<div class=\\'text-center text-red-600 p-8\\'><p class=\\'mb-4\\'>Unable to preview PDF in browser</p><a href=\\'${url}\\' target=\\'_blank\\' class=\\'text-blue-600 hover:underline\\'>Click to open in new tab</a></div>'">
                     </iframe>
@@ -2580,13 +2580,13 @@
             // For other file types (doc, docx), show download option
             previewContent.innerHTML = `
                 <div class="text-center p-8">
-                    <div class="w-24 h-24 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <div class="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-lg mx-auto mb-4 flex items-center justify-center">
                         <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <p class="text-gray-600 mb-2">Preview not available for this file type</p>
-                    <p class="text-sm text-gray-500 mb-4">${url.split('/').pop()}</p>
+                    <p class="text-gray-600 dark:text-gray-400 mb-2">Preview not available for this file type</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${url.split('/').pop()}</p>
                     <a href="${url}" target="_blank" download class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>

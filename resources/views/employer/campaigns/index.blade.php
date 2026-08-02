@@ -1,106 +1,135 @@
 @extends('layouts.employer')
 
 @section('content')
-<div class="min-h-screen bg-white">
+{{-- Critical layout/colors inline: Tailwind v4 often purges grid/flex utilities used only in Blade --}}
+<style>
+.camp-page { background: #f9fafb; min-height: 100vh; }
+.camp-main { padding: 2rem; margin-left: 16rem; width: 100%; flex: 1; min-width: 0; }
+.camp-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 1280px) { .camp-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 768px) { .camp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .camp-main { margin-left: 0; padding: 1rem; } }
+.camp-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.25rem; padding: 1.5rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.camp-kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.camp-kpi-val { font-size: 1.875rem; font-weight: 700; color: #111827; line-height: 1.2; }
+.camp-kpi-label { font-size: 0.875rem; color: #4b5563; margin: 0; }
+.camp-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.25rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); overflow: hidden; }
+.camp-tabs { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; overflow-x: auto; border-bottom: 1px solid #e5e7eb; }
+.camp-tab { padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 500; white-space: nowrap; border: 0; cursor: pointer; background: transparent; color: #4b5563; }
+.camp-tab.is-active { background: #111827; color: #fff; }
+.camp-filters { padding: 1rem; border-bottom: 1px solid #e5e7eb; background: #f9fafb; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.camp-input, .camp-select { padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.25rem; font-size: 0.875rem; background: #fff; color: #111827; }
+.camp-search-wrap { position: relative; flex: 1; min-width: 200px; }
+.camp-search-wrap svg { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 1rem; height: 1rem; color: #9ca3af; }
+.camp-search-wrap input { width: 100%; padding-left: 2.5rem; }
+.camp-reset { padding: 0.5rem 1rem; border: 0; background: transparent; color: #db2777; font-size: 0.875rem; font-weight: 500; cursor: pointer; border-radius: 0.25rem; }
+.camp-card { padding: 1.5rem; border-bottom: 1px solid #e5e7eb; }
+.camp-card:last-child { border-bottom: 0; }
+.camp-card:hover { background: #f9fafb; }
+.camp-row { display: flex; gap: 1.5rem; align-items: flex-start; }
+.camp-body { flex: 1; min-width: 0; }
+.camp-title { font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0 0 0.75rem; }
+.camp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: #4b5563; }
+.camp-badge { display: inline-block; padding: 0.25rem 0.75rem; background: #2563eb; color: #fff; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; }
+.camp-dates { font-size: 0.875rem; color: #4b5563; margin-bottom: 1.5rem; line-height: 1.5; }
+.camp-dates strong { color: #111827; font-weight: 500; }
+.camp-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.75rem; }
+@media (max-width: 1024px) { .camp-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .camp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .camp-row { flex-direction: column; } .camp-actions { width: 100% !important; min-width: 0 !important; } }
+.camp-stat { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; }
+.camp-stat-label { font-size: 0.75rem; font-weight: 500; color: #6b7280; margin: 0 0 0.5rem; }
+.camp-stat-val { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0; line-height: 1.2; }
+.camp-actions { display: flex; flex-direction: column; gap: 0.5rem; width: 200px; min-width: 200px; flex-shrink: 0; }
+.camp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151; box-sizing: border-box; }
+.camp-btn:hover { background: #f9fafb; }
+.camp-btn-pink { background: #db2777; border-color: #db2777; color: #fff; }
+.camp-btn-pink:hover { background: #be185d; }
+.camp-banner { margin-top: 1.5rem; padding: 2rem; border-radius: 0.25rem; color: #fff; background: linear-gradient(to right, #7c3aed, #a855f7); box-shadow: 0 10px 15px -3px rgba(124,58,237,.25); }
+.camp-banner h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem; }
+.camp-banner p { color: #ede9fe; margin: 0 0 1rem; }
+.camp-banner a { display: inline-flex; padding: 0.75rem 1.5rem; background: #fff; color: #7c3aed; border-radius: 0.25rem; font-weight: 500; text-decoration: none; }
+</style>
+<div class="camp-page">
     @include('partials.employer-navbar')
 
     <div class="flex">
         @include('partials.employer-sidebar')
 
-        <main class="flex-1 p-6 ml-64 w-0 min-w-0">
-            <div class="w-full">
-                {{-- Header (tight spacing with content below) --}}
-                <div class="flex items-start justify-between mb-4">
+        <main class="camp-main">
+            <div style="display:flex;flex-direction:column;gap:1.5rem;width:100%;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
                     <div>
-                        <h1 class="text-2xl font-bold" style="color: #1A202C;">Job Campaigns</h1>
-                        <p class="text-sm mt-1" style="color: #6B7280;">Monitor and optimize your job campaigns</p>
+                        <h1 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0;">Job Campaigns</h1>
+                        <p style="color:#4b5563;margin:0.25rem 0 0;">Monitor and optimize your job campaigns</p>
                     </div>
-                    <a href="{{ route('employer.campaigns.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-white font-medium text-sm transition shadow-md rounded-md bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <a href="{{ route('employer.campaigns.create') }}" class="camp-btn camp-btn-pink" style="width:auto;background:linear-gradient(to right,#2563eb,#06b6d4);border:0;">
+                        <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Create Campaign
                     </a>
                 </div>
 
                 @if(session('success'))
-                    <div class="mb-3 p-4 rounded-md bg-green-50 text-green-800 border border-green-200">{{ session('success') }}</div>
+                    <div style="padding:1rem;border-radius:0.25rem;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:0.875rem;">{{ session('success') }}</div>
                 @endif
                 @if(session('error'))
-                    <div class="mb-3 p-4 rounded-md bg-red-50 text-red-800 border border-red-200">{{ session('error') }}</div>
+                    <div style="padding:1rem;border-radius:0.25rem;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;font-size:0.875rem;">{{ session('error') }}</div>
                 @endif
 
-                @if(!($hasAnyCampaigns ?? false))
-                    {{-- Empty state: purple "Maximize Your Reach" banner (no campaigns at all) --}}
-                    <div class="bg-white border border-gray-200 overflow-hidden mb-4 rounded-md">
-                        <div class="relative overflow-hidden px-8 py-10 md:py-14 rounded-md" style="background: linear-gradient(135deg, #6B21A8 0%, #7F35E0 50%, #9333EA 100%);">
-                            <div class="relative z-10 max-w-xl">
-                                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">Maximize Your Reach</h2>
-                                <p class="text-white/90 text-base mb-6">Promote your jobs to reach thousands of qualified candidates faster.</p>
-                                <a href="{{ route('employer.campaigns.create') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white font-semibold text-sm shadow-md transition hover:bg-gray-50 rounded-md" style="color: #7F35E0;">Learn More About Campaigns</a>
+                <div class="camp-kpis">
+                    @php
+                        $kpis = [
+                            ['label' => 'Active Job Listing', 'value' => $stats['active_job_listing'] ?? 0, 'icon' => 'megaphone', 'color' => '#2563eb'],
+                            ['label' => 'Total Views', 'value' => $stats['total_views'] ?? 0, 'icon' => 'eye', 'color' => '#7c3aed'],
+                            ['label' => 'Total Clicks', 'value' => $stats['total_clicks'] ?? 0, 'icon' => 'chart', 'color' => '#059669'],
+                            ['label' => 'Applications', 'value' => $stats['total_applications'] ?? 0, 'icon' => 'users', 'color' => '#ea580c'],
+                            ['label' => 'Shares', 'value' => $stats['total_shares'] ?? 0, 'icon' => 'share', 'color' => '#0891b2'],
+                            ['label' => 'Saved', 'value' => $stats['total_saved'] ?? 0, 'icon' => 'bookmark', 'color' => '#db2777'],
+                        ];
+                    @endphp
+                    @foreach($kpis as $kpi)
+                        <div class="camp-kpi">
+                            <div class="camp-kpi-top">
+                                @if($kpi['icon'] === 'megaphone')
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7z"/></svg>
+                                @elseif($kpi['icon'] === 'eye')
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                @elseif($kpi['icon'] === 'chart')
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                @elseif($kpi['icon'] === 'users')
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                @elseif($kpi['icon'] === 'share')
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                @else
+                                    <svg style="width:2rem;height:2rem;color:{{ $kpi['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                @endif
+                                <span class="camp-kpi-val">{{ number_format($kpi['value']) }}</span>
                             </div>
-                            <div class="absolute right-8 top-1/2 -translate-y-1/2 w-40 h-40 opacity-20">
-                                <svg class="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 18l6-6 4 4 8-12"/></svg>
-                            </div>
+                            <p class="camp-kpi-label">{{ $kpi['label'] }}</p>
                         </div>
-                    </div>
-                    <p class="text-sm text-gray-500 text-center">Create your first campaign to see your dashboard here.</p>
-                @else
-                    {{-- KPI cards (larger, slight radius) --}}
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-                        @php
-                            $kpis = [
-                                ['label' => 'Active Job Listing', 'value' => $stats['active_job_listing'], 'icon' => 'megaphone', 'color' => '#3B82F6'],
-                                ['label' => 'Total Views', 'value' => $stats['total_views'], 'icon' => 'eye', 'color' => '#9333EA'],
-                                ['label' => 'Total Clicks', 'value' => $stats['total_clicks'], 'icon' => 'chart', 'color' => '#22C55E'],
-                                ['label' => 'Applications', 'value' => $stats['total_applications'], 'icon' => 'users', 'color' => '#F97316'],
-                                ['label' => 'Shares', 'value' => $stats['total_shares'], 'icon' => 'share', 'color' => '#0EA5E9'],
-                                ['label' => 'Saved', 'value' => $stats['total_saved'], 'icon' => 'bookmark', 'color' => '#EF4444'],
-                            ];
-                        @endphp
-                        @foreach($kpis as $kpi)
-                            <div class="bg-white border border-gray-200 p-5 shadow-sm rounded-md">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 flex items-center justify-center flex-shrink-0 rounded-md" style="background-color: {{ $kpi['color'] }}20;">
-                                        @if($kpi['icon'] === 'megaphone')
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7z"/></svg>
-                                        @elseif($kpi['icon'] === 'eye')
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        @elseif($kpi['icon'] === 'chart')
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                        @elseif($kpi['icon'] === 'users')
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                        @elseif($kpi['icon'] === 'share')
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                                        @else
-                                            <svg class="w-6 h-6" style="color: {{ $kpi['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <p class="text-3xl font-bold" style="color: #1A202C;">{{ number_format($kpi['value']) }}</p>
-                                        <p class="text-sm font-medium mt-0.5" style="color: #6B7280;">{{ $kpi['label'] }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                    @endforeach
+                </div>
 
-                    {{-- Status tabs (real-time, no reload). Selected = black --}}
-                    <div class="flex flex-wrap gap-0 p-0 bg-gray-100 mb-4 rounded-md overflow-hidden">
+                <div class="camp-panel">
+                    <div class="camp-tabs">
                         @foreach(['scheduled' => 'SCHEDULED', 'active' => 'ACTIVE', 'paused' => 'PAUSED', 'expired' => 'EXPIRED', 'draft' => 'DRAFT'] as $key => $label)
-                            <button type="button" class="campaign-tab px-4 py-2.5 rounded-md text-sm font-medium transition border-0 cursor-pointer {{ ($statusTab ?? 'active') === $key ? 'text-white' : 'text-gray-600 hover:bg-gray-200' }}" style="{{ ($statusTab ?? 'active') === $key ? 'background-color: #000000;' : '' }}" data-status="{{ $key }}">{{ $label }} ({{ $statusCounts[$key] ?? 0 }})</button>
+                            <button type="button" class="campaign-tab camp-tab {{ ($statusTab ?? 'active') === $key ? 'is-active' : '' }}" data-status="{{ $key }}">{{ $label }} ({{ $statusCounts[$key] ?? 0 }})</button>
                         @endforeach
                     </div>
 
-                    {{-- Filters (search = real-time, no form submit) --}}
-                    <div class="flex flex-wrap items-center gap-3 mb-4">
-                        <div class="relative flex-1 min-w-[200px]">
-                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input type="text" id="campaign-search" value="{{ $filters['search'] ?? '' }}" placeholder="Search Jobs" class="w-full pl-10 pr-4 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                    <div class="camp-filters">
+                        <div class="camp-search-wrap">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" id="campaign-search" class="camp-input" value="{{ $filters['search'] ?? '' }}" placeholder="Search Jobs">
                         </div>
-                        <input type="text" id="campaign-location" value="{{ $filters['location'] ?? '' }}" placeholder="Location" class="px-4 py-2 border border-gray-300 text-sm w-40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
-                        <button type="button" id="campaign-reset" class="text-sm font-medium text-gray-500 hover:text-gray-700">Reset</button>
-                        <div class="flex items-center gap-2">
-                            <label class="text-sm text-gray-600">Sort by</label>
-                            <select id="campaign-sort" class="px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 rounded-md">
+                        <select id="campaign-posted-by" class="camp-select">
+                            <option value="all">Posted By</option>
+                            <option value="me">Me</option>
+                            <option value="team">Team</option>
+                        </select>
+                        <input type="text" id="campaign-location" class="camp-input" style="width:10rem;" value="{{ $filters['location'] ?? '' }}" placeholder="Location">
+                        <button type="button" id="campaign-reset" class="camp-reset">Reset</button>
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;">
+                            <span style="font-size:0.875rem;color:#4b5563;">Sort by</span>
+                            <select id="campaign-sort" class="camp-select">
                                 <option value="most_recent">Most recent</option>
                                 <option value="expiring_soon">Expiring soon</option>
                                 <option value="title">Title</option>
@@ -108,11 +137,9 @@
                         </div>
                     </div>
 
-                    {{-- Campaign list (one card per job). data-* for real-time filter --}}
-                    <div id="campaign-list-empty" class="hidden bg-white border border-gray-200 p-12 text-center rounded-md">
-                        <p class="text-gray-500">No campaigns match your filters. Try another status or search.</p>
-                    </div>
-                    <div id="campaign-list" class="space-y-4">
+                    <div id="campaign-list-empty" class="{{ ($hasAnyCampaigns ?? false) && $jobs->isNotEmpty() ? 'hidden' : '' }}" style="padding:3rem;text-align:center;color:#6b7280;">No campaigns found</div>
+
+                    <div id="campaign-list">
                         @foreach($jobs as $job)
                             @php
                                 $primaryCampaign = $job->campaigns->first();
@@ -128,63 +155,63 @@
                                 $companyName = $job->company->name ?? 'Employer';
                                 $jobLocation = $job->location ?: ($job->is_remote ? 'Remote' : '');
                             @endphp
-                            <div class="campaign-card bg-white border border-gray-200 shadow-sm overflow-hidden rounded-md" data-campaign-status="{{ $campaignStatus }}" data-job-title="{{ strtolower(e($job->title)) }}" data-job-location="{{ strtolower(e($jobLocation)) }}">
-                                <div class="p-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-bold" style="color: #1A202C;">{{ $job->title }}</h3>
-                                        <div class="flex flex-wrap items-center gap-2 mt-1">
-                                            <span class="flex items-center gap-1 text-sm" style="color: #6B7280;">
-                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                {{ $job->location ?: ($job->is_remote ? 'Remote' : 'Multiple locations') }}
+                            <div class="campaign-card camp-card" data-campaign-status="{{ $campaignStatus }}" data-job-title="{{ strtolower(e($job->title)) }}" data-job-location="{{ strtolower(e($jobLocation)) }}">
+                                <div class="camp-row">
+                                    <div class="camp-body">
+                                        <h3 class="camp-title">{{ $job->title }}</h3>
+                                        <div class="camp-meta">
+                                            <span style="display:inline-flex;align-items:center;gap:0.35rem;">
+                                                <svg style="width:1rem;height:1rem;color:#9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                {{ $jobLocation ?: 'Multiple locations' }}
                                             </span>
-                                            <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium text-white rounded-md" style="background-color: #0EA5E9;">Featured</span>
+                                            @if($primaryCampaign)
+                                                <span class="camp-badge">Featured</span>
+                                            @endif
                                         </div>
-                                        <p class="text-sm mt-2" style="color: #6B7280;">Posted on: {{ $job->created_at->format('d M Y') }}, by {{ $companyName }}</p>
-                                        @if($primaryCampaign && $primaryCampaign->ends_at)
-                                            <p class="text-sm" style="color: #6B7280;">Expiring on: {{ $primaryCampaign->ends_at->format('d M Y') }}</p>
-                                        @endif
-                                        {{-- Stats row --}}
-                                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-4">
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['views'] }}</p><p class="text-xs" style="color: #6B7280;">Views</p></div>
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['applications'] }}</p><p class="text-xs" style="color: #6B7280;">Applications</p></div>
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['shares'] }}</p><p class="text-xs" style="color: #6B7280;">Shares</p></div>
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['messages'] }}</p><p class="text-xs" style="color: #6B7280;">Messages</p></div>
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['saved'] }}</p><p class="text-xs" style="color: #6B7280;">Saved this Job</p></div>
-                                            <div class="border border-gray-200 p-3 rounded-md bg-white"><p class="text-xl font-bold" style="color: #1A202C;">{{ $campaignStats['invitation_sent'] }}</p><p class="text-xs" style="color: #6B7280;">Invitation Sent</p></div>
+                                        <div class="camp-dates">
+                                            <div>Posted on: <strong>{{ $job->created_at->format('d M Y') }}</strong>, by {{ $companyName }}</div>
+                                            @if($primaryCampaign && $primaryCampaign->ends_at)
+                                                <div>Expiring on: <strong>{{ $primaryCampaign->ends_at->format('d M Y') }}</strong></div>
+                                            @endif
+                                        </div>
+                                        <div class="camp-stats">
+                                            <div class="camp-stat"><p class="camp-stat-label">Views</p><p class="camp-stat-val">{{ number_format($campaignStats['views']) }}</p></div>
+                                            <div class="camp-stat"><p class="camp-stat-label">Applications</p><p class="camp-stat-val">{{ number_format($campaignStats['applications']) }}</p></div>
+                                            <div class="camp-stat"><p class="camp-stat-label">Shares</p><p class="camp-stat-val">{{ number_format($campaignStats['shares']) }}</p></div>
+                                            <div class="camp-stat"><p class="camp-stat-label">Messages</p><p class="camp-stat-val">{{ number_format($campaignStats['messages']) }}</p></div>
+                                            <div class="camp-stat"><p class="camp-stat-label">Saved this Job</p><p class="camp-stat-val">{{ number_format($campaignStats['saved']) }}</p></div>
+                                            <div class="camp-stat"><p class="camp-stat-label">Invitation Sent</p><p class="camp-stat-val">{{ number_format($campaignStats['invitation_sent']) }}</p></div>
                                         </div>
                                     </div>
-                                    {{-- Action buttons: sharp corners --}}
-                                    <div class="flex flex-col gap-2 w-full md:w-44 flex-shrink-0">
-                                        <a href="{{ route('employer.jobs.applicants', $job->id) }}" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-white rounded-md" style="background-color: #EC4899;">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                    <div class="camp-actions">
+                                        <a href="{{ route('employer.jobs.applicants', $job->id) }}" class="camp-btn camp-btn-pink">
+                                            <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                                             View applicants
                                         </a>
-                                        <button type="button" onclick="openInviteModal({{ $job->id }}, '{{ addslashes($job->title) }}')" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md" style="color: #374151;">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                        <button type="button" class="camp-btn" onclick="openInviteModal({{ $job->id }}, {{ json_encode($job->title) }})">
+                                            <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                                             Invite applicants
                                         </button>
                                         @if($primaryCampaign)
-                                            @php
-                                                $currentType = $primaryCampaign->campaignType;
-                                            @endphp
-                                            <button type="button" onclick="openExtendModal({{ $primaryCampaign->id }}, '{{ addslashes($job->title) }}', {{ $currentType ? $currentType->id : 'null' }}, '{{ addslashes($currentType->name ?? '') }}')" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md" style="color: #374151;">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                            @php $currentType = $primaryCampaign->campaignType; @endphp
+                                            <button type="button" class="camp-btn" onclick="openExtendModal({{ $primaryCampaign->id }}, {{ json_encode($job->title) }}, {{ $currentType ? $currentType->id : 'null' }}, {{ json_encode($currentType->name ?? '') }})">
+                                                <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                                                 Extend listing
                                             </button>
                                         @endif
-                                        <a href="{{ route('employer.jobs.edit', $job->id) }}" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md" style="color: #374151;">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                        <a href="{{ route('employer.jobs.edit', $job->id) }}" class="camp-btn">
+                                            <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                             Edit job
                                         </a>
                                         @if($primaryCampaign)
-                                            <button type="button" class="campaign-pause-btn inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md" style="color: #374151;" data-campaign-id="{{ $primaryCampaign->id }}" data-current-status="{{ $primaryCampaign->status }}">
-                                                <svg class="campaign-pause-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <button type="button" class="campaign-pause-btn camp-btn" data-campaign-id="{{ $primaryCampaign->id }}" data-current-status="{{ $primaryCampaign->status }}">
+                                                <svg class="campaign-pause-icon" style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 <span class="campaign-pause-text">{{ $primaryCampaign->status === 'paused' ? 'Resume listing' : 'Pause listing' }}</span>
                                             </button>
-                                            <form action="{{ route('employer.campaigns.share', $primaryCampaign->id) }}" method="post" class="inline share-form" data-campaign-id="{{ $primaryCampaign->id }}">
+                                            <form action="{{ route('employer.campaigns.share', $primaryCampaign->id) }}" method="post" class="share-form" data-campaign-id="{{ $primaryCampaign->id }}" style="margin:0;">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md" style="color: #374151;">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                                <button type="submit" class="camp-btn">
+                                                    <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.368-2.684z"/></svg>
                                                     Share job post
                                                 </button>
                                             </form>
@@ -194,15 +221,25 @@
                             </div>
                         @endforeach
                     </div>
-                @endif
+                </div>
+
+                <div class="camp-banner">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                        <div style="flex:1;">
+                            <h2>Maximize Your Reach</h2>
+                            <p>Promote your jobs to reach thousands of qualified candidates faster</p>
+                            <a href="{{ route('employer.campaigns.create') }}">Learn More About Campaigns</a>
+                        </div>
+                        <svg style="width:8rem;height:8rem;opacity:0.2;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 </div>
-
 {{-- Extend listing modal (add days + upgrade campaign type) --}}
 <div id="extend-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(0,0,0,0.35); backdrop-filter: blur(4px);">
-    <div class="bg-white shadow-xl w-full max-w-md p-6 rounded-md" style="border: 1px solid #e5e7eb;">
+    <div class="bg-white dark:bg-gray-800 shadow-xl w-full max-w-md p-6 rounded-md" style="border: 1px solid #e5e7eb;">
         <h3 class="text-lg font-bold mb-1" style="color: #1A202C;">Extend listing</h3>
         <p id="extend-job-title" class="text-sm mb-1" style="color: #6B7280;"></p>
         <p id="extend-current-plan" class="text-xs mb-4" style="color: #9CA3AF;">Current plan: <span id="extend-current-plan-name"></span></p>
@@ -210,7 +247,7 @@
             @csrf
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1" style="color: #374151;">Upgrade to</label>
-                <select id="extend-campaign-type" name="campaign_type_id" class="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                <select id="extend-campaign-type" name="campaign_type_id" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
                     <option value="">Keep current plan</option>
                     @foreach($campaignTypes ?? [] as $type)
                         <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -219,10 +256,10 @@
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1" style="color: #374151;">Add days (optional)</label>
-                <input type="number" id="extend-days" name="days" min="0" max="90" value="0" class="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                <input type="number" id="extend-days" name="days" min="0" max="90" value="0" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md">
             </div>
             <div class="flex gap-2 justify-end">
-                <button type="button" onclick="closeExtendModal()" class="px-4 py-2 border border-gray-300 text-sm font-medium hover:bg-gray-50 rounded-md">Cancel</button>
+                <button type="button" onclick="closeExtendModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md">Cancel</button>
                 <button type="submit" id="extend-submit-btn" class="px-4 py-2 rounded-md text-sm font-medium text-white" style="background-color: #3B82F6;">Update listing</button>
             </div>
         </form>
@@ -231,22 +268,22 @@
 
 {{-- Invite applicants modal (talent pool) --}}
 <div id="invite-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(0,0,0,0.35); backdrop-filter: blur(4px);">
-    <div class="bg-white shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col rounded-md" style="border: 1px solid #e5e7eb;">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+    <div class="bg-white dark:bg-gray-800 shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col rounded-md" style="border: 1px solid #e5e7eb;">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
             <div>
                 <h3 class="text-lg font-bold" style="color: #1A202C;">Invite applicants</h3>
                 <p id="invite-modal-job-title" class="text-sm mt-0.5" style="color: #6B7280;"></p>
             </div>
-            <button type="button" onclick="closeInviteModal()" class="p-2 text-gray-500 hover:text-gray-700 rounded-md">
+            <button type="button" onclick="closeInviteModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 rounded-md">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
         <div id="invite-modal-body" class="p-4 overflow-y-auto flex-1 min-h-0">
-            <div id="invite-modal-loading" class="hidden py-8 text-center text-gray-500">
-                <span class="inline-block w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></span>
+            <div id="invite-modal-loading" class="hidden py-8 text-center text-gray-500 dark:text-gray-400">
+                <span class="inline-block w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full animate-spin"></span>
                 <p class="mt-2 text-sm">Loading talent pool...</p>
             </div>
-            <div id="invite-modal-empty" class="hidden py-8 text-center text-gray-500 text-sm">
+            <div id="invite-modal-empty" class="hidden py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                 No applicants in the talent pool for this job. Add applicants from the job’s applicant list to the talent pool first.
             </div>
             <ul id="invite-modal-list" class="space-y-2 hidden"></ul>
@@ -297,10 +334,7 @@
         currentTab = tabKey;
         document.querySelectorAll('.campaign-tab').forEach(function(btn) {
             var isActive = (btn.getAttribute('data-status') || '') === tabKey;
-            btn.style.backgroundColor = isActive ? '#000000' : '';
-            btn.style.color = isActive ? '#ffffff' : '';
-            btn.classList.toggle('text-white', isActive);
-            btn.classList.toggle('text-gray-600', !isActive);
+            btn.classList.toggle('is-active', isActive);
         });
         applyFilters();
     }
@@ -354,7 +388,7 @@
             this.disabled = true;
             if (icon) icon.style.display = 'none';
             if (textEl) textEl.textContent = '';
-            this.insertAdjacentHTML('beforeend', '<span class="inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin ml-1"></span>');
+            this.insertAdjacentHTML('beforeend', '<span class="inline-block w-4 h-4 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full animate-spin ml-1"></span>');
 
             var url = '{{ url("/employer/campaigns") }}/' + campaignId + '/pause';
             fetch(url, {
@@ -476,15 +510,15 @@ function openInviteModal(jobId, jobTitle) {
         listEl.classList.remove('hidden');
         applicants.forEach(function(a) {
             var li = document.createElement('li');
-            li.className = 'flex items-center justify-between gap-3 p-3 border border-gray-200 rounded-md bg-gray-50';
+            li.className = 'flex items-center justify-between gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900';
             li.setAttribute('data-application-id', a.id);
             var invited = a.invited === true;
             var rightCell = invited
                 ? '<span class="text-green-600 text-sm font-medium flex-shrink-0">Invited</span>'
-                : '<button type="button" class="invite-applicant-btn flex-shrink-0 p-2 rounded-md text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition" title="Send invite email" data-application-id="' + a.id + '">' +
+                : '<button type="button" class="invite-applicant-btn flex-shrink-0 p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-pink-50 hover:text-pink-600 transition" title="Send invite email" data-application-id="' + a.id + '">' +
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></button>';
             if (invited) li.setAttribute('data-invited', '1');
-            li.innerHTML = '<div class="min-w-0"><p class="font-medium text-gray-900 truncate">' + (a.first_name || '') + ' ' + (a.last_name || '') + '</p><p class="text-sm text-gray-500 truncate">' + (a.email || '') + '</p></div>' + rightCell;
+            li.innerHTML = '<div class="min-w-0"><p class="font-medium text-gray-900 dark:text-white truncate">' + (a.first_name || '') + ' ' + (a.last_name || '') + '</p><p class="text-sm text-gray-500 dark:text-gray-400 truncate">' + (a.email || '') + '</p></div>' + rightCell;
             listEl.appendChild(li);
         });
         listEl.querySelectorAll('.invite-applicant-btn').forEach(function(btn) {
@@ -495,7 +529,7 @@ function openInviteModal(jobId, jobTitle) {
                 if (row.getAttribute('data-invited') === '1') return;
                 this.disabled = true;
                 var origHtml = this.innerHTML;
-                this.innerHTML = '<span class="inline-block w-5 h-5 border-2 border-gray-300 border-t-pink-500 rounded-full animate-spin"></span>';
+                this.innerHTML = '<span class="inline-block w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-pink-500 rounded-full animate-spin"></span>';
                 var inviteUrl = '{{ url("/employer/applications") }}/' + appId + '/invite';
                 fetch(inviteUrl, {
                     method: 'POST',
@@ -549,17 +583,47 @@ document.querySelectorAll('.share-form').forEach(function(form) {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         var f = this;
-        fetch(f.action, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }, body: new FormData(f) })
+        var card = f.closest('.campaign-card');
+        fetch(f.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new FormData(f)
+        })
             .then(function(r) { return r.json(); })
             .then(function(d) {
-                if (d.url) {
-                    if (navigator.share) {
-                        navigator.share({ title: 'Job', url: d.url }).catch(function() { navigator.clipboard.writeText(d.url); if (window.showSuccessToast) window.showSuccessToast('Link copied to clipboard'); });
-                    } else {
-                        navigator.clipboard.writeText(d.url);
-                        if (window.showSuccessToast) window.showSuccessToast('Link copied to clipboard');
+                if (card) {
+                    var stats = card.querySelectorAll('.camp-stat-val');
+                    // Shares is 3rd stat tile (0 Views, 1 Apps, 2 Shares)
+                    if (stats && stats[2]) {
+                        var n = parseInt(String(stats[2].textContent).replace(/,/g, ''), 10) || 0;
+                        stats[2].textContent = (n + 1).toLocaleString();
                     }
                 }
+                if (d.url) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(d.url).then(function() {
+                            if (window.showSuccessToast) window.showSuccessToast('Share link copied');
+                            else alert('Share link copied');
+                        }).catch(function() {
+                            if (window.showSuccessToast) window.showSuccessToast(d.url);
+                            else prompt('Copy share link:', d.url);
+                        });
+                    } else if (window.showSuccessToast) {
+                        window.showSuccessToast(d.url);
+                    } else {
+                        prompt('Copy share link:', d.url);
+                    }
+                } else if (d.message && window.showSuccessToast) {
+                    window.showSuccessToast(d.message);
+                }
+            })
+            .catch(function() {
+                if (window.showSuccessToast) window.showSuccessToast('Share failed. Try again.');
+                else alert('Share failed. Try again.');
             });
     });
 });
