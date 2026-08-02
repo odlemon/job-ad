@@ -514,7 +514,7 @@ class EmployerApplicationController extends Controller
 
         $subject = "You're invited to apply: {$jobTitle} at {$companyName}";
         $fromAddress = config('mail.from.address', 'noreply@kyntaro.com');
-        $fromName = config('mail.from.name', 'JobHub');
+        $fromName = config('mail.from.name', 'Scoop');
         $apiToken = config('mail.mailers.smtp.password');
 
         try {

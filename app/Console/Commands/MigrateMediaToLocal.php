@@ -348,14 +348,14 @@ class MigrateMediaToLocal extends Command
         }
 
         if ($ext === 'pdf' || $ext === '') {
-            file_put_contents($absolute, $this->minimalPdf("JobHub media placeholder\n{$relative}"));
+            file_put_contents($absolute, $this->minimalPdf("Scoop media placeholder\n{$relative}"));
             return;
         }
 
         if (in_array($ext, ['doc', 'docx', 'txt'], true)) {
             file_put_contents(
                 $absolute,
-                "JobHub restored media placeholder for {$relative}\nOriginal file was unavailable from the previous media host.\n"
+                "Scoop restored media placeholder for {$relative}\nOriginal file was unavailable from the previous media host.\n"
             );
             return;
         }
@@ -378,7 +378,7 @@ class MigrateMediaToLocal extends Command
         $bg = imagecolorallocate($img, 15, 76, 129);
         $fg = imagecolorallocate($img, 255, 255, 255);
         imagefilledrectangle($img, 0, 0, $w, $h, $bg);
-        $text = 'JobHub';
+        $text = 'Scoop';
         imagestring($img, 5, 20, 20, $text, $fg);
         imagestring($img, 3, 20, 50, substr($label, 0, 70), $fg);
 

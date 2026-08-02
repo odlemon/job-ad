@@ -22,7 +22,7 @@ class TeamMessageMail extends Mailable
     public function build(): self
     {
         return $this
-            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'JobHub'))
+            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'Scoop'))
             ->subject($this->subjectLine)
             ->view('emails.team-message', [
                 'recipientName' => $this->recipientName,

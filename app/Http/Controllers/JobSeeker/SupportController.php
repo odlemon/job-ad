@@ -31,7 +31,7 @@ class SupportController extends Controller
         return response()->json([
             'tickets' => $this->ticketsPayload($user->id),
             'faqs' => $this->faqs(),
-            'support_email' => 'support@jobhub.com',
+            'support_email' => 'support@scoop.app',
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
@@ -105,7 +105,7 @@ class SupportController extends Controller
         $jobId = $this->resolveJobId($validated['job_reference']);
         if (! $jobId) {
             return response()->json([
-                'message' => 'Could not find that job. Use a job ID or a JobHub job URL.',
+                'message' => 'Could not find that job. Use a job ID or a Scoop job URL.',
                 'errors' => ['job_reference' => ['Invalid job reference']],
             ], 422);
         }

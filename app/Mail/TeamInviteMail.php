@@ -23,8 +23,8 @@ class TeamInviteMail extends Mailable
         $acceptUrl = url('/team/invite/' . $this->member->invite_token);
 
         return $this
-            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'JobHub'))
-            ->subject("You're invited to join {$this->companyName} on JobHub")
+            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'Scoop'))
+            ->subject("You're invited to join {$this->companyName} on Scoop")
             ->view('emails.team-invite', [
                 'memberName' => $this->member->name,
                 'companyName' => $this->companyName,

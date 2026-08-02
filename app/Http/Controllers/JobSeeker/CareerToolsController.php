@@ -46,7 +46,7 @@ class CareerToolsController extends Controller
                     'id' => $c->id,
                     'title' => $c->title ?? 'Course',
                     'description' => $c->description ?? $c->summary ?? '',
-                    'provider' => $c->provider ?? $c->instructor ?? 'JobHub Learning',
+                    'provider' => $c->provider ?? $c->instructor ?? 'Scoop Learning',
                     'duration' => $c->duration ?? null,
                     'level' => $c->level ?? null,
                     'url' => $c->url ?? $c->link ?? null,
@@ -692,7 +692,7 @@ class CareerToolsController extends Controller
             <p>successfully completed the assessment</p>
             <h2 style="color:#2563eb;">'.e($title).'</h2>
             <div class="score">Score: '.$score.'%</div>
-            <p style="margin-top:28px;color:#6b7280;">Issued by JobHub Career Tools · '.e($date).'</p>
+            <p style="margin-top:28px;color:#6b7280;">Issued by Scoop Career Tools · '.e($date).'</p>
         </div></body></html>';
     }
 

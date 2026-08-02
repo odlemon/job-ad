@@ -164,7 +164,7 @@
                 <div class="su-cta su-cta-email">
                     <h4>Email Support</h4>
                     <p>Prefer email? Reach us directly and we will respond as soon as possible.</p>
-                    <a id="su-email-link" href="mailto:support@jobhub.com">support@jobhub.com</a>
+                    <a id="su-email-link" href="mailto:support@scoop.app">support@scoop.app</a>
                 </div>
             </div>
         </div>
@@ -186,7 +186,7 @@
 <script>
 (function () {
     var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    var state = { tickets: [], faqs: [], supportEmail: 'support@jobhub.com' };
+    var state = { tickets: [], faqs: [], supportEmail: 'support@scoop.app' };
 
     function headers(json) {
         var h = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf };
@@ -234,7 +234,7 @@
         var data = await res.json();
         state.tickets = data.tickets || [];
         state.faqs = data.faqs || [];
-        state.supportEmail = data.support_email || 'support@jobhub.com';
+        state.supportEmail = data.support_email || 'support@scoop.app';
         document.getElementById('su-email-link').href = 'mailto:' + state.supportEmail;
         document.getElementById('su-email-link').textContent = state.supportEmail;
         renderTickets();

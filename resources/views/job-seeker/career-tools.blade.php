@@ -475,7 +475,7 @@
         var list = state.courses || [];
         var html = list.length ? list.map(function (c) {
             return '<div class="ct-path"><h4 style="margin:0 0 .35rem">' + esc(c.title) + '</h4><p style="margin:0;font-size:.875rem;color:#4b5563">' + esc(c.description || 'Professional learning resource') + '</p>' +
-                '<div style="margin-top:.5rem;font-size:.8rem;color:#6b7280">' + esc(c.provider || 'JobHub Learning') + (c.level ? ' · ' + esc(c.level) : '') + (c.duration ? ' · ' + esc(c.duration) : '') + '</div>' +
+                '<div style="margin-top:.5rem;font-size:.8rem;color:#6b7280">' + esc(c.provider || 'Scoop Learning') + (c.level ? ' · ' + esc(c.level) : '') + (c.duration ? ' · ' + esc(c.duration) : '') + '</div>' +
                 (c.url ? '<div style="margin-top:.5rem"><a class="ct-link" href="' + esc(c.url) + '" target="_blank" rel="noopener">Open course</a></div>' : '') +
                 '</div>';
         }).join('') : '<div class="ct-empty">No courses published yet. Check back soon — assessments and career paths still help you grow today.</div>';

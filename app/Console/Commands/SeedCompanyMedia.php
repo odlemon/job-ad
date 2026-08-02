@@ -137,7 +137,7 @@ class SeedCompanyMedia extends Command
         try {
             $response = Http::timeout(45)
                 ->withHeaders([
-                    'User-Agent' => 'JobHubMediaSeeder/1.0',
+                    'User-Agent' => 'ScoopMediaSeeder/1.0',
                     'Accept' => 'image/jpeg,image/*,*/*',
                 ])
                 ->get($url);

@@ -2,11 +2,10 @@
 <style>
 .emp-side { width:16rem; background:#fff; border-right:1px solid #e5e7eb; height:100vh; position:fixed; left:0; top:0; z-index:30; display:flex; flex-direction:column; transition:background .2s,border-color .2s; }
 .dark .emp-side { background:#1f2937; border-color:#374151; }
-.emp-side-brand { padding:1.5rem; border-bottom:1px solid #e5e7eb; flex-shrink:0; }
+.emp-side-brand { padding:1.25rem 1.25rem 1rem; border-bottom:1px solid #e5e7eb; flex-shrink:0; }
 .dark .emp-side-brand { border-color:#374151; }
-.emp-side-brand-link { display:flex; align-items:center; gap:.5rem; text-decoration:none; }
-.emp-side-logo { padding:.5rem; border-radius:.25rem; box-shadow:0 10px 15px -3px rgba(37,99,235,.35); background:linear-gradient(to bottom right,#2563eb,#06b6d4); color:#fff; display:flex; align-items:center; justify-content:center; }
-.emp-side-title { font-weight:700; font-size:1.125rem; margin:0; line-height:1.25; background:linear-gradient(to right,#2563eb,#06b6d4); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.emp-side-brand-link { display:flex; flex-direction:column; align-items:flex-start; gap:.35rem; text-decoration:none; }
+.emp-side-brand-img { height:2.35rem; width:auto; max-width:100%; object-fit:contain; display:block; }
 .emp-side-sub { font-size:.75rem; color:#6b7280; margin:0; }
 .dark .emp-side-sub { color:#9ca3af; }
 .emp-side-nav { flex:1; padding:1rem; overflow-y:auto; min-height:0; }
@@ -50,13 +49,8 @@
 <aside id="employer-sidebar" class="emp-side">
     <div class="emp-side-brand">
         <a href="/" class="emp-side-brand-link">
-            <div class="emp-side-logo">
-                <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-            </div>
-            <div>
-                <h2 class="emp-side-title">JobHub</h2>
-                <p class="emp-side-sub">Employer Portal</p>
-            </div>
+            <img src="{{ asset('scoop.png') }}" alt="Scoop" class="emp-side-brand-img">
+            <p class="emp-side-sub">Employer Portal</p>
         </a>
     </div>
 

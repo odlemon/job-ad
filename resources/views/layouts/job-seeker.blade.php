@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Job Seeker Dashboard - JobHub' }}</title>
+    <title>{{ $title ?? 'Job Seeker Dashboard - Scoop' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('scoop.png') }}">
 
     @include('partials.theme-head')
 

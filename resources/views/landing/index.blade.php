@@ -382,7 +382,7 @@
                         <!-- QR Code -->
                         <div class="flex items-center space-x-4 mb-6">
                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://jobhub.app/download&ecc=M&margin=1" alt="QR Code - Scan to download app" class="w-32 h-32">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data={{ urlencode(url('/')) }}&ecc=M&margin=1" alt="QR Code - Scan to download app" class="w-32 h-32">
                             </div>
                             <div>
                                 <p class="text-sm font-semibold mb-2">Scan to download</p>

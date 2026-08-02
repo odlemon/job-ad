@@ -23,7 +23,7 @@ class InviteApplicantMail extends Mailable
         $applyUrl = url('/jobs/' . $this->jobId);
 
         return $this
-            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'JobHub'))
+            ->from(config('mail.from.address', 'noreply@kyntaro.com'), config('mail.from.name', 'Scoop'))
             ->subject("You're invited to apply: {$this->jobTitle} at {$this->companyName}")
             ->view('emails.invite-applicant', [
                 'applicantName' => $this->applicantName,

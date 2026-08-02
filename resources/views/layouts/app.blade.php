@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'JobHub - Find Your Next Career Opportunity' }}</title>
+    <title>{{ $title ?? 'Scoop - Find Your Next Career Opportunity' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('scoop.png') }}">
 
     @include('partials.theme-head')
 
@@ -55,11 +56,8 @@
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo -->
                     <div class="flex items-center">
-                        <a href="{{ route('landing') }}" wire:navigate class="flex items-center space-x-2">
-                            <svg class="w-8 h-8 text-blue-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                            <span class="text-2xl font-bold text-gray-900 dark:text-white">JobHub</span>
+                        <a href="{{ route('landing') }}" wire:navigate class="flex items-center">
+                            <img src="{{ asset('scoop.png') }}" alt="Scoop" class="h-9 w-auto max-w-[200px] object-contain">
                         </a>
                     </div>
 
@@ -181,7 +179,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <a href="{{ route('landing') }}" wire:navigate>
-                        <h3 class="text-lg font-semibold mb-4">JobHub</h3>
+                        <img src="{{ asset('scoop.png') }}" alt="Scoop" class="h-8 w-auto mb-4 object-contain brightness-0 invert">
                     </a>
                     <p class="text-gray-400 text-sm">Connecting talent with opportunity.</p>
                 </div>
@@ -211,7 +209,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-                <p>&copy; {{ date('Y') }} JobHub. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} Scoop. All rights reserved.</p>
             </div>
         </div>
     </footer>

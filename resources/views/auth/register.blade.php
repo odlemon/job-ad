@@ -7,11 +7,12 @@
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 space-y-4">
             <!-- Header -->
             <div class="text-center">
+                <img src="{{ asset('scoop.png') }}" alt="Scoop" class="h-12 w-auto mx-auto mb-3 object-contain">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                     Create Account
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Join JobHub and start your journey
+                    Join Scoop and start your journey
                 </p>
             </div>
 

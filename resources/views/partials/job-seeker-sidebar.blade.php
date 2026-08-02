@@ -138,7 +138,7 @@
 
 <aside id="job-seeker-sidebar" class="js-side" aria-label="Job seeker navigation">
     <div class="js-side-mobile-head">
-        <h2>Menu</h2>
+        <img src="{{ asset('scoop.png') }}" alt="Scoop" style="height:1.75rem;width:auto;object-fit:contain;">
         <button type="button" class="js-side-close" onclick="window.closeJobSeekerSidebar && window.closeJobSeekerSidebar()" aria-label="Close menu">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
