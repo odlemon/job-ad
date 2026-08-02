@@ -59,9 +59,9 @@ class MigrateMediaToLocal extends Command
     {
         $this->dryRun = (bool) $this->option('dry-run');
         $this->skipDownload = (bool) $this->option('skip-download');
-        $this->mediaBase = rtrim((string) env('MEDIA_BASE_URL', 'http://127.0.0.1/uploads'), '/');
+        $this->mediaBase = rtrim((string) config('services.media.base_url', 'http://127.0.0.1/uploads'), '/');
         $this->newHost = parse_url($this->mediaBase, PHP_URL_HOST) ?: '127.0.0.1';
-        $this->uploadRoot = (string) env('MEDIA_UPLOAD_DIR', base_path('uploads'));
+        $this->uploadRoot = (string) config('services.media.upload_dir', base_path('uploads'));
 
         if (! is_dir($this->uploadRoot) && ! $this->dryRun) {
             mkdir($this->uploadRoot, 0755, true);
@@ -203,12 +203,16 @@ class MigrateMediaToLocal extends Command
             return $value;
         }
 
-        // Absolute old-host URLs -> new media base.
-        if (str_contains($value, $this->oldHost)) {
-            $path = $value;
-            if (preg_match('#https?://[^/]+(/uploads/.+)$#i', $value, $m)) {
-                return $this->mediaBase . substr($m[1], strlen('/uploads'));
+        // Any absolute .../uploads/... URL -> current MEDIA_BASE_URL + relative path.
+        if (preg_match('#https?://[^/]+(/uploads/.+)$#i', $value, $m)) {
+            $rewritten = $this->mediaBase . substr($m[1], strlen('/uploads'));
+            if ($rewritten !== $value) {
+                return $rewritten;
             }
+        }
+
+        // Absolute old-host URLs without /uploads (rare).
+        if (str_contains($value, $this->oldHost)) {
             return str_replace(
                 ["http://{$this->oldHost}", "https://{$this->oldHost}"],
                 ["http://{$this->newHost}", "https://{$this->newHost}"],

@@ -36,10 +36,10 @@ class RemoteUploadService
         $this->client = new Client([
             'timeout' => 60.0,
         ]);
-        $this->uploadServiceUrl = env('UPLOAD_SERVICE_URL', 'http://127.0.0.1:3050/upload');
-        $this->mediaBaseUrl = env(
-            'MEDIA_BASE_URL',
-            rtrim((string) env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'
+        $this->uploadServiceUrl = (string) config('services.media.upload_url', 'http://127.0.0.1:3050/upload');
+        $this->mediaBaseUrl = (string) config(
+            'services.media.base_url',
+            rtrim((string) config('app.url', 'http://127.0.0.1'), '/') . '/uploads'
         );
     }
 

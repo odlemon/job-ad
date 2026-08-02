@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'media' => [
+        'upload_url' => env('UPLOAD_SERVICE_URL', 'http://127.0.0.1:3050/upload'),
+        'base_url' => env(
+            'MEDIA_BASE_URL',
+            rtrim((string) env('APP_URL', 'http://127.0.0.1'), '/') . '/uploads'
+        ),
+        'upload_dir' => env('MEDIA_UPLOAD_DIR', base_path('uploads')),
+    ],
+
 ];
